@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asha Suhasini Raja - Mental Wellness Consultant & Psychotherapist</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+        <p>Welcome</p>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar" aria-label="Primary">
+        <div class="nav-container">
+        <div class="logo">
+                <img src="assets/profile-logo.jpg" alt="Profile logo" class="logo-photo">
+                <span class="logo-text">Asha Suhasini Raja</span>
+            </div>
+            <button class="menu-toggle" id="menuToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#services" class="nav-link">Services</a></li>
+                <li><a href="#focus" class="nav-link">Areas of Focus</a></li>
+                <li><a href="#experience" class="nav-link">Experience</a></li>
+                <li><a href="#approach" class="nav-link">Approach</a></li>
+                <li><a href="#workshops" class="nav-link">Workshops</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+                <li>
+                    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme">
+                        <span class="theme-toggle-icon" aria-hidden="true">🌙</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+        <div class="hero-bg">
+            <div class="floating-element"></div>
+            <div class="floating-element"></div>
+            <div class="floating-element"></div>
+            <div class="floating-element"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge">Globally Affiliated Mental Wellness Expert</div>
+            <h1 class="glitch" data-text="Asha Suhasini Raja">Asha Suhasini Raja</h1>
+            <p class="subtitle">Mental Wellness Consultant & Psychotherapist</p>
+            <p class="tagline">Nurturing emotional well-being • Empowering balanced lives • 18+ years of transformation</p>
+            <div class="hero-buttons">
+                <button class="cta-button primary" onclick="openModal('bookingModal')">Book a Session</button>
+                <button class="cta-button secondary" onclick="scrollToSection('about')">Learn More</button>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number" data-target="18">0</span>
+                    <span class="stat-label">Years Experience</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="1000">0</span>
+                    <span class="stat-label">+ Lives Transformed</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="15">0</span>
+                    <span class="stat-label">+ Organizations</span>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="mouse"></div>
+            <p>Scroll to explore</p>
+        </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="section-padding">
+        <div class="container">
+            <h2 class="section-title reveal">About Asha</h2>
+            <p class="section-subtitle reveal">18+ years of compassionate care and transformation</p>
+            <div class="about-content">
+                <div class="about-image reveal">
+                    <div class="image-placeholder">
+                        <span class="placeholder-icon">🧠</span>
+                    </div>
+                    <div class="about-badges">
+                        <div class="badge">CCI Registered</div>
+                        <div class="badge">M.A. Clinical Psychology</div>
+                    </div>
+                </div>
+                <div class="about-text reveal">
+                    <p class="lead-text">A globally affiliated Mental Wellness Consultant and Psychotherapist dedicated to nurturing emotional well-being and empowering individuals to live more balanced and meaningful lives.</p>
+                    <p>With over 18 years of professional experience, Asha has built a trusted reputation for her compassionate approach, scientific insight, and commitment to transforming lives through therapy and self-awareness.</p>
+                    <p>Holding a Master's in Clinical Psychology from SNDT University, Mumbai, and registered with the Counsellors Council of India (CRN9047214), she combines strong academic foundations with extensive practical experience.</p>
+                    <div class="credentials-grid">
+                        <div class="credential-item" onclick="openModal('educationModal')">
+                            <div class="credential-icon">🎓</div>
+                            <h4>Education</h4>
+                            <p>Click to view details</p>
+                        </div>
+                        <div class="credential-item" onclick="openModal('certificationModal')">
+                            <div class="credential-icon">📜</div>
+                            <h4>Certifications</h4>
+                            <p>Click to view details</p>
+                        </div>
+                        <div class="credential-item" onclick="openModal('specializationModal')">
+                            <div class="credential-icon">⭐</div>
+                            <h4>Specializations</h4>
+                            <p>Click to view details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="section-padding bg-light">
+        <div class="container">
+            <h2 class="section-title reveal">Services</h2>
+            <p class="section-subtitle reveal">Comprehensive mental wellness support tailored to your needs</p>
+            <div class="services-grid">
+                <div class="service-card reveal" onclick="openServiceModal('individual')">
+                    <div class="service-icon">💭</div>
+                    <h3>Individual Therapy</h3>
+                    <p>Evidence-based one-on-one psychotherapy</p>
+                    <button class="learn-more">Learn More →</button>
+                </div>
+                <div class="service-card reveal" onclick="openServiceModal('family')">
+                    <div class="service-icon">👨‍👩‍👧‍👦</div>
+                    <h3>Family & Marital Therapy</h3>
+                    <p>Strengthening relationships and bonds</p>
+                    <button class="learn-more">Learn More →</button>
+                </div>
+                <div class="service-card reveal" onclick="openServiceModal('corporate')">
+                    <div class="service-icon">💼</div>
+                    <h3>Corporate Wellness</h3>
+                    <p>Workplace mental health programs</p>
+                    <button class="learn-more">Learn More →</button>
+                </div>
+                <div class="service-card reveal" onclick="openServiceModal('coaching')">
+                    <div class="service-icon">🎯</div>
+                    <h3>Life Skills Coaching</h3>
+                    <p>Building confidence and resilience</p>
+                    <button class="learn-more">Learn More →</button>
+                </div>
+                <div class="service-card reveal" onclick="openServiceModal('trauma')">
+                    <div class="service-icon">🌱</div>
+                    <h3>Trauma Counseling</h3>
+                    <p>Specialized healing support</p>
+                    <button class="learn-more">Learn More →</button>
+                </div>
+                <div class="service-card reveal" onclick="openServiceModal('student')">
+                    <div class="service-icon">📚</div>
+                    <h3>Student Counseling</h3>
+                    <p>Academic and personal development</p>
+                    <button class="learn-more">Learn More →</button>
+                </div>
+            </div>
+        </div>
+        </section>
+
+        <!-- Areas of Focus -->
+        <section id="focus" class="section-padding">
+        <div class="container">
+            <h2 class="section-title reveal">Areas of Focus</h2>
+            <p class="section-subtitle reveal">Common concerns I support in therapy</p>
+            <div class="focus-grid">
+                <article class="focus-card reveal">
+                    <h3>Anxiety & Stress</h3>
+                    <p>Persistent worry, overthinking, restlessness, and difficulty relaxing.</p>
+                    <ul>
+                        <li>Performance anxiety</li>
+                        <li>Panic symptoms</li>
+                        <li>Chronic stress & overwhelm</li>
+                    </ul>
+                </article>
+                <article class="focus-card reveal">
+                    <h3>Mood & Depression</h3>
+                    <p>Feeling low, empty, unmotivated, or disconnected from yourself.</p>
+                    <ul>
+                        <li>Loss of interest or joy</li>
+                        <li>Sleep and appetite changes</li>
+                        <li>Negative self-talk</li>
+                    </ul>
+                </article>
+                <article class="focus-card reveal">
+                    <h3>Relationships & Family</h3>
+                    <p>Conflict, communication breakdown, or feeling unseen in close relationships.</p>
+                    <ul>
+                        <li>Marital challenges</li>
+                        <li>Parent–child dynamics</li>
+                        <li>Boundary setting</li>
+                    </ul>
+                </article>
+                <article class="focus-card reveal">
+                    <h3>Students & Careers</h3>
+                    <p>Academic pressure, career confusion, and transitions into adult life.</p>
+                    <ul>
+                        <li>Exam and performance stress</li>
+                        <li>Career decision fatigue</li>
+                        <li>Imposter feelings</li>
+                    </ul>
+                </article>
+                <article class="focus-card reveal">
+                    <h3>Workplace & Burnout</h3>
+                    <p>Exhaustion, cynicism, and feeling stuck in high-pressure environments.</p>
+                    <ul>
+                        <li>Corporate stress & overload</li>
+                        <li>Work–life boundaries</li>
+                        <li>Leadership challenges</li>
+                    </ul>
+                </article>
+                <article class="focus-card reveal">
+                    <h3>Trauma, Loss & Healing</h3>
+                    <p>Recovering from painful events and rebuilding safety within yourself.</p>
+                    <ul>
+                        <li>Grief and bereavement</li>
+                        <li>Critical incidents & PTSD</li>
+                        <li>Life transitions</li>
+                    </ul>
+                </article>
+            </div>
+        </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience" class="section-padding">
+        <div class="container">
+            <h2 class="section-title reveal">Professional Experience</h2>
+            <p class="section-subtitle reveal">Collaborations with leading institutions worldwide</p>
+            <div class="experience-timeline">
+                <div class="timeline-item reveal" onclick="openExperienceModal('klh')">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-period">2023 - Present</span>
+                        <h3>KLH University</h3>
+                        <p class="timeline-role">Consulting Psychotherapist</p>
+                        <span class="timeline-location">📍 Hyderabad</span>
+                        <button class="timeline-btn">View Details →</button>
+                    </div>
+                </div>
+                <div class="timeline-item reveal" onclick="openExperienceModal('modern')">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-period">Current</span>
+                        <h3>Modern Health</h3>
+                        <p class="timeline-role">Psychological Consultant & Psychotherapist</p>
+                        <span class="timeline-location">📍 Arizona, USA</span>
+                        <button class="timeline-btn">View Details →</button>
+                    </div>
+                </div>
+                <div class="timeline-item reveal" onclick="openExperienceModal('private')">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-period">Since 2006</span>
+                        <h3>Private Practice</h3>
+                        <p class="timeline-role">Independent Psychotherapist</p>
+                        <span class="timeline-location">📍 Global Clientele</span>
+                        <button class="timeline-btn">View Details →</button>
+                    </div>
+                </div>
+                <div class="timeline-item reveal" onclick="openExperienceModal('manah')">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-period">Previous</span>
+                        <h3>Manah Wellness</h3>
+                        <p class="timeline-role">Senior Mental Wellness Consultant</p>
+                        <span class="timeline-location">📍 Remote</span>
+                        <button class="timeline-btn">View Details →</button>
+                    </div>
+                </div>
+                <div class="timeline-item reveal" onclick="openExperienceModal('morneau')">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-period">Previous</span>
+                        <h3>Morneau Shepell</h3>
+                        <p class="timeline-role">Trauma Counseling Specialist</p>
+                        <span class="timeline-location">📍 Canada</span>
+                        <button class="timeline-btn">View Details →</button>
+                    </div>
+                </div>
+                <div class="timeline-item reveal" onclick="openExperienceModal('hyundai')">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-period">Previous</span>
+                        <h3>Hyundai Mobis</h3>
+                        <p class="timeline-role">Corporate Mental Wellness Consultant</p>
+                        <span class="timeline-location">📍 Hi-Tech City, Hyderabad</span>
+                        <button class="timeline-btn">View Details →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </section>
+
+        <!-- Therapeutic Approach -->
+        <section id="approach" class="section-padding bg-gradient">
+        <div class="container">
+            <h2 class="section-title reveal text-white">Therapeutic Approach</h2>
+            <p class="section-subtitle reveal text-white">Personalized, Evidence-Based Care</p>
+            <div class="approach-content reveal">
+                <p class="approach-text">Every therapeutic journey is a partnership built on trust, empathy, and collaboration. I believe in the power of the subconscious mind and each individual's ability to heal, grow, and transform. My approach integrates multiple proven methodologies, tailored to your unique needs.</p>
+            </div>
+            <div class="therapy-methods">
+                <div class="method-card reveal" onclick="openTherapyModal('cbt')">
+                    <h4>CBT</h4>
+                    <p>Cognitive Behavioural Therapy</p>
+                </div>
+                <div class="method-card reveal" onclick="openTherapyModal('rebt')">
+                    <h4>REBT</h4>
+                    <p>Rational Emotive Behaviour Therapy</p>
+                </div>
+                <div class="method-card reveal" onclick="openTherapyModal('dbt')">
+                    <h4>DBT</h4>
+                    <p>Dialectical Behaviour Therapy</p>
+                </div>
+                <div class="method-card reveal" onclick="openTherapyModal('sfbt')">
+                    <h4>SFBT</h4>
+                    <p>Solution-Focused Brief Therapy</p>
+                </div>
+                <div class="method-card reveal" onclick="openTherapyModal('fmt')">
+                    <h4>FMT</h4>
+                    <p>Family & Marital Therapy</p>
+                </div>
+                <div class="method-card reveal" onclick="openTherapyModal('gestalt')">
+                    <h4>Gestalt</h4>
+                    <p>Gestalt Therapy</p>
+                </div>
+            </div>
+        </div>
+        </section>
+
+        <!-- Workshops Section -->
+        <section id="workshops" class="section-padding">
+        <div class="container">
+            <h2 class="section-title reveal">Workshops & Seminars</h2>
+            <p class="section-subtitle reveal">Mental health awareness and education</p>
+            <div class="workshops-grid">
+                <div class="workshop-card reveal" onclick="openWorkshopModal('confidence')">
+                    <div class="workshop-image">🎯</div>
+                    <h3>Building Confidence in Children</h3>
+                    <p>Empowering young minds with self-belief</p>
+                    <button class="workshop-btn">Learn More →</button>
+                </div>
+                <div class="workshop-card reveal" onclick="openWorkshopModal('exam')">
+                    <div class="workshop-image">📖</div>
+                    <h3>Managing Exam Stress</h3>
+                    <p>Techniques for academic success</p>
+                    <button class="workshop-btn">Learn More →</button>
+                </div>
+                <div class="workshop-card reveal" onclick="openWorkshopModal('parenting')">
+                    <div class="workshop-image">❤️</div>
+                    <h3>Conscious Parenting</h3>
+                    <p>Building emotional connections</p>
+                    <button class="workshop-btn">Learn More →</button>
+                </div>
+                <div class="workshop-card reveal" onclick="openWorkshopModal('mindset')">
+                    <div class="workshop-image">🏆</div>
+                    <h3>Winning Mindset</h3>
+                    <p>Developing resilience and determination</p>
+                    <button class="workshop-btn">Learn More →</button>
+                </div>
+            </div>
+        </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section-padding bg-light">
+        <div class="container">
+            <h2 class="section-title reveal">Begin Your Journey</h2>
+            <p class="section-subtitle reveal">Take the first step towards emotional well-being</p>
+            <div class="contact-content reveal">
+                <div class="contact-info">
+                    <h3>Get in Touch</h3>
+                    <p>Whether you're seeking support for yourself, your family, or your organization, I'm here to help you navigate your path to emotional well-being.</p>
+                    <div class="contact-methods">
+                        <div class="contact-method">
+                            <div class="contact-icon">📧</div>
+                            <div>
+                                <h4>Email</h4>
+                                <p>contact@ashasuhasini.com</p>
+                            </div>
+                        </div>
+                        <div class="contact-method">
+                            <div class="contact-icon">📍</div>
+                            <div>
+                                <h4>Location</h4>
+                                <p>Hyderabad, India</p>
+                            </div>
+                        </div>
+                        <div class="contact-method">
+                            <div class="contact-icon">🌐</div>
+                            <div>
+                                <h4>Availability</h4>
+                                <p>Online & In-Person Sessions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form">
+                    <form id="contactForm" novalidate>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="name">Full Name</label>
+                                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label for="supportType">What do you need support with?</label>
+                                <select id="supportType" name="supportType">
+                                    <option value="">Select an option</option>
+                                    <option value="individual">Individual therapy</option>
+                                    <option value="family">Family / marital therapy</option>
+                                    <option value="student">Student / academic concerns</option>
+                                    <option value="corporate">Corporate wellness</option>
+                                    <option value="other">Not sure / other</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="mode">Preferred session format</label>
+                                <select id="mode" name="mode">
+                                    <option value="">No preference</option>
+                                    <option value="online">Online</option>
+                                    <option value="in-person">In-person (Hyderabad)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label for="message">How can I support you?</label>
+                            <textarea id="message" name="message" rows="4" placeholder="Share a few lines about what brings you here." required></textarea>
+                        </div>
+                        <p class="form-helper">This form is for appointment and inquiry requests. Your details are kept confidential and are used only to respond to you.</p>
+                        <button type="submit" class="contact-button">Submit Inquiry</button>
+                        <p id="contactFormMessage" class="contact-form-message" role="status" aria-live="polite"></p>
+                    </form>
+                    <div class="contact-quick-actions">
+                        <button class="contact-button tertiary" type="button" onclick="openModal('bookingModal')">View Session Types</button>
+                        <button class="contact-button tertiary" type="button" onclick="openModal('inquiryModal')">General Inquiry Info</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Asha Suhasini Raja</h3>
+                    <p>Mental Wellness Consultant & Psychotherapist</p>
+                    <p class="footer-reg">Registered with Counsellors Council of India (CRN9047214)</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#experience">Experience</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Services</h4>
+                    <ul>
+                        <li>Individual Therapy</li>
+                        <li>Family Therapy</li>
+                        <li>Corporate Wellness</li>
+                        <li>Life Coaching</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Asha Suhasini Raja. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal Container -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="modal" id="modalContainer" role="dialog" aria-modal="true"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
