@@ -358,7 +358,7 @@ function openServiceModal(serviceType) {
             <button class="modal-close" onclick="closeModal()">×</button>
         </div>
         <div class="modal-body">
-            <p style="font-size: 1.1rem; color: #555; margin-bottom: 1.5rem;">${service.description}</p>
+            <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${service.description}</p>
             
             <h3>What to Expect</h3>
             <ul>
@@ -418,7 +418,7 @@ function openExperienceModal(orgType) {
             role: 'Independent Psychotherapist',
             period: 'Since 2006',
             location: 'Global Clientele',
-            description: 'Building a trusted practice over 18+ years, serving individuals, families, and organizations worldwide.',
+            description: 'Building a trusted practice over 19+ years, serving individuals, families, and organizations worldwide.',
             responsibilities: [
                 'Individual and family therapy across diverse age groups',
                 'Specialized trauma counseling and PTSD treatment',
@@ -485,7 +485,7 @@ function openExperienceModal(orgType) {
                 <p style="margin: 0.3rem 0 0 0; opacity: 0.9;">${exp.period} • ${exp.location}</p>
             </div>
             
-            <p style="font-size: 1.1rem; color: #555; margin-bottom: 1.5rem;">${exp.description}</p>
+            <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${exp.description}</p>
             
             <h3>Key Responsibilities</h3>
             <ul>
@@ -586,7 +586,7 @@ function openTherapyModal(methodType) {
             <button class="modal-close" onclick="closeModal()">×</button>
         </div>
         <div class="modal-body">
-            <p style="font-size: 1.1rem; color: #555; margin-bottom: 1.5rem;">${method.description}</p>
+            <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${method.description}</p>
             
             <h3>Key Benefits</h3>
             <ul>
@@ -676,14 +676,14 @@ function openWorkshopModal(workshopType) {
             <button class="modal-close" onclick="closeModal()">×</button>
         </div>
         <div class="modal-body">
-            <p style="font-size: 1.1rem; color: #555; margin-bottom: 1.5rem;">${workshop.description}</p>
+            <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${workshop.description}</p>
             
             <h3>Workshop Content</h3>
             <ul>
                 ${workshop.content.map(item => `<li>${item}</li>`).join('')}
             </ul>
             
-            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 15px; margin-top: 2rem;">
+            <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 15px; margin-top: 2rem;">
                 <p><strong>Duration:</strong> ${workshop.duration}</p>
                 <p style="margin-bottom: 0;"><strong>Target Audience:</strong> ${workshop.audience}</p>
             </div>

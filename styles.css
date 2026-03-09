@@ -12,6 +12,8 @@
     --dark: #1a1a2e;
     --light: #f8f9fa;
     --text: #2c3e50;
+    --muted: #6b7280;
+    --card-bg: #ffffff;
     --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
@@ -43,6 +45,8 @@ body[data-theme="dark"] {
     --dark: #020617;
     --light: #020617;
     --text: #e5e7eb;
+    --muted: rgba(229,231,235,0.78);
+    --card-bg: rgba(255,255,255,0.03);
     --gradient-1: linear-gradient(135deg, #1e293b 0%, #020617 100%);
     --gradient-2: linear-gradient(135deg, #4c1d95 0%, #0f172a 100%);
     --gradient-3: linear-gradient(135deg, #22c55e 0%, #14b8a6 100%);
@@ -106,7 +110,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+     background: var(--card-bg);
     transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
@@ -557,7 +561,7 @@ body[data-theme="dark"] .theme-toggle {
 .section-subtitle {
     text-align: center;
     font-size: 1.2rem;
-    color: #666;
+    color: var(--muted);
     margin-bottom: 4rem;
 }
 
@@ -603,7 +607,7 @@ body[data-theme="dark"] .theme-toggle {
 
 .badge {
     padding: 0.7rem 1.5rem;
-    background: white;
+    background: var(--card-bg);
     border-radius: 25px;
     font-weight: 600;
     box-shadow: var(--shadow-md);
@@ -614,7 +618,7 @@ body[data-theme="dark"] .theme-toggle {
 .about-text {
     font-size: 1.1rem;
     line-height: 1.8;
-    color: #555;
+    color: var(--text);
 }
 
 .lead-text {
@@ -637,7 +641,7 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .credential-item {
-    background: white;
+    background: var(--card-bg);
     padding: 1.5rem;
     border-radius: 15px;
     text-align: center;
@@ -665,7 +669,43 @@ body[data-theme="dark"] .theme-toggle {
 
 .credential-item p {
     font-size: 0.9rem;
-    color: #999;
+    color: var(--muted);
+}
+
+/* About section lists and headings */
+.about-text h4 {
+    color: var(--primary);
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.05rem;
+}
+
+.about-text ul,
+.about-text ol {
+    margin: 0.5rem 0 1.25rem 1.25rem;
+    color: var(--text);
+}
+
+.about-text ul li,
+.about-text ol li {
+    margin-bottom: 0.45rem;
+    line-height: 1.6;
+    color: var(--text);
+}
+
+.about-text ol {
+    list-style: decimal inside;
+}
+
+.about-text ul {
+    list-style: disc inside;
+}
+
+/* Make credentials grid responsive */
+@media (max-width: 900px) {
+    .credentials-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Services Grid */
@@ -677,7 +717,7 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .service-card {
-    background: white;
+    background: var(--card-bg);
     padding: 2.5rem;
     border-radius: 25px;
     box-shadow: var(--shadow-sm);
@@ -722,7 +762,7 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .service-card p {
-    color: #666;
+    color: var(--muted);
     line-height: 1.6;
     margin-bottom: 1.5rem;
 }
@@ -783,7 +823,7 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .timeline-content {
-    background: white;
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 20px;
     box-shadow: var(--shadow-sm);
@@ -819,7 +859,7 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .timeline-location {
-    color: #999;
+    color: var(--muted);
     font-size: 0.9rem;
     display: block;
     margin: 0.5rem 0 1rem 0;
@@ -900,7 +940,7 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .workshop-card {
-    background: white;
+    background: var(--card-bg);
     border-radius: 25px;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
@@ -930,7 +970,7 @@ body[data-theme="dark"] .theme-toggle {
 
 .workshop-card p {
     padding: 0 1.5rem 1rem 1.5rem;
-    color: #666;
+    color: var(--muted);
 }
 
 .workshop-btn {
@@ -958,7 +998,7 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .focus-card {
-    background: white;
+    background: var(--card-bg);
     border-radius: 22px;
     padding: 2rem;
     box-shadow: var(--shadow-sm);
@@ -973,13 +1013,13 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .focus-card p {
-    color: #566;
+    color: var(--muted);
     margin-bottom: 1rem;
 }
 
 .focus-card ul {
     padding-left: 1.2rem;
-    color: #777;
+    color: var(--muted);
     font-size: 0.95rem;
 }
 
@@ -1009,7 +1049,7 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .contact-info p {
-    color: #666;
+    color: var(--muted);
     line-height: 1.8;
     margin-bottom: 2rem;
 }
@@ -1025,7 +1065,7 @@ body[data-theme="dark"] .theme-toggle {
     align-items: center;
     gap: 1rem;
     padding: 1.5rem;
-    background: white;
+        background: var(--card-bg);
     border-radius: 15px;
     box-shadow: var(--shadow-sm);
 }
@@ -1040,7 +1080,7 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .contact-method p {
-    color: #666;
+    color: var(--muted);
     margin: 0;
 }
 
@@ -1069,7 +1109,7 @@ body[data-theme="dark"] .theme-toggle {
 }
 
 .contact-button.secondary {
-    background: white;
+    background: var(--card-bg);
     color: var(--primary);
     border: 2px solid var(--primary);
 }
@@ -1111,7 +1151,7 @@ body[data-theme="dark"] .theme-toggle {
     border: 1px solid rgba(148, 163, 184, 0.7);
     font: inherit;
     color: var(--text);
-    background: white;
+    background: var(--card-bg);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
@@ -1126,12 +1166,12 @@ body[data-theme="dark"] .theme-toggle {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 2px rgba(232, 180, 168, 0.3);
-    background: #fffdfb;
+    background: var(--card-bg);
 }
 
 .form-helper {
     font-size: 0.85rem;
-    color: #888;
+    color: var(--muted);
     margin-top: 0.25rem;
     margin-bottom: 0.75rem;
 }
@@ -1278,7 +1318,7 @@ footer {
     border: none;
     font-size: 2rem;
     cursor: pointer;
-    color: #999;
+    color: var(--muted);
     transition: color 0.3s ease;
     padding: 0;
     width: 40px;
@@ -1296,7 +1336,7 @@ footer {
 
 .modal-body {
     line-height: 1.8;
-    color: #666;
+    color: var(--muted);
 }
 
 .modal-body h3 {
@@ -1356,7 +1396,7 @@ footer {
         top: 100%;
         left: 0;
         width: 100%;
-        background: white;
+        background: var(--card-bg);
         flex-direction: column;
         padding: 2rem;
         gap: 1rem;
