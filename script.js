@@ -861,7 +861,12 @@ function initGalleryHandlers() {
         galleryItems.push({ src, type, caption });
 
         img.setAttribute('loading', 'lazy');
-        img.addEventListener('click', () => openMediaModal(src, type, i, caption));
+        img.style.cursor = 'pointer';
+        img.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openMediaModal(src, type, i, caption);
+        });
     });
 
     const thumbs = Array.from(document.querySelectorAll('.video-thumb'));
@@ -871,7 +876,11 @@ function initGalleryHandlers() {
         const index = galleryItems.length;
         galleryItems.push({ src, type: 'video', caption });
 
-        thumb.addEventListener('click', () => openMediaModal(src, 'video', index, caption));
+        thumb.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openMediaModal(src, 'video', index, caption);
+        });
         thumb.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
