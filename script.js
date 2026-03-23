@@ -793,3 +793,101 @@ if (contactForm && contactFormMessage) {
 }
 
 console.log('Asha Suhasini Raja - Website Initialized Successfully!');
+
+// Media Modal: open image or video in the existing modal container
+let galleryItems = [];
+let currentGalleryIndex = -1;
+
+function openMediaModal(src, type, index = -1, caption = '') {
+    currentGalleryIndex = index;
+    const isVideo = type === 'video';
+    const mediaEl = isVideo
+        ? `<video src="${src}" controls autoplay playsinline></video>`
+        : `<img src="${src}" alt="${caption || 'Gallery image'}">`;
+
+    const prevBtn = `<button class="nav-btn" aria-label="Previous" onclick="galleryPrev()">← Prev</button>`;
+    const nextBtn = `<button class="nav-btn" aria-label="Next" onclick="galleryNext()">Next →</button>`;
+    const downloadBtn = `<a class="download-btn" href="${src}" download><button class="download-btn">Download</button></a>`;
+
+    const controlsMarkup = galleryItems.length > 1
+        ? `<div class="modal-controls">${prevBtn}<div style="flex:1"></div>${nextBtn}</div>`
+        : '';
+
+    const downloadMarkup = `<div style="margin-top:.5rem; text-align:right">${downloadBtn}</div>`;
+
+    const captionMarkup = caption ? `<div class="modal-caption">${caption}</div>` : '';
+
+    const mediaMarkup = `
+        <div class="modal-header">
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-body">
+            ${mediaEl}
+            ${captionMarkup}
+            ${controlsMarkup}
+            ${downloadMarkup}
+        </div>
+    `;
+
+    modalContainer.innerHTML = mediaMarkup;
+    modalOverlay.classList.add('active');
+    modalContainer.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function galleryPrev() {
+    if (galleryItems.length === 0) return;
+    const nextIndex = (currentGalleryIndex - 1 + galleryItems.length) % galleryItems.length;
+    const item = galleryItems[nextIndex];
+    openMediaModal(item.src, item.type, nextIndex, item.caption);
+}
+
+function galleryNext() {
+    if (galleryItems.length === 0) return;
+    const nextIndex = (currentGalleryIndex + 1) % galleryItems.length;
+    const item = galleryItems[nextIndex];
+    openMediaModal(item.src, item.type, nextIndex, item.caption);
+}
+
+// Attach handlers to gallery items (handles images and video thumbnails)
+function initGalleryHandlers() {
+    // Build gallery items list
+    galleryItems = [];
+    const imgs = Array.from(document.querySelectorAll('.media-item > img'));
+    imgs.forEach((img, i) => {
+        const src = img.dataset.src || img.src;
+        const type = img.dataset.type || 'image';
+        const caption = img.dataset.caption || img.alt || '';
+        galleryItems.push({ src, type, caption });
+
+        img.setAttribute('loading', 'lazy');
+        img.addEventListener('click', () => openMediaModal(src, type, i, caption));
+    });
+
+    const thumbs = Array.from(document.querySelectorAll('.video-thumb'));
+    thumbs.forEach((thumb) => {
+        const src = thumb.dataset.src;
+        const caption = thumb.dataset.caption || thumb.getAttribute('aria-label') || '';
+        const index = galleryItems.length;
+        galleryItems.push({ src, type: 'video', caption });
+
+        thumb.addEventListener('click', () => openMediaModal(src, 'video', index, caption));
+        thumb.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openMediaModal(src, 'video', index, caption);
+            }
+        });
+    });
+
+    // Keyboard navigation for modal (left/right to navigate, Esc to close)
+    document.addEventListener('keydown', (e) => {
+        if (!modalContainer.classList.contains('active')) return;
+        if (e.key === 'ArrowLeft') galleryPrev();
+        if (e.key === 'ArrowRight') galleryNext();
+        if (e.key === 'Escape') closeModal();
+    });
+}
+
+// Initialize gallery handlers once DOM is ready
+document.addEventListener('DOMContentLoaded', initGalleryHandlers);
