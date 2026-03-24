@@ -853,15 +853,19 @@ function galleryNext() {
 function initGalleryHandlers() {
     // Build gallery items list
     galleryItems = [];
+
     const imgs = Array.from(document.querySelectorAll('.media-item > img'));
+
     imgs.forEach((img, i) => {
-        const src = img.dataset.src || img.src;
-        const type = img.dataset.type || 'image';
-        const caption = img.dataset.caption || img.alt || '';
+        const src = img.src;   // ✅ FIXED (removed dataset dependency)
+        const type = 'image';  // ✅ FIXED
+        const caption = img.alt || '';
+
         galleryItems.push({ src, type, caption });
 
         img.setAttribute('loading', 'lazy');
         img.style.cursor = 'pointer';
+
         img.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -869,11 +873,14 @@ function initGalleryHandlers() {
         });
     });
 
+    // Handle video thumbnails (if any)
     const thumbs = Array.from(document.querySelectorAll('.video-thumb'));
+
     thumbs.forEach((thumb) => {
         const src = thumb.dataset.src;
         const caption = thumb.dataset.caption || thumb.getAttribute('aria-label') || '';
         const index = galleryItems.length;
+
         galleryItems.push({ src, type: 'video', caption });
 
         thumb.addEventListener('click', (e) => {
@@ -881,6 +888,7 @@ function initGalleryHandlers() {
             e.stopPropagation();
             openMediaModal(src, 'video', index, caption);
         });
+
         thumb.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -888,6 +896,16 @@ function initGalleryHandlers() {
             }
         });
     });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (!modalContainer.classList.contains('active')) return;
+
+        if (e.key === 'ArrowLeft') galleryPrev();
+        if (e.key === 'ArrowRight') galleryNext();
+        if (e.key === 'Escape') closeModal();
+    });
+}
 
     // Keyboard navigation for modal (left/right to navigate, Esc to close)
     document.addEventListener('keydown', (e) => {
