@@ -851,51 +851,49 @@ function galleryNext() {
 
 // Attach handlers to gallery items (handles images and video thumbnails)
 function initGalleryHandlers() {
-    // Build gallery items list
-    galleryItems = [];
+  // Build gallery items list
+  galleryItems = [];
 
-    const imgs = Array.from(document.querySelectorAll('.media-item > img'));
+  const imgs = Array.from(document.querySelectorAll('.media-item > img'));
+  imgs.forEach((img, i) => {
+    const src = img.dataset.src || img.src;
+    const type = img.dataset.type || 'image';
+    const caption = img.dataset.caption || img.alt || '';
 
-    imgs.forEach((img, i) => {
-        const src = img.src;   // ✅ FIXED (removed dataset dependency)
-        const type = 'image';  // ✅ FIXED
-        const caption = img.alt || '';
+    galleryItems.push({ src, type, caption });
 
-        galleryItems.push({ src, type, caption });
+    img.setAttribute('loading', 'lazy');
+    img.style.cursor = 'pointer';
 
-        img.setAttribute('loading', 'lazy');
-        img.style.cursor = 'pointer';
+    img.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openMediaModal(src, type, i, caption);
+    });
+  });
 
-        img.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            openMediaModal(src, type, i, caption);
-        });
+  const thumbs = Array.from(document.querySelectorAll('.video-thumb'));
+  thumbs.forEach((thumb) => {
+    const src = thumb.dataset.src;
+    const caption = thumb.dataset.caption || thumb.getAttribute('aria-label') || '';
+    const index = galleryItems.length;
+
+    galleryItems.push({ src, type: 'video', caption });
+
+    thumb.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openMediaModal(src, 'video', index, caption);
     });
 
-    // Handle video thumbnails (if any)
-    const thumbs = Array.from(document.querySelectorAll('.video-thumb'));
-
-    thumbs.forEach((thumb) => {
-        const src = thumb.dataset.src;
-        const caption = thumb.dataset.caption || thumb.getAttribute('aria-label') || '';
-        const index = galleryItems.length;
-
-        galleryItems.push({ src, type: 'video', caption });
-
-        thumb.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            openMediaModal(src, 'video', index, caption);
-        });
-
-        thumb.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openMediaModal(src, 'video', index, caption);
-            }
-        });
+    thumb.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openMediaModal(src, 'video', index, caption);
+      }
     });
+  });
+}
 
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
