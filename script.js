@@ -798,6 +798,41 @@ console.log('Asha Suhasini Raja - Website Initialized Successfully!');
 let galleryItems = [];
 let currentGalleryIndex = -1;
 
+function getMediaPathCandidates(rawPath) {
+    if (!rawPath) return [];
+    if (/^(https?:)?\/\//.test(rawPath) || rawPath.startsWith('data:') || rawPath.startsWith('blob:')) {
+        return [rawPath];
+    }
+
+    const normalized = rawPath.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\/+/, '');
+    const candidates = [
+        `./${normalized}`,
+        normalized,
+        `../${normalized}`,
+        `/${normalized}`
+    ];
+
+    return [...new Set(candidates)];
+}
+
+function applyImagePathFallback(img, preferredPath) {
+    const basePath = preferredPath || img.getAttribute('src') || '';
+    const candidates = getMediaPathCandidates(basePath);
+    if (candidates.length === 0) return;
+
+    let candidateIndex = 0;
+    img.src = candidates[candidateIndex];
+    img.dataset.pathTriedIndex = String(candidateIndex);
+
+    img.addEventListener('error', () => {
+        const lastTried = Number(img.dataset.pathTriedIndex || candidateIndex);
+        const nextIndex = lastTried + 1;
+        if (nextIndex >= candidates.length) return;
+        img.dataset.pathTriedIndex = String(nextIndex);
+        img.src = candidates[nextIndex];
+    });
+}
+
 function openMediaModal(src, type, index = -1, caption = '') {
     currentGalleryIndex = index;
     const isVideo = type === 'video';
@@ -864,6 +899,7 @@ function initGalleryHandlers() {
         galleryItems.push({ src, type, caption });
 
         img.setAttribute('loading', 'lazy');
+        applyImagePathFallback(img, src);
         img.style.cursor = 'pointer';
 
         img.addEventListener('click', (e) => {
@@ -881,6 +917,11 @@ function initGalleryHandlers() {
         const index = galleryItems.length;
 
         galleryItems.push({ src, type: 'video', caption });
+
+        const thumbImage = thumb.querySelector('img');
+        if (thumbImage) {
+            applyImagePathFallback(thumbImage, thumbImage.getAttribute('src') || '');
+        }
 
         thumb.addEventListener('click', (e) => {
             e.preventDefault();
