@@ -873,7 +873,7 @@ function initGalleryHandlers() {
         });
     });
 
-    const thumbs = Array.from(document.querySelectorAll('.video-thumb'));
+    const thumbs = document.querySelectorAll('.video-thumb') || [];
 
     thumbs.forEach((thumb) => {
         const src = thumb.dataset.src;
