@@ -851,63 +851,55 @@ function galleryNext() {
 
 // Attach handlers to gallery items (handles images and video thumbnails)
 function initGalleryHandlers() {
-  // Build gallery items list
-  galleryItems = [];
+    // Build gallery items list
+    galleryItems = [];
 
-  const imgs = Array.from(document.querySelectorAll('.media-item > img'));
-  imgs.forEach((img, i) => {
-    const src = img.dataset.src || img.src;
-    const type = img.dataset.type || 'image';
-    const caption = img.dataset.caption || img.alt || '';
+    const imgs = Array.from(document.querySelectorAll('.media-item > img'));
 
-    galleryItems.push({ src, type, caption });
+    imgs.forEach((img, i) => {
+        const src = img.src;   // ✅ FIXED
+        const type = 'image';  // ✅ FIXED
+        const caption = img.alt || '';
 
-    img.setAttribute('loading', 'lazy');
-    img.style.cursor = 'pointer';
+        galleryItems.push({ src, type, caption });
 
-    img.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      openMediaModal(src, type, i, caption);
-    });
-  });
+        img.setAttribute('loading', 'lazy');
+        img.style.cursor = 'pointer';
 
-  const thumbs = Array.from(document.querySelectorAll('.video-thumb'));
-  thumbs.forEach((thumb) => {
-    const src = thumb.dataset.src;
-    const caption = thumb.dataset.caption || thumb.getAttribute('aria-label') || '';
-    const index = galleryItems.length;
-
-    galleryItems.push({ src, type: 'video', caption });
-
-    thumb.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      openMediaModal(src, 'video', index, caption);
+        img.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openMediaModal(src, type, i, caption);
+        });
     });
 
-    thumb.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        openMediaModal(src, 'video', index, caption);
-      }
-    });
-  });
-}
+    const thumbs = Array.from(document.querySelectorAll('.video-thumb'));
 
-    // Keyboard navigation
+    thumbs.forEach((thumb) => {
+        const src = thumb.dataset.src;
+        const caption = thumb.dataset.caption || thumb.getAttribute('aria-label') || '';
+        const index = galleryItems.length;
+
+        galleryItems.push({ src, type: 'video', caption });
+
+        thumb.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openMediaModal(src, 'video', index, caption);
+        });
+
+        thumb.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openMediaModal(src, 'video', index, caption);
+            }
+        });
+    });
+
+    // Keyboard navigation (ONLY ONCE)
     document.addEventListener('keydown', (e) => {
         if (!modalContainer.classList.contains('active')) return;
 
-        if (e.key === 'ArrowLeft') galleryPrev();
-        if (e.key === 'ArrowRight') galleryNext();
-        if (e.key === 'Escape') closeModal();
-    });
-}
-
-    // Keyboard navigation for modal (left/right to navigate, Esc to close)
-    document.addEventListener('keydown', (e) => {
-        if (!modalContainer.classList.contains('active')) return;
         if (e.key === 'ArrowLeft') galleryPrev();
         if (e.key === 'ArrowRight') galleryNext();
         if (e.key === 'Escape') closeModal();
