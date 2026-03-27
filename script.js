@@ -247,9 +247,15 @@ function getModalContent(modalType) {
         <div style="margin-top:1rem;">
             <label>Select Time Slot:</label>
             <select id="timeSlot" style="width:100%; padding:10px;">
-                <option value="">Select Time Slot</option>
-            </select>
+            <option value="">Select Time Slot</option>
+        </select>
         </div>
+
+        <!-- 🔥 ADD THIS BELOW -->
+            <div style="margin-top:1rem;">
+                <label>Your Email:</label>
+                <input type="email" id="clientEmail" placeholder="Enter your email" required style="width:100%; padding:10px;">
+            </div>
 
         <button class="contact-button" style="margin-top: 1rem; width:100%;" onclick="bookSlot()">
             Confirm Booking
