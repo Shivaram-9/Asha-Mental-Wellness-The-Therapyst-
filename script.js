@@ -43,6 +43,11 @@ function scrollToSection(sectionId) {
     }
 }
 
+function openGoogleCalendarBooking() {
+    const calendarUrl = 'https://calendar.google.com/calendar/u/0/r/eventedit?text=Therapy%20Session%20with%20Asha%20Suhasini%20Raja%20G&details=Please%20share%20your%20concern%20briefly.%20Contact%3A%20ashasuhasini02%40gmail.com&location=Online%20or%20Hyderabad&add=ashasuhasini02%40gmail.com';
+    window.open(calendarUrl, '_blank', 'noopener,noreferrer');
+}
+
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -218,8 +223,12 @@ function getModalContent(modalType) {
                 <p>✓ Phone consultations</p>
                 
                 <h3>Contact Information</h3>
-                <p><strong>Email:</strong> contact@ashasuhasini.com</p>
+                <p><strong>Email:</strong> ashasuhasini02@gmail.com</p>
                 <p><strong>Location:</strong> Hyderabad, India</p>
+
+                <button class="contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()">
+                    Open Google Calendar
+                </button>
                 
                 <p style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 15px;">
                     <strong>Note:</strong> First consultations include a comprehensive assessment to understand your needs and create a personalized treatment plan.
@@ -237,7 +246,7 @@ function getModalContent(modalType) {
                 
                 <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 15px; margin: 1.5rem 0;">
                     <h4 style="margin-top: 0;">📧 Email</h4>
-                    <p>contact@ashasuhasini.com</p>
+                    <p>ashasuhasini02@gmail.com</p>
                     
                     <h4>📍 Location</h4>
                     <p>Hyderabad, Telangana, India</p>
