@@ -204,37 +204,47 @@ function getModalContent(modalType) {
             </div>
         `,
         bookingModal: `
-            <div class="modal-header">
-                <h2>📅 Book a Session</h2>
-                <button class="modal-close" onclick="closeModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <h3>Session Types</h3>
-                <ul>
-                    <li><strong>Individual Therapy:</strong> 50-minute sessions for personal mental health support</li>
-                    <li><strong>Couples/Family Therapy:</strong> 60-minute sessions for relationship counseling</li>
-                    <li><strong>Corporate Consultation:</strong> Customized programs for organizations</li>
-                    <li><strong>Life Coaching:</strong> Goal-oriented sessions for personal development</li>
-                </ul>
-                
-                <h3>Session Formats</h3>
-                <p>✓ In-person sessions (Hyderabad)</p>
-                <p>✓ Online video consultations</p>
-                <p>✓ Phone consultations</p>
-                
-                <h3>Contact Information</h3>
-                <p><strong>Email:</strong> ashasuhasini02@gmail.com</p>
-                <p><strong>Location:</strong> Hyderabad, India</p>
+    <div class="modal-header">
+        <h2>📅 Book a Session</h2>
+        <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+        <h3>Session Types</h3>
+        <ul>
+            <li><strong>Individual Therapy:</strong> 50-minute sessions for personal mental health support</li>
+            <li><strong>Couples/Family Therapy:</strong> 60-minute sessions for relationship counseling</li>
+            <li><strong>Corporate Consultation:</strong> Customized programs for organizations</li>
+            <li><strong>Life Coaching:</strong> Goal-oriented sessions for personal development</li>
+        </ul>
+        
+        <h3>Session Formats</h3>
+        <p>✓ In-person sessions (Hyderabad)</p>
+        <p>✓ Online video consultations</p>
+        <p>✓ Phone consultations</p>
 
-                <button class="contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()">
-                    Open Google Calendar
-                </button>
-                
-                <p style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 15px;">
-                    <strong>Note:</strong> First consultations include a comprehensive assessment to understand your needs and create a personalized treatment plan.
-                </p>
-            </div>
-        `,
+        <!-- 🔥 TIME SLOTS ADDED -->
+        <h3>🕒 Available Time Slots</h3>
+        <div style="background:#f8f9fa; padding:1.5rem; border-radius:15px; margin-top:1rem;">
+            <p>🗓 <strong>Monday – Saturday:</strong></p>
+            <p>Evening: 05:00 PM – 10:00 PM</p>
+
+            <p style="margin-top:1rem;">🌞 <strong>Sunday:</strong></p>
+            <p>Afternoon: 12:00 PM – 06:00 PM</p>
+        </div>
+
+        <h3 style="margin-top:1.5rem;">Contact Information</h3>
+        <p><strong>Email:</strong> ashasuhasini02@gmail.com</p>
+        <p><strong>Location:</strong> Hyderabad, India</p>
+
+        <button class="contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()">
+            Open Google Calendar
+        </button>
+        
+        <p style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 15px;">
+            <strong>Note:</strong> First consultations include a comprehensive assessment to understand your needs and create a personalized treatment plan.
+        </p>
+    </div>
+`,
         inquiryModal: `
             <div class="modal-header">
                 <h2>💬 General Inquiry</h2>
