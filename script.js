@@ -43,9 +43,29 @@ function scrollToSection(sectionId) {
     }
 }
 
-function openGoogleCalendarBooking() {
-    const calendarUrl = 'https://calendar.google.com/calendar/u/0/r/eventedit?text=Therapy%20Session%20with%20Asha%20Suhasini%20Raja%20G&details=Please%20share%20your%20concern%20briefly.%20Contact%3A%20ashasuhasini02%40gmail.com&location=Online%20or%20Hyderabad&add=ashasuhasini02%40gmail.com';
-    window.open(calendarUrl, '_blank', 'noopener,noreferrer');
+function bookSlot() {
+    const date = document.getElementById("bookingDate").value;
+    const time = document.getElementById("timeSlot").value;
+
+    if (!date || !time) {
+        alert("Please select date and time");
+        return;
+    }
+
+    const start = new Date(`${date}T${time}:00`);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+    function formatDate(d) {
+        return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    }
+
+    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE
+&text=Therapy%20Session
+&dates=${formatDate(start)}/${formatDate(end)}
+&details=Therapy%20Session%20Booking
+&location=Online`;
+
+    window.open(calendarUrl, "_blank");
 }
 
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -208,41 +228,32 @@ function getModalContent(modalType) {
         <h2>📅 Book a Session</h2>
         <button class="modal-close" onclick="closeModal()">×</button>
     </div>
+
     <div class="modal-body">
-        <h3>Session Types</h3>
-        <ul>
-            <li><strong>Individual Therapy:</strong> 50-minute sessions for personal mental health support</li>
-            <li><strong>Couples/Family Therapy:</strong> 60-minute sessions for relationship counseling</li>
-            <li><strong>Corporate Consultation:</strong> Customized programs for organizations</li>
-            <li><strong>Life Coaching:</strong> Goal-oriented sessions for personal development</li>
-        </ul>
-        
-        <h3>Session Formats</h3>
-        <p>✓ In-person sessions (Hyderabad)</p>
-        <p>✓ Online video consultations</p>
-        <p>✓ Phone consultations</p>
-
-        <!-- 🔥 TIME SLOTS ADDED -->
         <h3>🕒 Available Time Slots</h3>
-        <div style="background:#f8f9fa; padding:1.5rem; border-radius:15px; margin-top:1rem;">
-            <p>🗓 <strong>Monday – Saturday:</strong></p>
-            <p>Evening: 05:00 PM – 10:00 PM</p>
 
-            <p style="margin-top:1rem;">🌞 <strong>Sunday:</strong></p>
-            <p>Afternoon: 12:00 PM – 06:00 PM</p>
+        <div style="background:#f8f9fa; padding:1.5rem; border-radius:15px;">
+            <p><strong>Monday – Saturday:</strong> 05:00 PM – 10:00 PM</p>
+            <p><strong>Sunday:</strong> 12:00 PM – 06:00 PM</p>
         </div>
 
-        <h3 style="margin-top:1.5rem;">Contact Information</h3>
-        <p><strong>Email:</strong> ashasuhasini02@gmail.com</p>
-        <p><strong>Location:</strong> Hyderabad, India</p>
+        <h3 style="margin-top:1.5rem;">Select Your Slot</h3>
 
-        <button class="contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()">
-            Open Google Calendar
+        <div style="margin-top:1rem;">
+            <label>Select Date:</label>
+            <input type="date" id="bookingDate" style="width:100%; padding:10px;">
+        </div>
+
+        <div style="margin-top:1rem;">
+            <label>Select Time Slot:</label>
+            <select id="timeSlot" style="width:100%; padding:10px;">
+                <option value="">Select Time Slot</option>
+            </select>
+        </div>
+
+        <button class="contact-button" style="margin-top: 1rem; width:100%;" onclick="bookSlot()">
+            Confirm Booking
         </button>
-        
-        <p style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 15px;">
-            <strong>Note:</strong> First consultations include a comprehensive assessment to understand your needs and create a personalized treatment plan.
-        </p>
     </div>
 `,
         inquiryModal: `
@@ -1228,4 +1239,44 @@ document.addEventListener("DOMContentLoaded", function () {
         input.addEventListener("input", restrictTimeSlots);
     });
 
+});
+
+// 🔥 GENERATE TIME SLOTS
+document.addEventListener("change", function (e) {
+
+    if (e.target.id === "bookingDate") {
+
+        const date = new Date(e.target.value);
+        const day = date.getDay();
+
+        const timeSlot = document.getElementById("timeSlot");
+        if (!timeSlot) return;
+
+        timeSlot.innerHTML = `<option value="">Select Time Slot</option>`;
+
+        function format12(h) {
+            const ampm = h >= 12 ? "PM" : "AM";
+            h = h % 12 || 12;
+            return `${h}:00 ${ampm}`;
+        }
+
+        let start, end;
+
+        if (day === 0) {
+            // Sunday
+            start = 12;
+            end = 18;
+        } else {
+            // Monday–Saturday
+            start = 17;
+            end = 22;
+        }
+
+        for (let i = start; i < end; i++) {
+            const option = document.createElement("option");
+            option.value = i.toString().padStart(2, "0") + ":00";
+            option.textContent = `${format12(i)} - ${format12(i + 1)}`;
+            timeSlot.appendChild(option);
+        }
+    }
 });
