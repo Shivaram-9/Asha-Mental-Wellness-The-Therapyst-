@@ -792,6 +792,130 @@ if (contactForm && contactFormMessage) {
     });
 }
 
+// Reviews: store and render ratings in browser localStorage
+const reviewForm = document.getElementById('reviewForm');
+const reviewFormMessage = document.getElementById('reviewFormMessage');
+const reviewsList = document.getElementById('reviewsList');
+const averageRating = document.getElementById('averageRating');
+const averageStars = document.getElementById('averageStars');
+const reviewCount = document.getElementById('reviewCount');
+const REVIEWS_STORAGE_KEY = 'asha-client-reviews';
+
+const defaultReviews = [
+    {
+        name: 'Client A',
+        rating: 5,
+        text: 'Very supportive and practical guidance. I felt heard and understood.',
+        date: '2026-03-01'
+    },
+    {
+        name: 'Workshop Participant',
+        rating: 5,
+        text: 'The workshop was insightful and easy to apply in day-to-day life.',
+        date: '2026-03-10'
+    }
+];
+
+function getStoredReviews() {
+    try {
+        const raw = localStorage.getItem(REVIEWS_STORAGE_KEY);
+        if (!raw) return defaultReviews.slice();
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return defaultReviews.slice();
+        return parsed.filter(item => item && item.name && item.text && Number(item.rating));
+    } catch (error) {
+        return defaultReviews.slice();
+    }
+}
+
+function saveReviews(reviews) {
+    localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(reviews));
+}
+
+function starsFromRating(rating) {
+    const filled = '★'.repeat(Math.max(0, Math.min(5, rating)));
+    const empty = '☆'.repeat(5 - Math.max(0, Math.min(5, rating)));
+    return `${filled}${empty}`;
+}
+
+function formatReviewDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function renderReviews() {
+    if (!reviewsList || !averageRating || !averageStars || !reviewCount) return;
+
+    const reviews = getStoredReviews();
+    const total = reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0);
+    const avg = reviews.length ? total / reviews.length : 0;
+
+    averageRating.textContent = avg.toFixed(1);
+    averageStars.textContent = starsFromRating(Math.round(avg));
+    reviewCount.textContent = String(reviews.length);
+
+    if (reviews.length === 0) {
+        reviewsList.innerHTML = '<p class="review-text">No reviews yet. Be the first to share your feedback.</p>';
+        return;
+    }
+
+    reviewsList.innerHTML = reviews
+        .slice()
+        .reverse()
+        .map((review) => `
+            <article class="review-card">
+                <div class="review-card-header">
+                    <span class="review-name">${review.name}</span>
+                    <span class="review-stars" aria-label="${review.rating} out of 5 stars">${starsFromRating(Number(review.rating))}</span>
+                </div>
+                <p class="review-date">${formatReviewDate(review.date)}</p>
+                <p class="review-text">${review.text}</p>
+            </article>
+        `)
+        .join('');
+}
+
+if (reviewForm && reviewFormMessage) {
+    renderReviews();
+
+    reviewForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        reviewFormMessage.classList.remove('success', 'error');
+
+        const formData = new FormData(reviewForm);
+        const name = (formData.get('reviewerName') || '').toString().trim();
+        const rating = Number((formData.get('reviewRating') || '').toString());
+        const text = (formData.get('reviewText') || '').toString().trim();
+
+        if (!name || !rating || !text) {
+            reviewFormMessage.textContent = 'Please fill your name, rating, and review before submitting.';
+            reviewFormMessage.classList.add('error');
+            return;
+        }
+
+        if (rating < 1 || rating > 5) {
+            reviewFormMessage.textContent = 'Please select a valid rating between 1 and 5.';
+            reviewFormMessage.classList.add('error');
+            return;
+        }
+
+        const reviews = getStoredReviews();
+        reviews.push({
+            name,
+            rating,
+            text,
+            date: new Date().toISOString()
+        });
+
+        saveReviews(reviews);
+        renderReviews();
+        reviewForm.reset();
+        reviewFormMessage.textContent = 'Thank you! Your review has been added.';
+        reviewFormMessage.classList.add('success');
+    });
+}
+
 console.log('Asha Suhasini Raja - Website Initialized Successfully!');
 
 // Media Modal: open image or video in the existing modal container
