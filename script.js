@@ -799,6 +799,20 @@ const reviewsList = document.getElementById('reviewsList');
 const averageRating = document.getElementById('averageRating');
 const averageStars = document.getElementById('averageStars');
 const reviewCount = document.getElementById('reviewCount');
+const ratingCountEls = {
+    5: document.getElementById('ratingCount5'),
+    4: document.getElementById('ratingCount4'),
+    3: document.getElementById('ratingCount3'),
+    2: document.getElementById('ratingCount2'),
+    1: document.getElementById('ratingCount1')
+};
+const ratingBarEls = {
+    5: document.getElementById('ratingBar5'),
+    4: document.getElementById('ratingBar4'),
+    3: document.getElementById('ratingBar3'),
+    2: document.getElementById('ratingBar2'),
+    1: document.getElementById('ratingBar1')
+};
 const REVIEWS_STORAGE_KEY = 'asha-client-reviews';
 
 const defaultReviews = [
@@ -850,10 +864,21 @@ function renderReviews() {
     const reviews = getStoredReviews();
     const total = reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0);
     const avg = reviews.length ? total / reviews.length : 0;
+    const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviews.forEach((review) => {
+        const rating = Number(review.rating || 0);
+        if (distribution[rating] !== undefined) distribution[rating] += 1;
+    });
 
     averageRating.textContent = avg.toFixed(1);
     averageStars.textContent = starsFromRating(Math.round(avg));
     reviewCount.textContent = String(reviews.length);
+    [5, 4, 3, 2, 1].forEach((rating) => {
+        const count = distribution[rating];
+        const percent = reviews.length ? (count / reviews.length) * 100 : 0;
+        if (ratingCountEls[rating]) ratingCountEls[rating].textContent = String(count);
+        if (ratingBarEls[rating]) ratingBarEls[rating].style.width = `${percent}%`;
+    });
 
     if (reviews.length === 0) {
         reviewsList.innerHTML = '<p class="review-text">No reviews yet. Be the first to share your feedback.</p>';

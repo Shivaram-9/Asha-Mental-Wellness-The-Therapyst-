@@ -33,6 +33,7 @@
                 <li><a href="#experience" class="nav-link">Experience</a></li>
                 <li><a href="#approach" class="nav-link">Approach</a></li>
                 <li><a href="#workshops" class="nav-link">Workshops</a></li>
+                <li><a href="#ratings" class="nav-link">Ratings</a></li>
                 <li><a href="#reviews" class="nav-link">Reviews</a></li>
                 <li><a href="#contact" class="nav-link">Contact</a></li>
                 <li>
@@ -427,46 +428,85 @@
         </div>
         </section>
 
-        <!-- Reviews Section -->
-        <section id="reviews" class="section-padding">
+        <!-- Ratings Section -->
+        <section id="ratings" class="section-padding">
         <div class="container">
-            <h2 class="section-title reveal">Ratings & Reviews</h2>
-            <p class="section-subtitle reveal">What clients and participants share about their experience</p>
+            <h2 class="section-title reveal">Ratings</h2>
+            <p class="section-subtitle reveal">Overall client rating and score distribution</p>
 
-            <div class="reviews-summary reveal">
-                <div class="rating-badge">
-                    <span class="rating-score" id="averageRating">0.0</span>
-                    <span class="rating-stars" id="averageStars" aria-label="Average rating">☆☆☆☆☆</span>
-                    <span class="rating-count"><span id="reviewCount">0</span> reviews</span>
+            <div class="ratings-grid reveal">
+                <div class="ratings-panel">
+                    <div class="rating-badge">
+                        <span class="rating-score" id="averageRating">0.0</span>
+                        <span class="rating-stars" id="averageStars" aria-label="Average rating">☆☆☆☆☆</span>
+                        <span class="rating-count"><span id="reviewCount">0</span> ratings</span>
+                    </div>
+
+                    <div class="rating-breakdown" aria-label="Rating distribution">
+                        <div class="rating-row">
+                            <span class="rating-label">5★</span>
+                            <div class="rating-bar"><span id="ratingBar5"></span></div>
+                            <span class="rating-value" id="ratingCount5">0</span>
+                        </div>
+                        <div class="rating-row">
+                            <span class="rating-label">4★</span>
+                            <div class="rating-bar"><span id="ratingBar4"></span></div>
+                            <span class="rating-value" id="ratingCount4">0</span>
+                        </div>
+                        <div class="rating-row">
+                            <span class="rating-label">3★</span>
+                            <div class="rating-bar"><span id="ratingBar3"></span></div>
+                            <span class="rating-value" id="ratingCount3">0</span>
+                        </div>
+                        <div class="rating-row">
+                            <span class="rating-label">2★</span>
+                            <div class="rating-bar"><span id="ratingBar2"></span></div>
+                            <span class="rating-value" id="ratingCount2">0</span>
+                        </div>
+                        <div class="rating-row">
+                            <span class="rating-label">1★</span>
+                            <div class="rating-bar"><span id="ratingBar1"></span></div>
+                            <span class="rating-value" id="ratingCount1">0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+        </section>
 
-            <div class="reviews-layout reveal">
-                <div class="review-form-card">
-                    <h3>Share Your Feedback</h3>
-                    <form id="reviewForm" novalidate>
-                        <div class="form-field">
-                            <label for="reviewerName">Your Name</label>
-                            <input type="text" id="reviewerName" name="reviewerName" placeholder="Enter your name" required>
-                        </div>
-                        <div class="form-field">
-                            <label for="reviewRating">Rating</label>
-                            <select id="reviewRating" name="reviewRating" required>
-                                <option value="">Select rating</option>
-                                <option value="5">5 - Excellent</option>
-                                <option value="4">4 - Very Good</option>
-                                <option value="3">3 - Good</option>
-                                <option value="2">2 - Fair</option>
-                                <option value="1">1 - Needs Improvement</option>
-                            </select>
-                        </div>
-                        <div class="form-field">
-                            <label for="reviewText">Review</label>
-                            <textarea id="reviewText" name="reviewText" rows="4" placeholder="Write a short review..." required></textarea>
-                        </div>
-                        <button type="submit" class="contact-button">Submit Review</button>
-                        <p id="reviewFormMessage" class="contact-form-message" role="status" aria-live="polite"></p>
-                    </form>
+        <!-- Reviews Section -->
+        <section id="reviews" class="section-padding bg-light">
+        <div class="container">
+            <h2 class="section-title reveal">Reviews</h2>
+            <p class="section-subtitle reveal">Read detailed feedback and share your experience</p>
+
+            <div class="reviews-grid reveal">
+                <div class="reviews-panel">
+                    <div class="review-form-card" id="reviews-form">
+                        <form id="reviewForm" novalidate>
+                            <div class="form-field">
+                                <label for="reviewerName">Your Name</label>
+                                <input type="text" id="reviewerName" name="reviewerName" placeholder="Enter your name" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="reviewRating">Rating</label>
+                                <select id="reviewRating" name="reviewRating" required>
+                                    <option value="">Select rating</option>
+                                    <option value="5">5 - Excellent</option>
+                                    <option value="4">4 - Very Good</option>
+                                    <option value="3">3 - Good</option>
+                                    <option value="2">2 - Fair</option>
+                                    <option value="1">1 - Needs Improvement</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="reviewText">Review</label>
+                                <textarea id="reviewText" name="reviewText" rows="4" placeholder="Write a short review..." required></textarea>
+                            </div>
+                            <button type="submit" class="contact-button">Submit Review</button>
+                            <p id="reviewFormMessage" class="contact-form-message" role="status" aria-live="polite"></p>
+                        </form>
+                    </div>
                 </div>
 
                 <div class="reviews-list" id="reviewsList" aria-live="polite"></div>
