@@ -1480,6 +1480,26 @@ body[data-theme="dark"] .menu-toggle span {
     margin-bottom: 0.45rem;
 }
 
+.review-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.25rem;
+}
+
+.review-delete-btn {
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #dc2626;
+    border-radius: 999px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.review-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
 .review-name {
     color: var(--primary);
     font-weight: 600;

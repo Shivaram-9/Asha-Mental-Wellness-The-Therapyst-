@@ -846,6 +846,35 @@ function saveReviews(reviews) {
     localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(reviews));
 }
 
+function makeReviewKey(review) {
+    return [review.name || '', review.date || '', review.text || ''].join('|');
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// One-time cleanup for a specifically requested review removal.
+function removeBlockedReviews() {
+    const reviews = getStoredReviews();
+    const filtered = reviews.filter((review) => {
+        const name = (review.name || '').toLowerCase();
+        const text = (review.text || '').toLowerCase();
+        const isTargetReview = name.includes('nandhan')
+            && text.includes('safe person to walk to for help');
+        return !isTargetReview;
+    });
+
+    if (filtered.length !== reviews.length) {
+        saveReviews(filtered);
+    }
+}
+
 function starsFromRating(rating) {
     const filled = '★'.repeat(Math.max(0, Math.min(5, rating)));
     const empty = '☆'.repeat(5 - Math.max(0, Math.min(5, rating)));
@@ -891,17 +920,31 @@ function renderReviews() {
         .map((review) => `
             <article class="review-card">
                 <div class="review-card-header">
-                    <span class="review-name">${review.name}</span>
+                    <span class="review-name">${escapeHtml(review.name)}</span>
                     <span class="review-stars" aria-label="${review.rating} out of 5 stars">${starsFromRating(Number(review.rating))}</span>
                 </div>
+                <div class="review-actions">
+                    <button class="review-delete-btn" type="button" onclick="deleteReview('${encodeURIComponent(makeReviewKey(review))}')">Delete</button>
+                </div>
                 <p class="review-date">${formatReviewDate(review.date)}</p>
-                <p class="review-text">${review.text}</p>
+                <p class="review-text">${escapeHtml(review.text)}</p>
             </article>
         `)
         .join('');
 }
 
+function deleteReview(encodedKey) {
+    const key = decodeURIComponent(encodedKey);
+    const reviews = getStoredReviews();
+    const nextReviews = reviews.filter((review) => makeReviewKey(review) !== key);
+    saveReviews(nextReviews);
+    renderReviews();
+}
+
+window.deleteReview = deleteReview;
+
 if (reviewForm && reviewFormMessage) {
+    removeBlockedReviews();
     renderReviews();
 
     reviewForm.addEventListener('submit', (event) => {
