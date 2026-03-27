@@ -1160,3 +1160,72 @@ function initGalleryHandlers() {
 
 // Initialize gallery handlers once DOM is ready
 document.addEventListener('DOMContentLoaded', initGalleryHandlers);
+
+// 🔥 TIME SLOT RESTRICTION + 12HR DISPLAY
+document.addEventListener("DOMContentLoaded", function () {
+
+    const dateInput = document.querySelector('input[type="date"]');
+    const timeInputs = document.querySelectorAll('input[type="time"]');
+
+    if (!dateInput || timeInputs.length === 0) return;
+
+    function convertTo12Hour(time24) {
+        let [hours, minutes] = time24.split(":");
+        hours = parseInt(hours);
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12 || 12;
+        return `${hours.toString().padStart(2, "0")}:${minutes} ${ampm}`;
+    }
+
+    function restrictTimeSlots() {
+        if (!dateInput.value) return;
+
+        const selectedDate = new Date(dateInput.value);
+        const day = selectedDate.getDay(); // 0 = Sunday
+
+        let minTime, maxTime, displayText;
+
+        if (day === 0) {
+            // Sunday
+            minTime = "12:00";
+            maxTime = "18:00";
+        } else {
+            // Monday - Saturday
+            minTime = "17:00";
+            maxTime = "22:00";
+        }
+
+        // Apply restrictions (24hr format)
+        timeInputs.forEach(input => {
+            input.min = minTime;
+            input.max = maxTime;
+
+            // clear invalid values
+            if (input.value && (input.value < minTime || input.value > maxTime)) {
+                input.value = "";
+            }
+        });
+
+        // 🔥 Show 12-hour format message (optional UI)
+        let infoBox = document.getElementById("timeSlotInfo");
+
+        if (!infoBox) {
+            infoBox = document.createElement("p");
+            infoBox.id = "timeSlotInfo";
+            infoBox.style.marginTop = "10px";
+            infoBox.style.fontWeight = "600";
+            dateInput.parentNode.appendChild(infoBox);
+        }
+
+        infoBox.textContent = `Available: ${convertTo12Hour(minTime)} – ${convertTo12Hour(maxTime)}`;
+    }
+
+    // Trigger on date change
+    dateInput.addEventListener("change", restrictTimeSlots);
+
+    // Validate while typing
+    timeInputs.forEach(input => {
+        input.addEventListener("input", restrictTimeSlots);
+    });
+
+});
