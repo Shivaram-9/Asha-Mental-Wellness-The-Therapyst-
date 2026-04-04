@@ -862,38 +862,38 @@ const ratingBarEls = {
     2: document.getElementById('ratingBar2'),
     1: document.getElementById('ratingBar1')
 };
-//const REVIEWS_STORAGE_KEY = 'asha-client-reviews';
+const REVIEWS_STORAGE_KEY = 'asha-client-reviews';
 
-// const defaultReviews = [
-//     {
-//         name: 'Client A',
-//         rating: 5,
-//         text: 'Very supportive and practical guidance. I felt heard and understood.',
-//         date: '2026-03-01'
-//     },
-//     {
-//         name: 'Workshop Participant',
-//         rating: 5,
-//         text: 'The workshop was insightful and easy to apply in day-to-day life.',
-//         date: '2026-03-10'
-//     }
-// ];
+const defaultReviews = [
+    {
+        name: 'Client A',
+        rating: 5,
+        text: 'Very supportive and practical guidance. I felt heard and understood.',
+        date: '2026-03-01'
+    },
+    {
+        name: 'Workshop Participant',
+        rating: 5,
+        text: 'The workshop was insightful and easy to apply in day-to-day life.',
+        date: '2026-03-10'
+    }
+];
 
-// function getStoredReviews() {
-//     try {
-//         const raw = localStorage.getItem(REVIEWS_STORAGE_KEY);
-//         if (!raw) return defaultReviews.slice();
-//         const parsed = JSON.parse(raw);
-//         if (!Array.isArray(parsed)) return defaultReviews.slice();
-//         return parsed.filter(item => item && item.name && item.text && Number(item.rating));
-//     } catch (error) {
-//         return defaultReviews.slice();
-//     }
-// }
+function getStoredReviews() {
+    try {
+        const raw = localStorage.getItem(REVIEWS_STORAGE_KEY);
+        if (!raw) return defaultReviews.slice();
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return defaultReviews.slice();
+        return parsed.filter(item => item && item.name && item.text && Number(item.rating));
+    } catch (error) {
+        return defaultReviews.slice();
+    }
+}
 
-// function saveReviews(reviews) {
-//     localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(reviews));
-// }
+function saveReviews(reviews) {
+    localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(reviews));
+}
 
 function makeReviewKey(review) {
     return [review.name || '', review.date || '', review.text || ''].join('|');
@@ -909,20 +909,20 @@ function escapeHtml(value) {
 }
 
 // One-time cleanup for a specifically requested review removal.
-// function removeBlockedReviews() {
-//     const reviews = getStoredReviews();
-//     const filtered = reviews.filter((review) => {
-//         const name = (review.name || '').toLowerCase();
-//         const text = (review.text || '').toLowerCase();
-//         const isTargetReview = name.includes('nandhan')
-//             && text.includes('safe person to walk to for help');
-//         return !isTargetReview;
-//     });
+function removeBlockedReviews() {
+    const reviews = getStoredReviews();
+    const filtered = reviews.filter((review) => {
+        const name = (review.name || '').toLowerCase();
+        const text = (review.text || '').toLowerCase();
+        const isTargetReview = name.includes('nandhan')
+            && text.includes('safe person to walk to for help');
+        return !isTargetReview;
+    });
 
-//     if (filtered.length !== reviews.length) {
-//         saveReviews(filtered);
-//     }
-// }
+    if (filtered.length !== reviews.length) {
+        saveReviews(filtered);
+    }
+}
 
 function starsFromRating(rating) {
     const filled = '★'.repeat(Math.max(0, Math.min(5, rating)));
@@ -970,18 +970,18 @@ async function renderReviews() {
 }
 
     
-// function deleteReview(encodedKey) {
-//     const key = decodeURIComponent(encodedKey);
-//     const reviews = getStoredReviews();
-//     const nextReviews = reviews.filter((review) => makeReviewKey(review) !== key);
-//     saveReviews(nextReviews);
-//     renderReviews();
-// }
+function deleteReview(encodedKey) {
+    const key = decodeURIComponent(encodedKey);
+    const reviews = getStoredReviews();
+    const nextReviews = reviews.filter((review) => makeReviewKey(review) !== key);
+    saveReviews(nextReviews);
+    renderReviews();
+}
 
 window.deleteReview = deleteReview;
 
 if (reviewForm && reviewFormMessage) {
-    //removeBlockedReviews();
+    removeBlockedReviews();
     renderReviews();
 
     reviewForm.addEventListener('submit', async (event) => {
