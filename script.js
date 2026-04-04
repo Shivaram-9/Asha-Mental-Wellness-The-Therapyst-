@@ -1,3 +1,4 @@
+const isOwner = true; // 🔴 keep true for you, false for public
 // Loading Screen
 window.addEventListener('load', () => {
     setTimeout(() => {
@@ -44,13 +45,17 @@ function scrollToSection(sectionId) {
 }
 
 function bookSlot() {
+
     const date = document.getElementById("bookingDate").value;
     const time = document.getElementById("timeSlot").value;
+    const clientEmail = document.getElementById("clientEmail").value;
 
-    if (!date || !time) {
-        alert("Please select date and time");
+    if (!date || !time || !clientEmail) {
+        alert("Please fill all details");
         return;
     }
+
+    const therapistEmail = "ashasuhasini02@gmail.com";
 
     const start = new Date(`${date}T${time}:00`);
     const end = new Date(start.getTime() + 60 * 60 * 1000);
@@ -59,11 +64,19 @@ function bookSlot() {
         return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
     }
 
+    // 🔥 ONLY ZOOM LINK
+    const zoomLink = "https://zoom.us/j/1234567890?pwd=secure123"; // your real meeting ID
+
+    const description = `Therapy Session (Zoom)\nZoom Link: ${zoomLink}`;
+
     const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE
 &text=Therapy%20Session
 &dates=${formatDate(start)}/${formatDate(end)}
-&details=Therapy%20Session%20Booking
-&location=Online`;
+&details=${encodeURIComponent(description)}
+&location=Online%20(Zoom)
+&add=${clientEmail},${therapistEmail}`;
+
+    alert("✅ Booking request created!\n\nPlease complete payment. Zoom link will be shared after payment confirmation.");
 
     window.open(calendarUrl, "_blank");
 }
@@ -959,9 +972,11 @@ function renderReviews() {
                     <span class="review-name">${escapeHtml(review.name)}</span>
                     <span class="review-stars" aria-label="${review.rating} out of 5 stars">${starsFromRating(Number(review.rating))}</span>
                 </div>
+                ${isOwner ? `
                 <div class="review-actions">
                     <button class="review-delete-btn" type="button" onclick="deleteReview('${encodeURIComponent(makeReviewKey(review))}')">Delete</button>
                 </div>
+                ` : ``}
                 <p class="review-date">${formatReviewDate(review.date)}</p>
                 <p class="review-text">${escapeHtml(review.text)}</p>
             </article>
@@ -1178,74 +1193,84 @@ function initGalleryHandlers() {
 // Initialize gallery handlers once DOM is ready
 document.addEventListener('DOMContentLoaded', initGalleryHandlers);
 
-// 🔥 TIME SLOT RESTRICTION + 12HR DISPLAY
-document.addEventListener("DOMContentLoaded", function () {
+// 🔥 DISABLE PAST DATES
+document.addEventListener("DOMContentLoaded", () => {
+    const dateInput = document.getElementById("bookingDate");
 
-    const dateInput = document.querySelector('input[type="date"]');
-    const timeInputs = document.querySelectorAll('input[type="time"]');
-
-    if (!dateInput || timeInputs.length === 0) return;
-
-    function convertTo12Hour(time24) {
-        let [hours, minutes] = time24.split(":");
-        hours = parseInt(hours);
-        const ampm = hours >= 12 ? "PM" : "AM";
-        hours = hours % 12 || 12;
-        return `${hours.toString().padStart(2, "0")}:${minutes} ${ampm}`;
+    if (dateInput) {
+        const today = new Date().toISOString().split("T")[0];
+        dateInput.setAttribute("min", today);
     }
-
-    function restrictTimeSlots() {
-        if (!dateInput.value) return;
-
-        const selectedDate = new Date(dateInput.value);
-        const day = selectedDate.getDay(); // 0 = Sunday
-
-        let minTime, maxTime, displayText;
-
-        if (day === 0) {
-            // Sunday
-            minTime = "12:00";
-            maxTime = "18:00";
-        } else {
-            // Monday - Saturday
-            minTime = "17:00";
-            maxTime = "22:00";
-        }
-
-        // Apply restrictions (24hr format)
-        timeInputs.forEach(input => {
-            input.min = minTime;
-            input.max = maxTime;
-
-            // clear invalid values
-            if (input.value && (input.value < minTime || input.value > maxTime)) {
-                input.value = "";
-            }
-        });
-
-        // 🔥 Show 12-hour format message (optional UI)
-        let infoBox = document.getElementById("timeSlotInfo");
-
-        if (!infoBox) {
-            infoBox = document.createElement("p");
-            infoBox.id = "timeSlotInfo";
-            infoBox.style.marginTop = "10px";
-            infoBox.style.fontWeight = "600";
-            dateInput.parentNode.appendChild(infoBox);
-        }
-
-        infoBox.textContent = `Available: ${convertTo12Hour(minTime)} – ${convertTo12Hour(maxTime)}`;
-    }
-
-    // Trigger on date change
-    dateInput.addEventListener("change", restrictTimeSlots);
-
-    // Validate while typing
-    timeInputs.forEach(input => {
-        input.addEventListener("input", restrictTimeSlots);
-    });
-
 });
+
+// 🔥 TIME SLOT RESTRICTION + 12HR DISPLAY
+// document.addEventListener("DOMContentLoaded", function () {
+
+//     const dateInput = document.querySelector('input[type="date"]');
+//     const timeInputs = document.querySelectorAll('input[type="time"]');
+
+//     if (!dateInput || timeInputs.length === 0) return;
+
+//     function convertTo12Hour(time24) {
+//         let [hours, minutes] = time24.split(":");
+//         hours = parseInt(hours);
+//         const ampm = hours >= 12 ? "PM" : "AM";
+//         hours = hours % 12 || 12;
+//         return `${hours.toString().padStart(2, "0")}:${minutes} ${ampm}`;
+//     }
+
+//     function restrictTimeSlots() {
+//         if (!dateInput.value) return;
+
+//         const selectedDate = new Date(dateInput.value);
+//         const day = selectedDate.getDay(); // 0 = Sunday
+
+//         let minTime, maxTime, displayText;
+
+//         if (day === 0) {
+//             // Sunday
+//             minTime = "12:00";
+//             maxTime = "18:00";
+//         } else {
+//             // Monday - Saturday
+//             minTime = "17:00";
+//             maxTime = "22:00";
+//         }
+
+//         // Apply restrictions (24hr format)
+//         timeInputs.forEach(input => {
+//             input.min = minTime;
+//             input.max = maxTime;
+
+//             // clear invalid values
+//             if (input.value && (input.value < minTime || input.value > maxTime)) {
+//                 input.value = "";
+//             }
+//         });
+
+//         // 🔥 Show 12-hour format message (optional UI)
+//         let infoBox = document.getElementById("timeSlotInfo");
+
+//         if (!infoBox) {
+//             infoBox = document.createElement("p");
+//             infoBox.id = "timeSlotInfo";
+//             infoBox.style.marginTop = "10px";
+//             infoBox.style.fontWeight = "600";
+//             dateInput.parentNode.appendChild(infoBox);
+//         }
+
+//         infoBox.textContent = `Available: ${convertTo12Hour(minTime)} – ${convertTo12Hour(maxTime)}`;
+//     }
+
+//     // Trigger on date change
+//     dateInput.addEventListener("change", restrictTimeSlots);
+
+//     // Validate while typing
+//     timeInputs.forEach(input => {
+//         input.addEventListener("input", restrictTimeSlots);
+//     });
+
+// });
 
 // 🔥 GENERATE TIME SLOTS
 document.addEventListener("change", function (e) {
@@ -1269,11 +1294,9 @@ document.addEventListener("change", function (e) {
         let start, end;
 
         if (day === 0) {
-            // Sunday
             start = 12;
             end = 18;
         } else {
-            // Monday–Saturday
             start = 17;
             end = 22;
         }
@@ -1281,7 +1304,7 @@ document.addEventListener("change", function (e) {
         for (let i = start; i < end; i++) {
             const option = document.createElement("option");
             option.value = i.toString().padStart(2, "0") + ":00";
-            option.textContent = `${format12(i)} - ${format12(i + 1)}`;
+            option.textContent = `${format12(i)} (${i}:00) - ${format12(i + 1)} (${i + 1}:00)`;
             timeSlot.appendChild(option);
         }
     }
