@@ -1296,16 +1296,33 @@ async function saveReviewToDB(name, rating, text) {
 
 // 🔥 LOAD REVIEWS FROM FIREBASE
 async function loadReviewsFromDB() {
-    const snapshot = await window.db.collection("reviews").get();
+  try {
+    const snapshot = await db.collection("reviews").orderBy("date", "desc").get();
 
-    let reviews = [];
+    const reviews = snapshot.docs.map(doc => doc.data());
 
-    snapshot.forEach(doc => {
-        reviews.push(doc.data());
-    });
+    const reviewsList = document.getElementById("reviewsList");
 
-    return reviews;
+    if (reviews.length === 0) {
+      reviewsList.innerHTML = "<p>No reviews yet</p>";
+      return;
+    }
+
+    reviewsList.innerHTML = reviews.map(review => `
+      <div class="review-card">
+        <h4>${review.name}</h4>
+        <p>${"⭐".repeat(review.rating)}</p>
+        <p>${review.text}</p>
+        <small>${new Date(review.date).toLocaleDateString()}</small>
+      </div>
+    `).join("");
+
+    console.log("Reviews loaded:", reviews);
+
+  } catch (error) {
+    console.error("Error loading reviews:", error);
+  }
 }
 document.addEventListener("DOMContentLoaded", () => {
-    renderReviews();
+  loadReviewsFromDB();
 });
