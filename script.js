@@ -969,55 +969,20 @@ async function renderReviews() {
         .join('');
 }
 
-    averageRating.textContent = avg.toFixed(1);
-    averageStars.textContent = starsFromRating(Math.round(avg));
-    reviewCount.textContent = String(reviews.length);
-    [5, 4, 3, 2, 1].forEach((rating) => {
-        const count = distribution[rating];
-        const percent = reviews.length ? (count / reviews.length) * 100 : 0;
-        if (ratingCountEls[rating]) ratingCountEls[rating].textContent = String(count);
-        if (ratingBarEls[rating]) ratingBarEls[rating].style.width = `${percent}%`;
-    });
-
-    if (reviews.length === 0) {
-        reviewsList.innerHTML = '<p class="review-text">No reviews yet. Be the first to share your feedback.</p>';
-        //return;
-    }
-
-    reviewsList.innerHTML = reviews
-        .slice()
-        .reverse()
-        .map((review) => `
-            <article class="review-card">
-                <div class="review-card-header">
-                    <span class="review-name">${escapeHtml(review.name)}</span>
-                    <span class="review-stars" aria-label="${review.rating} out of 5 stars">${starsFromRating(Number(review.rating))}</span>
-                </div>
-                ${isOwner ? `
-                <div class="review-actions">
-                    <button class="review-delete-btn" type="button" onclick="deleteReview('${encodeURIComponent(makeReviewKey(review))}')">Delete</button>
-                </div>
-                ` : ``}
-                <p class="review-date">${formatReviewDate(review.date)}</p>
-                <p class="review-text">${escapeHtml(review.text)}</p>
-            </article>
-        `)
-        .join('');
-}
-
+    
 function deleteReview(encodedKey) {
     const key = decodeURIComponent(encodedKey);
     const reviews = getStoredReviews();
     const nextReviews = reviews.filter((review) => makeReviewKey(review) !== key);
     saveReviews(nextReviews);
-    document.addEventListener("DOMContentLoaded", () => {     renderReviews(); });
+    renderReviews();
 }
 
 window.deleteReview = deleteReview;
 
 if (reviewForm && reviewFormMessage) {
     removeBlockedReviews();
-    document.addEventListener("DOMContentLoaded", () => {     renderReviews(); });
+    renderReviews();
 
     reviewForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -1042,7 +1007,7 @@ if (reviewForm && reviewFormMessage) {
 
         const reviews = getStoredReviews();
         await saveReviewToDB(name, rating, text);
-        await document.addEventListener("DOMContentLoaded", () => {     renderReviews(); });
+        await renderReviews();
         
         reviewForm.reset();
         reviewFormMessage.textContent = 'Thank you! Your review has been added.';
