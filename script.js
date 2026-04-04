@@ -862,38 +862,38 @@ const ratingBarEls = {
     2: document.getElementById('ratingBar2'),
     1: document.getElementById('ratingBar1')
 };
-const REVIEWS_STORAGE_KEY = 'asha-client-reviews';
+//const REVIEWS_STORAGE_KEY = 'asha-client-reviews';
 
-const defaultReviews = [
-    {
-        name: 'Client A',
-        rating: 5,
-        text: 'Very supportive and practical guidance. I felt heard and understood.',
-        date: '2026-03-01'
-    },
-    {
-        name: 'Workshop Participant',
-        rating: 5,
-        text: 'The workshop was insightful and easy to apply in day-to-day life.',
-        date: '2026-03-10'
-    }
-];
+// const defaultReviews = [
+//     {
+//         name: 'Client A',
+//         rating: 5,
+//         text: 'Very supportive and practical guidance. I felt heard and understood.',
+//         date: '2026-03-01'
+//     },
+//     {
+//         name: 'Workshop Participant',
+//         rating: 5,
+//         text: 'The workshop was insightful and easy to apply in day-to-day life.',
+//         date: '2026-03-10'
+//     }
+// ];
 
-function getStoredReviews() {
-    try {
-        const raw = localStorage.getItem(REVIEWS_STORAGE_KEY);
-        if (!raw) return defaultReviews.slice();
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed)) return defaultReviews.slice();
-        return parsed.filter(item => item && item.name && item.text && Number(item.rating));
-    } catch (error) {
-        return defaultReviews.slice();
-    }
-}
+// function getStoredReviews() {
+//     try {
+//         const raw = localStorage.getItem(REVIEWS_STORAGE_KEY);
+//         if (!raw) return defaultReviews.slice();
+//         const parsed = JSON.parse(raw);
+//         if (!Array.isArray(parsed)) return defaultReviews.slice();
+//         return parsed.filter(item => item && item.name && item.text && Number(item.rating));
+//     } catch (error) {
+//         return defaultReviews.slice();
+//     }
+// }
 
-function saveReviews(reviews) {
-    localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(reviews));
-}
+// function saveReviews(reviews) {
+//     localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(reviews));
+// }
 
 function makeReviewKey(review) {
     return [review.name || '', review.date || '', review.text || ''].join('|');
@@ -909,20 +909,20 @@ function escapeHtml(value) {
 }
 
 // One-time cleanup for a specifically requested review removal.
-function removeBlockedReviews() {
-    const reviews = getStoredReviews();
-    const filtered = reviews.filter((review) => {
-        const name = (review.name || '').toLowerCase();
-        const text = (review.text || '').toLowerCase();
-        const isTargetReview = name.includes('nandhan')
-            && text.includes('safe person to walk to for help');
-        return !isTargetReview;
-    });
+// function removeBlockedReviews() {
+//     const reviews = getStoredReviews();
+//     const filtered = reviews.filter((review) => {
+//         const name = (review.name || '').toLowerCase();
+//         const text = (review.text || '').toLowerCase();
+//         const isTargetReview = name.includes('nandhan')
+//             && text.includes('safe person to walk to for help');
+//         return !isTargetReview;
+//     });
 
-    if (filtered.length !== reviews.length) {
-        saveReviews(filtered);
-    }
-}
+//     if (filtered.length !== reviews.length) {
+//         saveReviews(filtered);
+//     }
+// }
 
 function starsFromRating(rating) {
     const filled = '★'.repeat(Math.max(0, Math.min(5, rating)));
@@ -970,51 +970,46 @@ async function renderReviews() {
 }
 
     
-function deleteReview(encodedKey) {
-    const key = decodeURIComponent(encodedKey);
-    const reviews = getStoredReviews();
-    const nextReviews = reviews.filter((review) => makeReviewKey(review) !== key);
-    saveReviews(nextReviews);
-    renderReviews();
-}
+// function deleteReview(encodedKey) {
+//     const key = decodeURIComponent(encodedKey);
+//     const reviews = getStoredReviews();
+//     const nextReviews = reviews.filter((review) => makeReviewKey(review) !== key);
+//     saveReviews(nextReviews);
+//     renderReviews();
+// }
 
 window.deleteReview = deleteReview;
 
 if (reviewForm && reviewFormMessage) {
-    removeBlockedReviews();
+    //removeBlockedReviews();
     renderReviews();
 
     reviewForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        reviewFormMessage.classList.remove('success', 'error');
+    event.preventDefault();
+    reviewFormMessage.classList.remove('success', 'error');
 
-        const formData = new FormData(reviewForm);
-        const name = (formData.get('reviewerName') || '').toString().trim();
-        const rating = Number((formData.get('reviewRating') || '').toString());
-        const text = (formData.get('reviewText') || '').toString().trim();
+    const formData = new FormData(reviewForm);
+    const name = (formData.get('reviewerName') || '').toString().trim();
+    const rating = Number(formData.get('reviewRating'));
+    const text = (formData.get('reviewText') || '').toString().trim();
 
-        if (!name || !rating || !text) {
-            reviewFormMessage.textContent = 'Please fill your name, rating, and review before submitting.';
-            reviewFormMessage.classList.add('error');
-            return;
-        }
+    if (!name || !rating || !text) {
+        reviewFormMessage.textContent = 'Please fill all fields';
+        reviewFormMessage.classList.add('error');
+        return;
+    }
 
-        if (rating < 1 || rating > 5) {
-            reviewFormMessage.textContent = 'Please select a valid rating between 1 and 5.';
-            reviewFormMessage.classList.add('error');
-            return;
-        }
+    // 🔥 SAVE TO FIREBASE
+    await saveReviewToDB(name, rating, text);
 
-        const reviews = getStoredReviews();
-        await saveReviewToDB(name, rating, text);
-        await renderReviews();
-        
-        reviewForm.reset();
-        reviewFormMessage.textContent = 'Thank you! Your review has been added.';
-        reviewFormMessage.classList.add('success');
-    });
+    // 🔥 RELOAD FROM FIREBASE
+    await renderReviews();
+
+    reviewForm.reset();
+    reviewFormMessage.textContent = 'Thank you! Your review has been added.';
+    reviewFormMessage.classList.add('success');
+});
 }
-
 console.log('Asha Suhasini Raja - Website Initialized Successfully!');
 
 // Media Modal: open image or video in the existing modal container
@@ -1311,3 +1306,6 @@ async function loadReviewsFromDB() {
 
     return reviews;
 }
+document.addEventListener("DOMContentLoaded", () => {
+    renderReviews();
+});
