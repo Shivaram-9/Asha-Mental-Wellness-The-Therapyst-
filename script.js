@@ -1292,9 +1292,9 @@ document.addEventListener("change", function (e) {
 // 🔥 SAVE REVIEW TO FIREBASE
 async function saveReviewToDB(name, rating, text) {
     await db.collection("reviews").add({
-        name,
-        rating,
-        text,
+        name: name,
+        rating: rating,
+        text: text,
         date: new Date().toISOString()
     });
 }
