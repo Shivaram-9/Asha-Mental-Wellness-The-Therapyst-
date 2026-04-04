@@ -981,7 +981,7 @@ async function renderReviews() {
 
     if (reviews.length === 0) {
         reviewsList.innerHTML = '<p class="review-text">No reviews yet. Be the first to share your feedback.</p>';
-        return;
+        //return;
     }
 
     reviewsList.innerHTML = reviews
