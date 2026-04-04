@@ -1297,30 +1297,63 @@ async function saveReviewToDB(name, rating, text) {
 // 🔥 LOAD REVIEWS FROM FIREBASE
 async function loadReviewsFromDB() {
   try {
-    const snapshot = await db.collection("reviews").orderBy("date", "desc").get();
-
+    const snapshot = await db.collection("reviews").get();
     const reviews = snapshot.docs.map(doc => doc.data());
 
     const reviewsList = document.getElementById("reviewsList");
 
+    // 👉 SHOW REVIEWS LIST
     if (reviews.length === 0) {
       reviewsList.innerHTML = "<p>No reviews yet</p>";
-      return;
+    } else {
+      reviewsList.innerHTML = reviews.map(review => `
+        <div class="review-card">
+          <h4>${review.name}</h4>
+          <p>${"⭐".repeat(review.rating)}</p>
+          <p>${review.text}</p>
+          <small>${new Date(review.date).toLocaleDateString()}</small>
+        </div>
+      `).join("");
     }
 
-    reviewsList.innerHTML = reviews.map(review => `
-      <div class="review-card">
-        <h4>${review.name}</h4>
-        <p>${"⭐".repeat(review.rating)}</p>
-        <p>${review.text}</p>
-        <small>${new Date(review.date).toLocaleDateString()}</small>
-      </div>
-    `).join("");
+    // =========================
+    // 🔥 UPDATE RATINGS SECTION
+    // =========================
 
-    console.log("Reviews loaded:", reviews);
+    const total = reviews.length;
+    document.getElementById("reviewCount").textContent = total;
+
+    if (total === 0) return;
+
+    let sum = 0;
+    let distribution = {1:0,2:0,3:0,4:0,5:0};
+
+    reviews.forEach(r => {
+      const rating = Number(r.rating);
+      sum += rating;
+      distribution[rating]++;
+    });
+
+    const avg = (sum / total).toFixed(1);
+    document.getElementById("averageRating").textContent = avg;
+
+    // ⭐ stars display
+    document.getElementById("averageStars").textContent =
+      "★".repeat(Math.round(avg)) + "☆".repeat(5 - Math.round(avg));
+
+    // 👉 update bars + count
+    [1,2,3,4,5].forEach(star => {
+      const count = distribution[star];
+      const percent = (count / total) * 100;
+
+      document.getElementById(`ratingCount${star}`).textContent = count;
+      document.getElementById(`ratingBar${star}`).style.width = percent + "%";
+    });
+
+    console.log("Ratings updated ✅");
 
   } catch (error) {
-    console.error("Error loading reviews:", error);
+    console.error("Error:", error);
   }
 }
 document.addEventListener("DOMContentLoaded", () => {
