@@ -936,17 +936,38 @@ function formatReviewDate(value) {
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-function renderReviews() {
+async function renderReviews() {
+
     if (!reviewsList || !averageRating || !averageStars || !reviewCount) return;
 
-    const reviews = getStoredReviews();
+    const reviews = await loadReviewsFromDB();
+
     const total = reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0);
     const avg = reviews.length ? total / reviews.length : 0;
-    const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    reviews.forEach((review) => {
-        const rating = Number(review.rating || 0);
-        if (distribution[rating] !== undefined) distribution[rating] += 1;
-    });
+
+    averageRating.textContent = avg.toFixed(1);
+    averageStars.textContent = starsFromRating(Math.round(avg));
+    reviewCount.textContent = String(reviews.length);
+
+    if (reviews.length === 0) {
+        reviewsList.innerHTML = '<p>No reviews yet.</p>';
+        return;
+    }
+
+    reviewsList.innerHTML = reviews
+        .slice()
+        .reverse()
+        .map((review) => `
+            <article class="review-card">
+                <div class="review-card-header">
+                    <span>${escapeHtml(review.name)}</span>
+                    <span>${starsFromRating(Number(review.rating))}</span>
+                </div>
+                <p>${escapeHtml(review.text)}</p>
+            </article>
+        `)
+        .join('');
+}
 
     averageRating.textContent = avg.toFixed(1);
     averageStars.textContent = starsFromRating(Math.round(avg));
@@ -989,16 +1010,16 @@ function deleteReview(encodedKey) {
     const reviews = getStoredReviews();
     const nextReviews = reviews.filter((review) => makeReviewKey(review) !== key);
     saveReviews(nextReviews);
-    renderReviews();
+    document.addEventListener("DOMContentLoaded", () => {     renderReviews(); });
 }
 
 window.deleteReview = deleteReview;
 
 if (reviewForm && reviewFormMessage) {
     removeBlockedReviews();
-    renderReviews();
+    document.addEventListener("DOMContentLoaded", () => {     renderReviews(); });
 
-    reviewForm.addEventListener('submit', (event) => {
+    reviewForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         reviewFormMessage.classList.remove('success', 'error');
 
@@ -1020,15 +1041,9 @@ if (reviewForm && reviewFormMessage) {
         }
 
         const reviews = getStoredReviews();
-        reviews.push({
-            name,
-            rating,
-            text,
-            date: new Date().toISOString()
-        });
-
-        saveReviews(reviews);
-        renderReviews();
+        await saveReviewToDB(name, rating, text);
+        await document.addEventListener("DOMContentLoaded", () => {     renderReviews(); });
+        
         reviewForm.reset();
         reviewFormMessage.textContent = 'Thank you! Your review has been added.';
         reviewFormMessage.classList.add('success');
@@ -1309,3 +1324,25 @@ document.addEventListener("change", function (e) {
         }
     }
 });
+// 🔥 SAVE REVIEW TO FIREBASE
+async function saveReviewToDB(name, rating, text) {
+    await addDoc(collection(db, "reviews"), {
+        name,
+        rating,
+        text,
+        date: new Date().toISOString()
+    });
+}
+
+// 🔥 LOAD REVIEWS FROM FIREBASE
+async function loadReviewsFromDB() {
+    const snapshot = await getDocs(collection(db, "reviews"));
+
+    let reviews = [];
+
+    snapshot.forEach(doc => {
+        reviews.push(doc.data());
+    });
+
+    return reviews;
+}
