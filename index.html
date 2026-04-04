@@ -6,6 +6,30 @@
     <title>Asha Suhasini Raja G - Mental Wellness Consultant & Psychotherapist</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, addDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔥 YOUR CONFIG (COPY FROM FIREBASE)
+const firebaseConfig = {
+  apiKey: "AIzaSyBuIA_aerQnfoOiDXJO_uZY27G3HOjUNL0",
+  authDomain: "asha-healing-space-39f5b.firebaseapp.com",
+  projectId: "asha-healing-space-39f5b",
+  storageBucket: "asha-healing-space-39f5b.firebasestorage.app",
+  messagingSenderId: "570675725895",
+  appId: "1:570675725895:web:d47e4d74478b353c31d362"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Make global (IMPORTANT)
+window.db = db;
+window.addDoc = addDoc;
+window.collection = collection;
+window.getDocs = getDocs;
+</script>
 <body>
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
