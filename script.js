@@ -1291,7 +1291,7 @@ document.addEventListener("change", function (e) {
 });
 // 🔥 SAVE REVIEW TO FIREBASE
 async function saveReviewToDB(name, rating, text) {
-    await db.collection("reviews").add({
+    await window.db.collection("reviews").add({
         name: name,
         rating: rating,
         text: text,
@@ -1301,7 +1301,7 @@ async function saveReviewToDB(name, rating, text) {
 
 // 🔥 LOAD REVIEWS FROM FIREBASE
 async function loadReviewsFromDB() {
-    const snapshot = await db.collection("reviews").get();
+    const snapshot = await window.db.collection("reviews").get();
 
     let reviews = [];
 
