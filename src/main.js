@@ -920,25 +920,12 @@ function renderReviews() {
                     <span class="review-name">${escapeHtml(review.name)}</span>
                     <span class="review-stars" aria-label="${review.rating} out of 5 stars">${starsFromRating(Number(review.rating))}</span>
                 </div>
-                <div class="review-actions">
-                    <button class="review-delete-btn" type="button" onclick="deleteReview('${encodeURIComponent(makeReviewKey(review))}')">Delete</button>
-                </div>
                 <p class="review-date">${formatReviewDate(review.date)}</p>
                 <p class="review-text">${escapeHtml(review.text)}</p>
             </article>
         `)
         .join('');
 }
-
-function deleteReview(encodedKey) {
-    const key = decodeURIComponent(encodedKey);
-    const reviews = getStoredReviews();
-    const nextReviews = reviews.filter((review) => makeReviewKey(review) !== key);
-    saveReviews(nextReviews);
-    renderReviews();
-}
-
-window.deleteReview = deleteReview;
 
 if (reviewForm && reviewFormMessage) {
     removeBlockedReviews();
