@@ -1,16 +1,4 @@
-// Loading Screen
-function hideLoadingScreen() {
-    setTimeout(() => {
-        const loader = document.getElementById('loadingScreen');
-        if (loader) loader.classList.add('hidden');
-    }, 500); // Reduced to 500ms for better UX
-}
-
-if (document.readyState === 'complete') {
-    hideLoadingScreen();
-} else {
-    window.addEventListener('load', hideLoadingScreen);
-}
+// Loading screen removed for reliability
 
 // Navigation Scroll Effect
 const navbar = document.getElementById('navbar');
