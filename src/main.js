@@ -730,16 +730,9 @@ window.addEventListener('scroll', () => {
 
 // Theme Toggle (Light / Dark)
 const themeToggle = document.getElementById('themeToggle');
-const themeToggleIcon = themeToggle ? themeToggle.querySelector('.theme-toggle-icon') : null;
 
 function applyTheme(theme) {
-    if (theme === 'dark') {
-        document.body.setAttribute('data-theme', 'dark');
-        if (themeToggleIcon) themeToggleIcon.textContent = 'â˜€ï¸';
-    } else {
-        document.body.removeAttribute('data-theme');
-        if (themeToggleIcon) themeToggleIcon.textContent = 'ðŸŒ™';
-    }
+    document.body.setAttribute('data-theme', theme);
 }
 
 function initTheme() {
