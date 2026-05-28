@@ -873,8 +873,8 @@ function removeBlockedReviews() {
 }
 
 function starsFromRating(rating) {
-    const filled = 'â˜…'.repeat(Math.max(0, Math.min(5, rating)));
-    const empty = 'â˜†'.repeat(5 - Math.max(0, Math.min(5, rating)));
+    const filled = '\u2605'.repeat(Math.max(0, Math.min(5, rating)));
+    const empty = '\u2606'.repeat(5 - Math.max(0, Math.min(5, rating)));
     return `${filled}${empty}`;
 }
 
