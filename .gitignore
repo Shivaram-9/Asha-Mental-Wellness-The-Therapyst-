@@ -1,0 +1,17 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
+
+# Python cache
+__pycache__/
+
+# Ignore node modules (if added later)
+node_modules/
+
+# Ignore user-uploaded local files not intended for repo
+*.env
+
+# Allow images/videos in repo (they are committed). If you prefer Git LFS, see README.md
