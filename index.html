@@ -6,7 +6,6 @@
     <title>Asha Suhasini Raja G - Mental Wellness Consultant & Psychotherapist</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-    
 <body>
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
@@ -35,6 +34,7 @@
                 <li><a href="#approach" class="nav-link">Approach</a></li>
                 <li><a href="#workshops" class="nav-link">Workshops</a></li>
                 <li><a href="#ratings" class="nav-link">Ratings</a></li>
+                <li><a href="#testimonials" class="nav-link">Testimonials</a></li>
                 <li><a href="#reviews" class="nav-link">Reviews</a></li>
                 <li><a href="#contact" class="nav-link">Contact</a></li>
                 <li>
@@ -61,13 +61,9 @@
             <p class="subtitle">Senior Mental Wellness Consultant & Psychotherapist</p>
             <p class="tagline"><strong>Psychotherapist | Trauma &amp; Relationship Specialist | Elite performance coach | 19+ Years Experience</strong></p>
             <div class="hero-buttons">
-                <!-- <button class="cta-button primary" onclick="openGoogleCalendarBooking()">Book a Session</button> -->
-                <button class="cta-button primary" onclick="openModal('bookingModal')">Book a Session</button>
+                <button class="cta-button primary" onclick="openGoogleCalendarBooking()">Book a Session</button>
                 <button class="cta-button secondary" onclick="scrollToSection('about')">Learn More</button>
             </div>
-            <p style="margin-top:1rem; color:white; font-size:0.95rem;">
-                🔒 Sessions are conducted securely via Zoom. The meeting link will be shared only after successful booking and payment confirmation.
-            </p>
             <div class="hero-stats">
                 <div class="stat-item">
                     <span class="stat-number" data-target="19">0</span>
@@ -479,6 +475,50 @@
         </div>
         </section>
 
+        <!-- Testimonials Section -->
+        <section id="testimonials" class="section-padding bg-gradient">
+        <div class="container">
+            <h2 class="section-title reveal text-white">Testimonials</h2>
+            <p class="section-subtitle reveal text-white">Stories of transformation and healing</p>
+            
+            <div class="testimonials-carousel reveal">
+                <div class="testimonial-card active">
+                    <div class="quote-icon">"</div>
+                    <p class="testimonial-text">Asha has been a guiding light during the darkest period of my life. Her EMDR therapy sessions helped me process trauma I've carried for years. I finally feel free and capable of building meaningful relationships again.</p>
+                    <div class="testimonial-author">
+                        <h4>Sarah M.</h4>
+                        <p>Individual Therapy Client</p>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="testimonial-text">We were on the brink of divorce before we started couples counseling. Asha's compassionate but direct approach helped us uncover the root of our communication breakdowns. We are stronger now than ever before.</p>
+                    <div class="testimonial-author">
+                        <h4>James & Priya</h4>
+                        <p>Couples Counseling</p>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-icon">"</div>
+                    <p class="testimonial-text">The corporate wellness program implemented by Asha transformed our team's dynamics. Burnout rates dropped significantly, and the staff finally felt heard. Her workshops are incredibly engaging and practical.</p>
+                    <div class="testimonial-author">
+                        <h4>Rajiv K.</h4>
+                        <p>HR Director</p>
+                    </div>
+                </div>
+                <div class="carousel-controls">
+                    <button class="carousel-btn prev-btn" aria-label="Previous testimonial">←</button>
+                    <div class="carousel-indicators">
+                        <span class="indicator active" data-index="0"></span>
+                        <span class="indicator" data-index="1"></span>
+                        <span class="indicator" data-index="2"></span>
+                    </div>
+                    <button class="carousel-btn next-btn" aria-label="Next testimonial">→</button>
+                </div>
+            </div>
+        </div>
+        </section>
+
         <!-- Reviews Section -->
         <section id="reviews" class="section-padding bg-light">
         <div class="container">
@@ -510,7 +550,6 @@
                             </div>
                             <button type="submit" class="contact-button">Submit Review</button>
                             <p id="reviewFormMessage" class="contact-form-message" role="status" aria-live="polite"></p>
-                            <p><strong>Session Mode:</strong> Online via Zoom (Link will be shared after booking payment confirmed)</p>
                         </form>
                     </div>
                 </div>
@@ -595,8 +634,7 @@
                         <p id="contactFormMessage" class="contact-form-message" role="status" aria-live="polite"></p>
                     </form>
                     <div class="contact-quick-actions">
-                        <!-- <button class="contact-button tertiary" type="button" onclick="openModal('bookingModal')">View Session Types</button> -->
-                        <button class="cta-button primary" onclick="openModal('bookingModal')">Book a Session</button>
+                        <button class="contact-button tertiary" type="button" onclick="openModal('bookingModal')">View Session Types</button>
                         <button class="contact-button tertiary" type="button" onclick="openModal('inquiryModal')">General Inquiry Info</button>
                     </div>
                 </div>
@@ -643,28 +681,6 @@
     <div class="modal-overlay" id="modalOverlay"></div>
     <div class="modal" id="modalContainer" role="dialog" aria-modal="true"></div>
 
-    <!-- 🔥 FIREBASE FIRST -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBuIA_aerQnfoOiDXJO_uZY27G3HOjUNL0",
-  authDomain: "asha-healing-space-39f5b.firebaseapp.com",
-  projectId: "asha-healing-space-39f5b",
-  storageBucket: "asha-healing-space-39f5b.firebasestorage.app",
-  messagingSenderId: "570675725895",
-  appId: "1:570675725895:web:d47e4d74478b353c31d362"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-// ✅ VERY IMPORTANT
-window.db = firebase.firestore();
-</script>
-
-<!-- 🔥 YOUR JS AFTER -->
-<script src="script.js"></script>
-
+    <script type="module" src="/src/main.js"></script>
 </body>
 </html>

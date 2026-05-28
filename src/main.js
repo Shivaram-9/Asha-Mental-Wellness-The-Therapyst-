@@ -1,4 +1,3 @@
-const isOwner = true; // 🔴 keep true for you, false for public
 // Loading Screen
 window.addEventListener('load', () => {
     setTimeout(() => {
@@ -44,41 +43,9 @@ function scrollToSection(sectionId) {
     }
 }
 
-function bookSlot() {
-
-    const date = document.getElementById("bookingDate").value;
-    const time = document.getElementById("timeSlot").value;
-    const clientEmail = document.getElementById("clientEmail").value;
-
-    if (!date || !time || !clientEmail) {
-        alert("Please fill all details");
-        return;
-    }
-
-    const therapistEmail = "ashasuhasini02@gmail.com";
-
-    const start = new Date(`${date}T${time}:00`);
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
-
-    function formatDate(d) {
-        return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-    }
-
-    // 🔥 ONLY ZOOM LINK
-    const zoomLink = "https://zoom.us/j/1234567890?pwd=secure123"; // your real meeting ID
-
-    const description = `Therapy Session (Zoom)\nZoom Link: ${zoomLink}`;
-
-    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE
-&text=Therapy%20Session
-&dates=${formatDate(start)}/${formatDate(end)}
-&details=${encodeURIComponent(description)}
-&location=Online%20(Zoom)
-&add=${clientEmail},${therapistEmail}`;
-
-    alert("✅ Booking request created!\n\nPlease complete payment. Zoom link will be shared after payment confirmation.");
-
-    window.open(calendarUrl, "_blank");
+function openGoogleCalendarBooking() {
+    const calendarUrl = 'https://calendar.google.com/calendar/u/0/r/eventedit?text=Therapy%20Session%20with%20Asha%20Suhasini%20Raja%20G&details=Please%20share%20your%20concern%20briefly.%20Contact%3A%20ashasuhasini02%40gmail.com&location=Online%20or%20Hyderabad&add=ashasuhasini02%40gmail.com';
+    window.open(calendarUrl, '_blank', 'noopener,noreferrer');
 }
 
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -164,8 +131,8 @@ function getModalContent(modalType) {
     const modals = {
         educationModal: `
             <div class="modal-header">
-                <h2>🎓 Education</h2>
-                <button class="modal-close" onclick="closeModal()">×</button>
+                <h2>ðŸŽ“ Education</h2>
+                <button class="modal-close" onclick="closeModal()">Ã—</button>
             </div>
             <div class="modal-body">
                 <h3>Master's in Clinical Psychology</h3>
@@ -184,8 +151,8 @@ function getModalContent(modalType) {
         `,
         certificationModal: `
             <div class="modal-header">
-                <h2>📜 Certifications & Registration</h2>
-                <button class="modal-close" onclick="closeModal()">×</button>
+                <h2>ðŸ“œ Certifications & Registration</h2>
+                <button class="modal-close" onclick="closeModal()">Ã—</button>
             </div>
             <div class="modal-body">
                 <h3>Professional Registration</h3>
@@ -207,8 +174,8 @@ function getModalContent(modalType) {
         `,
         specializationModal: `
             <div class="modal-header">
-                <h2>⭐ Areas of Specialization</h2>
-                <button class="modal-close" onclick="closeModal()">×</button>
+                <h2>â­ Areas of Specialization</h2>
+                <button class="modal-close" onclick="closeModal()">Ã—</button>
             </div>
             <div class="modal-body">
                 <h3>Clinical Specializations</h3>
@@ -237,61 +204,54 @@ function getModalContent(modalType) {
             </div>
         `,
         bookingModal: `
-    <div class="modal-header">
-        <h2>📅 Book a Session</h2>
-        <button class="modal-close" onclick="closeModal()">×</button>
-    </div>
-
-    <div class="modal-body">
-        <h3>🕒 Available Time Slots</h3>
-
-        <div style="background:#f8f9fa; padding:1.5rem; border-radius:15px;">
-            <p><strong>Monday – Saturday:</strong> 05:00 PM – 10:00 PM</p>
-            <p><strong>Sunday:</strong> 12:00 PM – 06:00 PM</p>
-        </div>
-
-        <h3 style="margin-top:1.5rem;">Select Your Slot</h3>
-
-        <div style="margin-top:1rem;">
-            <label>Select Date:</label>
-            <input type="date" id="bookingDate" style="width:100%; padding:10px;">
-        </div>
-
-        <div style="margin-top:1rem;">
-            <label>Select Time Slot:</label>
-            <select id="timeSlot" style="width:100%; padding:10px;">
-            <option value="">Select Time Slot</option>
-        </select>
-        </div>
-
-        <!-- 🔥 ADD THIS BELOW -->
-            <div style="margin-top:1rem;">
-                <label>Your Email:</label>
-                <input type="email" id="clientEmail" placeholder="Enter your email" required style="width:100%; padding:10px;">
+            <div class="modal-header">
+                <h2>ðŸ“… Book a Session</h2>
+                <button class="modal-close" onclick="closeModal()">Ã—</button>
             </div>
+            <div class="modal-body">
+                <h3>Session Types</h3>
+                <ul>
+                    <li><strong>Individual Therapy:</strong> 50-minute sessions for personal mental health support</li>
+                    <li><strong>Couples/Family Therapy:</strong> 60-minute sessions for relationship counseling</li>
+                    <li><strong>Corporate Consultation:</strong> Customized programs for organizations</li>
+                    <li><strong>Life Coaching:</strong> Goal-oriented sessions for personal development</li>
+                </ul>
+                
+                <h3>Session Formats</h3>
+                <p>âœ“ In-person sessions (Hyderabad)</p>
+                <p>âœ“ Online video consultations</p>
+                <p>âœ“ Phone consultations</p>
+                
+                <h3>Contact Information</h3>
+                <p><strong>Email:</strong> ashasuhasini02@gmail.com</p>
+                <p><strong>Location:</strong> Hyderabad, India</p>
 
-        <button class="contact-button" style="margin-top: 1rem; width:100%;" onclick="bookSlot()">
-            Confirm Booking
-        </button>
-    </div>
-`,
+                <button class="contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()">
+                    Open Google Calendar
+                </button>
+                
+                <p style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 15px;">
+                    <strong>Note:</strong> First consultations include a comprehensive assessment to understand your needs and create a personalized treatment plan.
+                </p>
+            </div>
+        `,
         inquiryModal: `
             <div class="modal-header">
-                <h2>💬 General Inquiry</h2>
-                <button class="modal-close" onclick="closeModal()">×</button>
+                <h2>ðŸ’¬ General Inquiry</h2>
+                <button class="modal-close" onclick="closeModal()">Ã—</button>
             </div>
             <div class="modal-body">
                 <h3>Get in Touch</h3>
                 <p>For general inquiries about services, workshops, or corporate programs, please reach out through the following channels:</p>
                 
                 <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 15px; margin: 1.5rem 0;">
-                    <h4 style="margin-top: 0;">📧 Email</h4>
+                    <h4 style="margin-top: 0;">ðŸ“§ Email</h4>
                     <p>ashasuhasini02@gmail.com</p>
                     
-                    <h4>📍 Location</h4>
+                    <h4>ðŸ“ Location</h4>
                     <p>Hyderabad, Telangana, India</p>
                     
-                    <h4>⏰ Response Time</h4>
+                    <h4>â° Response Time</h4>
                     <p>Typically within 24-48 hours</p>
                 </div>
                 
@@ -315,7 +275,7 @@ function getModalContent(modalType) {
 function openServiceModal(serviceType) {
     const services = {
         individual: {
-            title: '💭 Individual Therapy',
+            title: 'ðŸ’­ Individual Therapy',
             description: 'Personalized one-on-one psychotherapy sessions designed to address your unique mental health needs.',
             details: [
                 'Evidence-based therapeutic approaches including CBT, REBT, and DBT',
@@ -328,7 +288,7 @@ function openServiceModal(serviceType) {
             format: 'Available online and in-person'
         },
         family: {
-            title: '👨‍👩‍👧‍👦 Family & Marital Therapy',
+            title: 'ðŸ‘¨â€ðŸ‘©â€ðŸ‘§â€ðŸ‘¦ Family & Marital Therapy',
             description: 'Strengthen relationships and resolve conflicts through compassionate family and couples counseling.',
             details: [
                 'Improve communication and understanding between family members',
@@ -341,7 +301,7 @@ function openServiceModal(serviceType) {
             format: 'In-person and online options available'
         },
         corporate: {
-            title: '💼 Corporate Wellness',
+            title: 'ðŸ’¼ Corporate Wellness',
             description: 'Comprehensive mental health programs designed to enhance workplace well-being and productivity.',
             details: [
                 'Employee counseling and support services',
@@ -355,7 +315,7 @@ function openServiceModal(serviceType) {
             format: 'On-site and virtual programs'
         },
         coaching: {
-            title: '🎯 Life Skills Coaching',
+            title: 'ðŸŽ¯ Life Skills Coaching',
             description: 'Personalized coaching programs to build confidence, achieve goals, and develop lasting resilience.',
             details: [
                 'Goal setting and achievement strategies',
@@ -369,7 +329,7 @@ function openServiceModal(serviceType) {
             format: 'Individual and group coaching available'
         },
         trauma: {
-            title: '🌱 Trauma Counseling',
+            title: 'ðŸŒ± Trauma Counseling',
             description: 'Specialized support for healing from traumatic experiences and critical incidents.',
             details: [
                 'PTSD treatment and management',
@@ -383,7 +343,7 @@ function openServiceModal(serviceType) {
             format: 'Sensitive, confidential support'
         },
         student: {
-            title: '📚 Student Counseling',
+            title: 'ðŸ“š Student Counseling',
             description: 'Academic support and personal development guidance for students of all ages.',
             details: [
                 'Exam stress and academic pressure management',
@@ -404,7 +364,7 @@ function openServiceModal(serviceType) {
     const modalContent = `
         <div class="modal-header">
             <h2>${service.title}</h2>
-            <button class="modal-close" onclick="closeModal()">×</button>
+            <button class="modal-close" onclick="closeModal()">Ã—</button>
         </div>
         <div class="modal-body">
             <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${service.description}</p>
@@ -526,12 +486,12 @@ function openExperienceModal(orgType) {
     const modalContent = `
         <div class="modal-header">
             <h2>${exp.title}</h2>
-            <button class="modal-close" onclick="closeModal()">×</button>
+            <button class="modal-close" onclick="closeModal()">Ã—</button>
         </div>
         <div class="modal-body">
             <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1rem 1.5rem; border-radius: 15px; margin-bottom: 1.5rem;">
                 <p style="margin: 0; font-weight: 600;">${exp.role}</p>
-                <p style="margin: 0.3rem 0 0 0; opacity: 0.9;">${exp.period} • ${exp.location}</p>
+                <p style="margin: 0.3rem 0 0 0; opacity: 0.9;">${exp.period} â€¢ ${exp.location}</p>
             </div>
             
             <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${exp.description}</p>
@@ -632,7 +592,7 @@ function openTherapyModal(methodType) {
     const modalContent = `
         <div class="modal-header">
             <h2>${method.title}</h2>
-            <button class="modal-close" onclick="closeModal()">×</button>
+            <button class="modal-close" onclick="closeModal()">Ã—</button>
         </div>
         <div class="modal-body">
             <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${method.description}</p>
@@ -722,7 +682,7 @@ function openWorkshopModal(workshopType) {
     const modalContent = `
         <div class="modal-header">
             <h2>${workshop.title}</h2>
-            <button class="modal-close" onclick="closeModal()">×</button>
+            <button class="modal-close" onclick="closeModal()">Ã—</button>
         </div>
         <div class="modal-body">
             <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${workshop.description}</p>
@@ -780,10 +740,10 @@ const themeToggleIcon = themeToggle ? themeToggle.querySelector('.theme-toggle-i
 function applyTheme(theme) {
     if (theme === 'dark') {
         document.body.setAttribute('data-theme', 'dark');
-        if (themeToggleIcon) themeToggleIcon.textContent = '☀️';
+        if (themeToggleIcon) themeToggleIcon.textContent = 'â˜€ï¸';
     } else {
         document.body.removeAttribute('data-theme');
-        if (themeToggleIcon) themeToggleIcon.textContent = '🌙';
+        if (themeToggleIcon) themeToggleIcon.textContent = 'ðŸŒ™';
     }
 }
 
@@ -925,8 +885,8 @@ function removeBlockedReviews() {
 }
 
 function starsFromRating(rating) {
-    const filled = '★'.repeat(Math.max(0, Math.min(5, rating)));
-    const empty = '☆'.repeat(5 - Math.max(0, Math.min(5, rating)));
+    const filled = 'â˜…'.repeat(Math.max(0, Math.min(5, rating)));
+    const empty = 'â˜†'.repeat(5 - Math.max(0, Math.min(5, rating)));
     return `${filled}${empty}`;
 }
 
@@ -936,21 +896,30 @@ function formatReviewDate(value) {
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-async function renderReviews() {
-
+function renderReviews() {
     if (!reviewsList || !averageRating || !averageStars || !reviewCount) return;
 
-    const reviews = await loadReviewsFromDB();
-
+    const reviews = getStoredReviews();
     const total = reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0);
     const avg = reviews.length ? total / reviews.length : 0;
+    const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviews.forEach((review) => {
+        const rating = Number(review.rating || 0);
+        if (distribution[rating] !== undefined) distribution[rating] += 1;
+    });
 
     averageRating.textContent = avg.toFixed(1);
     averageStars.textContent = starsFromRating(Math.round(avg));
     reviewCount.textContent = String(reviews.length);
+    [5, 4, 3, 2, 1].forEach((rating) => {
+        const count = distribution[rating];
+        const percent = reviews.length ? (count / reviews.length) * 100 : 0;
+        if (ratingCountEls[rating]) ratingCountEls[rating].textContent = String(count);
+        if (ratingBarEls[rating]) ratingBarEls[rating].style.width = `${percent}%`;
+    });
 
     if (reviews.length === 0) {
-        reviewsList.innerHTML = '<p>No reviews yet.</p>';
+        reviewsList.innerHTML = '<p class="review-text">No reviews yet. Be the first to share your feedback.</p>';
         return;
     }
 
@@ -960,16 +929,19 @@ async function renderReviews() {
         .map((review) => `
             <article class="review-card">
                 <div class="review-card-header">
-                    <span>${escapeHtml(review.name)}</span>
-                    <span>${starsFromRating(Number(review.rating))}</span>
+                    <span class="review-name">${escapeHtml(review.name)}</span>
+                    <span class="review-stars" aria-label="${review.rating} out of 5 stars">${starsFromRating(Number(review.rating))}</span>
                 </div>
-                <p>${escapeHtml(review.text)}</p>
+                <div class="review-actions">
+                    <button class="review-delete-btn" type="button" onclick="deleteReview('${encodeURIComponent(makeReviewKey(review))}')">Delete</button>
+                </div>
+                <p class="review-date">${formatReviewDate(review.date)}</p>
+                <p class="review-text">${escapeHtml(review.text)}</p>
             </article>
         `)
         .join('');
 }
 
-    
 function deleteReview(encodedKey) {
     const key = decodeURIComponent(encodedKey);
     const reviews = getStoredReviews();
@@ -984,32 +956,43 @@ if (reviewForm && reviewFormMessage) {
     removeBlockedReviews();
     renderReviews();
 
-    reviewForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    reviewFormMessage.classList.remove('success', 'error');
+    reviewForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        reviewFormMessage.classList.remove('success', 'error');
 
-    const formData = new FormData(reviewForm);
-    const name = (formData.get('reviewerName') || '').toString().trim();
-    const rating = Number(formData.get('reviewRating'));
-    const text = (formData.get('reviewText') || '').toString().trim();
+        const formData = new FormData(reviewForm);
+        const name = (formData.get('reviewerName') || '').toString().trim();
+        const rating = Number((formData.get('reviewRating') || '').toString());
+        const text = (formData.get('reviewText') || '').toString().trim();
 
-    if (!name || !rating || !text) {
-        reviewFormMessage.textContent = 'Please fill all fields';
-        reviewFormMessage.classList.add('error');
-        return;
-    }
+        if (!name || !rating || !text) {
+            reviewFormMessage.textContent = 'Please fill your name, rating, and review before submitting.';
+            reviewFormMessage.classList.add('error');
+            return;
+        }
 
-    // 🔥 SAVE TO FIREBASE
-    await saveReviewToDB(name, rating, text);
+        if (rating < 1 || rating > 5) {
+            reviewFormMessage.textContent = 'Please select a valid rating between 1 and 5.';
+            reviewFormMessage.classList.add('error');
+            return;
+        }
 
-    // 🔥 RELOAD FROM FIREBASE
-    await renderReviews();
+        const reviews = getStoredReviews();
+        reviews.push({
+            name,
+            rating,
+            text,
+            date: new Date().toISOString()
+        });
 
-    reviewForm.reset();
-    reviewFormMessage.textContent = 'Thank you! Your review has been added.';
-    reviewFormMessage.classList.add('success');
-});
+        saveReviews(reviews);
+        renderReviews();
+        reviewForm.reset();
+        reviewFormMessage.textContent = 'Thank you! Your review has been added.';
+        reviewFormMessage.classList.add('success');
+    });
 }
+
 console.log('Asha Suhasini Raja - Website Initialized Successfully!');
 
 // Media Modal: open image or video in the existing modal container
@@ -1058,8 +1041,8 @@ function openMediaModal(src, type, index = -1, caption = '') {
         ? `<video src="${src}" controls autoplay playsinline></video>`
         : `<img src="${src}" alt="${caption || 'Gallery image'}">`;
 
-    const prevBtn = `<button class="nav-btn" aria-label="Previous" onclick="galleryPrev()">← Prev</button>`;
-    const nextBtn = `<button class="nav-btn" aria-label="Next" onclick="galleryNext()">Next →</button>`;
+    const prevBtn = `<button class="nav-btn" aria-label="Previous" onclick="galleryPrev()">â† Prev</button>`;
+    const nextBtn = `<button class="nav-btn" aria-label="Next" onclick="galleryNext()">Next â†’</button>`;
     const downloadBtn = `<a class="download-btn" href="${src}" download><button class="download-btn">Download</button></a>`;
 
     const controlsMarkup = galleryItems.length > 1
@@ -1072,7 +1055,7 @@ function openMediaModal(src, type, index = -1, caption = '') {
 
     const mediaMarkup = `
         <div class="modal-header">
-            <button class="modal-close" onclick="closeModal()">×</button>
+            <button class="modal-close" onclick="closeModal()">Ã—</button>
         </div>
         <div class="modal-body">
             ${mediaEl}
@@ -1110,8 +1093,8 @@ function initGalleryHandlers() {
     const imgs = Array.from(document.querySelectorAll('.media-item > img'));
 
     imgs.forEach((img, i) => {
-        const src = img.src;   // ✅ FIXED
-        const type = 'image';  // ✅ FIXED
+        const src = img.src;   // âœ… FIXED
+        const type = 'image';  // âœ… FIXED
         const caption = img.alt || '';
 
         galleryItems.push({ src, type, caption });
@@ -1166,196 +1149,56 @@ function initGalleryHandlers() {
 }
 
 // Initialize gallery handlers once DOM is ready
+// Initialize gallery handlers once DOM is ready
 document.addEventListener('DOMContentLoaded', initGalleryHandlers);
 
-// 🔥 DISABLE PAST DATES
-document.addEventListener("DOMContentLoaded", () => {
-    const dateInput = document.getElementById("bookingDate");
+// Expose global functions to window
+window.openGoogleCalendarBooking = openGoogleCalendarBooking;
+window.scrollToSection = scrollToSection;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.openServiceModal = openServiceModal;
+window.openExperienceModal = openExperienceModal;
+window.openTherapyModal = openTherapyModal;
+window.openWorkshopModal = openWorkshopModal;
 
-    if (dateInput) {
-        const today = new Date().toISOString().split("T")[0];
-        dateInput.setAttribute("min", today);
-    }
-});
+// Testimonials Carousel Logic
+document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.testimonial-card');
+    const indicators = document.querySelectorAll('.indicator');
+    const prevBtn = document.querySelector('.prev-btn');
+    const nextBtn = document.querySelector('.next-btn');
+    let currentIndex = 0;
 
-// 🔥 TIME SLOT RESTRICTION + 12HR DISPLAY
-// document.addEventListener("DOMContentLoaded", function () {
-
-//     const dateInput = document.querySelector('input[type="date"]');
-//     const timeInputs = document.querySelectorAll('input[type="time"]');
-
-//     if (!dateInput || timeInputs.length === 0) return;
-
-//     function convertTo12Hour(time24) {
-//         let [hours, minutes] = time24.split(":");
-//         hours = parseInt(hours);
-//         const ampm = hours >= 12 ? "PM" : "AM";
-//         hours = hours % 12 || 12;
-//         return `${hours.toString().padStart(2, "0")}:${minutes} ${ampm}`;
-//     }
-
-//     function restrictTimeSlots() {
-//         if (!dateInput.value) return;
-
-//         const selectedDate = new Date(dateInput.value);
-//         const day = selectedDate.getDay(); // 0 = Sunday
-
-//         let minTime, maxTime, displayText;
-
-//         if (day === 0) {
-//             // Sunday
-//             minTime = "12:00";
-//             maxTime = "18:00";
-//         } else {
-//             // Monday - Saturday
-//             minTime = "17:00";
-//             maxTime = "22:00";
-//         }
-
-//         // Apply restrictions (24hr format)
-//         timeInputs.forEach(input => {
-//             input.min = minTime;
-//             input.max = maxTime;
-
-//             // clear invalid values
-//             if (input.value && (input.value < minTime || input.value > maxTime)) {
-//                 input.value = "";
-//             }
-//         });
-
-//         // 🔥 Show 12-hour format message (optional UI)
-//         let infoBox = document.getElementById("timeSlotInfo");
-
-//         if (!infoBox) {
-//             infoBox = document.createElement("p");
-//             infoBox.id = "timeSlotInfo";
-//             infoBox.style.marginTop = "10px";
-//             infoBox.style.fontWeight = "600";
-//             dateInput.parentNode.appendChild(infoBox);
-//         }
-
-//         infoBox.textContent = `Available: ${convertTo12Hour(minTime)} – ${convertTo12Hour(maxTime)}`;
-//     }
-
-//     // Trigger on date change
-//     dateInput.addEventListener("change", restrictTimeSlots);
-
-//     // Validate while typing
-//     timeInputs.forEach(input => {
-//         input.addEventListener("input", restrictTimeSlots);
-//     });
-
-// });
-
-// 🔥 GENERATE TIME SLOTS
-document.addEventListener("change", function (e) {
-
-    if (e.target.id === "bookingDate") {
-
-        const date = new Date(e.target.value);
-        const day = date.getDay();
-
-        const timeSlot = document.getElementById("timeSlot");
-        if (!timeSlot) return;
-
-        timeSlot.innerHTML = `<option value="">Select Time Slot</option>`;
-
-        function format12(h) {
-            const ampm = h >= 12 ? "PM" : "AM";
-            h = h % 12 || 12;
-            return `${h}:00 ${ampm}`;
-        }
-
-        let start, end;
-
-        if (day === 0) {
-            start = 12;
-            end = 18;
-        } else {
-            start = 17;
-            end = 22;
-        }
-
-        for (let i = start; i < end; i++) {
-            const option = document.createElement("option");
-            option.value = i.toString().padStart(2, "0") + ":00";
-            option.textContent = `${format12(i)} (${i}:00) - ${format12(i + 1)} (${i + 1}:00)`;
-            timeSlot.appendChild(option);
-        }
-    }
-});
-// 🔥 SAVE REVIEW TO FIREBASE
-async function saveReviewToDB(name, rating, text) {
-    await window.db.collection("reviews").add({
-        name: name,
-        rating: rating,
-        text: text,
-        date: new Date().toISOString()
-    });
-}
-
-// 🔥 LOAD REVIEWS FROM FIREBASE
-async function loadReviewsFromDB() {
-  try {
-    const snapshot = await db.collection("reviews").get();
-    const reviews = snapshot.docs.map(doc => doc.data());
-
-    const reviewsList = document.getElementById("reviewsList");
-
-    // 👉 SHOW REVIEWS LIST
-    if (reviews.length === 0) {
-      reviewsList.innerHTML = "<p>No reviews yet</p>";
-    } else {
-      reviewsList.innerHTML = reviews.map(review => `
-        <div class="review-card">
-          <h4>${review.name}</h4>
-          <p>${"⭐".repeat(review.rating)}</p>
-          <p>${review.text}</p>
-          <small>${new Date(review.date).toLocaleDateString()}</small>
-        </div>
-      `).join("");
+    function showTestimonial(index) {
+        cards.forEach(card => card.classList.remove('active'));
+        indicators.forEach(ind => ind.classList.remove('active'));
+        cards[index].classList.add('active');
+        indicators[index].classList.add('active');
     }
 
-    // =========================
-    // 🔥 UPDATE RATINGS SECTION
-    // =========================
+    if(prevBtn && nextBtn) {
+        prevBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex > 0) ? currentIndex - 1 : cards.length - 1;
+            showTestimonial(currentIndex);
+        });
 
-    const total = reviews.length;
-    document.getElementById("reviewCount").textContent = total;
+        nextBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex < cards.length - 1) ? currentIndex + 1 : 0;
+            showTestimonial(currentIndex);
+        });
 
-    if (total === 0) return;
+        indicators.forEach((indicator, idx) => {
+            indicator.addEventListener('click', () => {
+                currentIndex = idx;
+                showTestimonial(currentIndex);
+            });
+        });
 
-    let sum = 0;
-    let distribution = {1:0,2:0,3:0,4:0,5:0};
-
-    reviews.forEach(r => {
-      const rating = Number(r.rating);
-      sum += rating;
-      distribution[rating]++;
-    });
-
-    const avg = (sum / total).toFixed(1);
-    document.getElementById("averageRating").textContent = avg;
-
-    // ⭐ stars display
-    document.getElementById("averageStars").textContent =
-      "★".repeat(Math.round(avg)) + "☆".repeat(5 - Math.round(avg));
-
-    // 👉 update bars + count
-    [1,2,3,4,5].forEach(star => {
-      const count = distribution[star];
-      const percent = (count / total) * 100;
-
-      document.getElementById(`ratingCount${star}`).textContent = count;
-      document.getElementById(`ratingBar${star}`).style.width = percent + "%";
-    });
-
-    console.log("Ratings updated ✅");
-
-  } catch (error) {
-    console.error("Error:", error);
-  }
-}
-document.addEventListener("DOMContentLoaded", () => {
-  loadReviewsFromDB();
+        // Auto-play
+        setInterval(() => {
+            currentIndex = (currentIndex < cards.length - 1) ? currentIndex + 1 : 0;
+            showTestimonial(currentIndex);
+        }, 6000);
+    }
 });
