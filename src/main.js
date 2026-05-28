@@ -1149,8 +1149,8 @@ function initGalleryHandlers() {
 }
 
 // Initialize gallery handlers once DOM is ready
-// Initialize gallery handlers once DOM is ready
-document.addEventListener('DOMContentLoaded', initGalleryHandlers);
+// Initialize gallery handlers immediately since script is deferred
+initGalleryHandlers();
 
 // Expose global functions to window
 window.openGoogleCalendarBooking = openGoogleCalendarBooking;
@@ -1163,12 +1163,11 @@ window.openTherapyModal = openTherapyModal;
 window.openWorkshopModal = openWorkshopModal;
 
 // Testimonials Carousel Logic
-document.addEventListener('DOMContentLoaded', () => {
-    const cards = document.querySelectorAll('.testimonial-card');
-    const indicators = document.querySelectorAll('.indicator');
-    const prevBtn = document.querySelector('.prev-btn');
-    const nextBtn = document.querySelector('.next-btn');
-    let currentIndex = 0;
+const cards = document.querySelectorAll('.testimonial-card');
+const indicators = document.querySelectorAll('.indicator');
+const prevBtn = document.querySelector('.prev-btn');
+const nextBtn = document.querySelector('.next-btn');
+let currentIndex = 0;
 
     function showTestimonial(index) {
         cards.forEach(card => card.classList.remove('active'));
@@ -1195,10 +1194,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Auto-play
-        setInterval(() => {
-            currentIndex = (currentIndex < cards.length - 1) ? currentIndex + 1 : 0;
-            showTestimonial(currentIndex);
-        }, 6000);
-    }
-});
+    // Auto-play
+    setInterval(() => {
+        currentIndex = (currentIndex < cards.length - 1) ? currentIndex + 1 : 0;
+        showTestimonial(currentIndex);
+    }, 6000);
+}

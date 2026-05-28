@@ -951,9 +951,11 @@ body[data-theme="dark"] .menu-toggle span {
 
 .timeline-item {
     position: relative;
-    padding: 2rem;
+    padding: 2rem 0;
     margin-bottom: 2rem;
     cursor: pointer;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .timeline-dot {
@@ -979,6 +981,8 @@ body[data-theme="dark"] .menu-toggle span {
     border-radius: 20px;
     box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .timeline-item:hover .timeline-content {
