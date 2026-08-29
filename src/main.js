@@ -119,6 +119,13 @@ function openModal(modalType) {
     modalOverlay.classList.add('active');
     modalContainer.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Set min date if bookingDate exists
+    const dateInput = document.getElementById('bookingDate');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+    }
 }
 
 function closeModal() {
@@ -228,20 +235,41 @@ function getModalContent(modalType) {
                 <p> Online video consultations</p>
                 <p> Phone consultations</p>
                 
-                <h3>Contact Information</h3>
-                <p><strong>Email:</strong> asha.suhasinim@gmail.com</p>
-                <p><strong>Location:</strong> Hyderabad, India</p>
-
-                <button class="btn btn-primary contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()"><span>
-                    Open Google Calendar
-                </span></button>
+                
+                <h3>Schedule a Session</h3>
+                <div class="booking-system" id="bookingSystem">
+                    <div class="form-field">
+                        <label for="bookingDate">Select Date</label>
+                        <input type="date" id="bookingDate" class="form-input" min="2026-08-29" onchange="renderTimeSlots()">
+                    </div>
+                    <div class="form-field">
+                        <label>Available Slots (5:00 PM - 9:00 PM)</label>
+                        <div id="timeSlots" class="time-slots-grid">
+                            <p class="text-muted">Please select a date first.</p>
+                        </div>
+                    </div>
+                    <div id="bookingFormDetails" style="display:none; margin-top: 1rem;">
+                        <input type="hidden" id="selectedSlot">
+                        <div class="form-field">
+                            <input type="text" id="bookingName" placeholder="Your Name" class="form-input" required>
+                        </div>
+                        <div class="form-field">
+                            <input type="email" id="bookingEmail" placeholder="Your Email" class="form-input" required>
+                        </div>
+                        <button class="btn btn-primary full-width" onclick="confirmBooking()">Confirm Booking</button>
+                    </div>
+                    <div id="bookingSuccessMessage" style="display:none; margin-top: 1rem; padding: 1rem; background: #e6f4ea; color: #1e4620; border-radius: 8px;">
+                        Booking confirmed! Your time slot has been successfully reserved.
+                    </div>
+                </div>
                 
                 <p style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 15px;">
                     <strong>Note:</strong> First consultations include a comprehensive assessment to understand your needs and create a personalized treatment plan.
                 </p>
+
             </div>
-        `,
-        inquiryModal: `
+        ,
+        inquiryModal: 
             <div class="modal-header">
                 <h2> General Inquiry</h2>
                 <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
@@ -396,6 +424,13 @@ function openServiceModal(serviceType) {
     modalOverlay.classList.add('active');
     modalContainer.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Set min date if bookingDate exists
+    const dateInput = document.getElementById('bookingDate');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+    }
 }
 
 // Experience Modal Content
@@ -515,6 +550,13 @@ function openExperienceModal(orgType) {
     modalOverlay.classList.add('active');
     modalContainer.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Set min date if bookingDate exists
+    const dateInput = document.getElementById('bookingDate');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+    }
 }
 
 // Therapy Method Modal Content
@@ -622,6 +664,13 @@ function openTherapyModal(methodType) {
     modalOverlay.classList.add('active');
     modalContainer.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Set min date if bookingDate exists
+    const dateInput = document.getElementById('bookingDate');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+    }
 }
 
 // Workshop Modal Content
@@ -721,6 +770,13 @@ function openWorkshopModal(workshopType) {
     modalOverlay.classList.add('active');
     modalContainer.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Set min date if bookingDate exists
+    const dateInput = document.getElementById('bookingDate');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+    }
 }
 
 // Close modal when clicking overlay
@@ -1040,6 +1096,13 @@ function openMediaModal(src, type, index = -1, caption = '') {
     modalOverlay.classList.add('active');
     modalContainer.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Set min date if bookingDate exists
+    const dateInput = document.getElementById('bookingDate');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+    }
 }
 
 function galleryPrev() {
@@ -1124,6 +1187,89 @@ function initGalleryHandlers() {
 initGalleryHandlers();
 
 // Expose global functions to window
+
+
+// Booking System Logic
+const availableSlots = ['5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
+
+function renderTimeSlots() {
+    const dateInput = document.getElementById('bookingDate').value;
+    const timeSlotsContainer = document.getElementById('timeSlots');
+    const bookingFormDetails = document.getElementById('bookingFormDetails');
+    const successMsg = document.getElementById('bookingSuccessMessage');
+    
+    bookingFormDetails.style.display = 'none';
+    successMsg.style.display = 'none';
+    
+    if (!dateInput) {
+        timeSlotsContainer.innerHTML = '<p class="text-muted">Please select a date first.</p>';
+        return;
+    }
+
+    // Get booked slots for this date from localStorage
+    const bookedData = JSON.parse(localStorage.getItem('bookedSlots') || '{}');
+    const bookedForDate = bookedData[dateInput] || [];
+
+    timeSlotsContainer.innerHTML = '';
+    
+    let hasAvailableSlots = false;
+
+    availableSlots.forEach(slot => {
+        if (!bookedForDate.includes(slot)) {
+            hasAvailableSlots = true;
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-outline time-slot-btn';
+            btn.textContent = slot;
+            btn.onclick = () => selectSlot(btn, slot);
+            timeSlotsContainer.appendChild(btn);
+        }
+    });
+    
+    if (!hasAvailableSlots) {
+        timeSlotsContainer.innerHTML = '<p class="text-muted">No slots available for this date. Please select another date.</p>';
+    }
+}
+
+function selectSlot(btnElement, slot) {
+    document.querySelectorAll('.time-slot-btn').forEach(btn => btn.classList.remove('selected'));
+    btnElement.classList.add('selected');
+    
+    document.getElementById('selectedSlot').value = slot;
+    document.getElementById('bookingFormDetails').style.display = 'block';
+    document.getElementById('bookingSuccessMessage').style.display = 'none';
+}
+
+function confirmBooking() {
+    const date = document.getElementById('bookingDate').value;
+    const slot = document.getElementById('selectedSlot').value;
+    const name = document.getElementById('bookingName').value;
+    const email = document.getElementById('bookingEmail').value;
+    
+    if (!date || !slot || !name || !email) {
+        alert('Please fill in all fields to confirm booking.');
+        return;
+    }
+
+    // Save to localStorage
+    const bookedData = JSON.parse(localStorage.getItem('bookedSlots') || '{}');
+    if (!bookedData[date]) {
+        bookedData[date] = [];
+    }
+    
+    if (!bookedData[date].includes(slot)) {
+        bookedData[date].push(slot);
+        localStorage.setItem('bookedSlots', JSON.stringify(bookedData));
+    }
+
+    document.getElementById('bookingFormDetails').style.display = 'none';
+    document.getElementById('timeSlots').innerHTML = '';
+    document.getElementById('bookingSuccessMessage').style.display = 'block';
+}
+
+window.renderTimeSlots = renderTimeSlots;
+window.selectSlot = selectSlot;
+window.confirmBooking = confirmBooking;
+
 
 window.openGoogleCalendarBooking = openGoogleCalendarBooking;
 window.scrollToSection = scrollToSection;
