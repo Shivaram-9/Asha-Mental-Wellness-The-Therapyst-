@@ -221,9 +221,9 @@ function getModalContent(modalType) {
                 <p><strong>Email:</strong> ashasuhasini02@gmail.com</p>
                 <p><strong>Location:</strong> Hyderabad, India</p>
 
-                <button class="btn btn-primary contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()">
+                <button class="btn btn-primary contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()"><span>
                     Open Google Calendar
-                </button>
+                </span></button>
                 
                 <p style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 15px;">
                     <strong>Note:</strong> First consultations include a comprehensive assessment to understand your needs and create a personalized treatment plan.
@@ -374,9 +374,9 @@ function openServiceModal(serviceType) {
                 <p style="margin-bottom: 0;"><strong>Format:</strong> ${service.format}</p>
             </div>
             
-            <button class="btn btn-primary contact-button" style="margin-top: 2rem; width: 100%;" onclick="closeModal(); openModal('bookingModal')">
+            <button class="btn btn-primary contact-button" style="margin-top: 2rem; width: 100%;" onclick="closeModal(); openModal('bookingModal')"><span>
                 Book a Session
-            </button>
+            </span></button>
         </div>
     `;
     
@@ -696,9 +696,9 @@ function openWorkshopModal(workshopType) {
                 <strong>Note:</strong> Workshops can be customized for schools, corporate organizations, and community groups.
             </p>
             
-            <button class="btn btn-primary contact-button" style="margin-top: 2rem; width: 100%;" onclick="closeModal(); openModal('inquiryModal')">
+            <button class="btn btn-primary contact-button" style="margin-top: 2rem; width: 100%;" onclick="closeModal(); openModal('inquiryModal')"><span>
                 Inquire About This Workshop
-            </button>
+            </span></button>
         </div>
     `;
     
@@ -1016,9 +1016,9 @@ function openMediaModal(src, type, index = -1, caption = '') {
         ? `<video src="${src}" controls autoplay playsinline></video>`
         : `<img src="${src}" alt="${caption || 'Gallery image'}">`;
 
-    const prevBtn = `<button class="nav-btn" aria-label="Previous" onclick="galleryPrev()">â† Prev</button>`;
-    const nextBtn = `<button class="nav-btn" aria-label="Next" onclick="galleryNext()">Next â†’</button>`;
-    const downloadBtn = `<a class="download-btn" href="${src}" download><button class="download-btn">Download</button></a>`;
+    const prevBtn = `<button class="nav-btn" aria-label="Previous" onclick="galleryPrev()"><span>â† Prev</span></button>`;
+    const nextBtn = `<button class="nav-btn" aria-label="Next" onclick="galleryNext()"><span>Next â†’</span></button>`;
+    const downloadBtn = `<a class="download-btn" href="${src}" download><button class="download-btn"><span>Download</span></button></a>`;
 
     const controlsMarkup = galleryItems.length > 1
         ? `<div class="modal-controls">${prevBtn}<div style="flex:1"></div>${nextBtn}</div>`
