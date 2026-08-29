@@ -39,7 +39,7 @@ function scrollToSection(sectionId) {
 }
 
 function openGoogleCalendarBooking() {
-    const calendarUrl = 'https://calendar.google.com/calendar/u/0/r/eventedit?text=Therapy%20Session%20with%20Asha%20Suhasini%20Raja%20G&details=Please%20share%20your%20concern%20briefly.%20Contact%3A%20ashasuhasini02%40gmail.com&location=Online%20or%20Hyderabad&add=ashasuhasini02%40gmail.com';
+    const calendarUrl = 'https://calendar.google.com/calendar/u/0/r/eventedit?text=Therapy%20Session%20with%20Asha%20Suhasini%20Raja%20G&details=Please%20share%20your%20concern%20briefly.%20Contact%3A%20asha.suhasinim%40gmail.com&location=Online%20or%20Hyderabad&add=asha.suhasinim%40gmail.com';
     window.open(calendarUrl, '_blank', 'noopener,noreferrer');
 }
 
@@ -104,7 +104,12 @@ reveals.forEach(element => {
 const modalOverlay = document.getElementById('modalOverlay');
 const modalContainer = document.getElementById('modalContainer');
 
+let modalClearTimeout;
+
 function openModal(modalType) {
+    if (modalClearTimeout) {
+        clearTimeout(modalClearTimeout);
+    }
     const modalContent = getModalContent(modalType);
     modalContainer.innerHTML = modalContent;
     modalOverlay.classList.add('active');
@@ -116,8 +121,10 @@ function closeModal() {
     modalOverlay.classList.remove('active');
     modalContainer.classList.remove('active');
     document.body.style.overflow = 'auto';
-    setTimeout(() => {
-        modalContainer.innerHTML = '';
+    modalClearTimeout = setTimeout(() => {
+        if (!modalContainer.classList.contains('active')) {
+            modalContainer.innerHTML = '';
+        }
     }, 300);
 }
 
@@ -213,12 +220,12 @@ function getModalContent(modalType) {
                 </ul>
                 
                 <h3>Session Formats</h3>
-                <p> In-person sessions (Hyderabad)</p>
+                <p> Hyderabad</p>
                 <p> Online video consultations</p>
                 <p> Phone consultations</p>
                 
                 <h3>Contact Information</h3>
-                <p><strong>Email:</strong> ashasuhasini02@gmail.com</p>
+                <p><strong>Email:</strong> asha.suhasinim@gmail.com</p>
                 <p><strong>Location:</strong> Hyderabad, India</p>
 
                 <button class="btn btn-primary contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()"><span>
@@ -241,7 +248,7 @@ function getModalContent(modalType) {
                 
                 <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 15px; margin: 1.5rem 0;">
                     <h4 style="margin-top: 0;"> Email</h4>
-                    <p>ashasuhasini02@gmail.com</p>
+                    <p>asha.suhasinim@gmail.com</p>
                     
                     <h4> Location</h4>
                     <p>Hyderabad, Telangana, India</p>
@@ -254,7 +261,7 @@ function getModalContent(modalType) {
                 <ul>
                     <li>Your name and contact information</li>
                     <li>Type of service you're interested in</li>
-                    <li>Preferred session format (online/in-person)</li>
+                    <li>Preferred session format (online)</li>
                     <li>Any specific questions or concerns</li>
                 </ul>
                 
@@ -268,6 +275,7 @@ function getModalContent(modalType) {
 
 // Service Modal Content
 function openServiceModal(serviceType) {
+    if (typeof modalClearTimeout !== "undefined" && modalClearTimeout) clearTimeout(modalClearTimeout);
     const services = {
         individual: {
             title: ' Individual Therapy',
@@ -280,7 +288,7 @@ function openServiceModal(serviceType) {
                 'Focus on building coping strategies and emotional resilience'
             ],
             duration: '50-minute sessions',
-            format: 'Available online and in-person'
+            format: 'Available online'
         },
         family: {
             title: ' Family & Marital Therapy',
@@ -293,7 +301,7 @@ function openServiceModal(serviceType) {
                 'Create stronger emotional bonds'
             ],
             duration: '60-minute sessions',
-            format: 'In-person and online options available'
+            format: 'Online options available'
         },
         corporate: {
             title: ' Corporate Wellness',
@@ -388,6 +396,7 @@ function openServiceModal(serviceType) {
 
 // Experience Modal Content
 function openExperienceModal(orgType) {
+    if (typeof modalClearTimeout !== "undefined" && modalClearTimeout) clearTimeout(modalClearTimeout);
     const experiences = {
         klh: {
             title: 'KLH University',
@@ -506,6 +515,7 @@ function openExperienceModal(orgType) {
 
 // Therapy Method Modal Content
 function openTherapyModal(methodType) {
+    if (typeof modalClearTimeout !== "undefined" && modalClearTimeout) clearTimeout(modalClearTimeout);
     const methods = {
         cbt: {
             title: 'Cognitive Behavioural Therapy (CBT)',
@@ -612,6 +622,7 @@ function openTherapyModal(methodType) {
 
 // Workshop Modal Content
 function openWorkshopModal(workshopType) {
+    if (typeof modalClearTimeout !== "undefined" && modalClearTimeout) clearTimeout(modalClearTimeout);
     const workshops = {
         confidence: {
             title: 'Building Confidence in Children',
