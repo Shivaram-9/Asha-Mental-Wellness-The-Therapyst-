@@ -1,32 +1,32 @@
 // Loading screen removed for reliability
 
-// Navigation Scroll Effect
-const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 100) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
-});
-
-// Mobile Menu Toggle
+// Sidebar Mobile Toggle
 const menuToggle = document.getElementById('menuToggle');
-const navLinks = document.getElementById('navLinks');
+const menuClose = document.getElementById('menuClose');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-menuToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-    menuToggle.classList.toggle('active');
-    const isOpen = navLinks.classList.contains('active');
-    menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-});
+function toggleSidebar() {
+    sidebar.classList.toggle('open');
+    sidebarOverlay.classList.toggle('active');
+    
+    const isOpen = sidebar.classList.contains('open');
+    if (menuToggle) menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    
+    // Prevent body scrolling when open
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
+if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
+if (menuClose) menuClose.addEventListener('click', toggleSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
 
 // Close mobile menu when clicking a link
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', () => {
-        navLinks.classList.remove('active');
-        menuToggle.classList.remove('active');
-        menuToggle.setAttribute('aria-expanded', 'false');
+        if (sidebar.classList.contains('open')) {
+            toggleSidebar();
+        }
     });
 });
 

@@ -3,24 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asha Suhasini Raja G - Mental Wellness Consultant & Psychotherapist</title>
+    <title>Asha Mental Wellness – The Therapyst | Asha Suhasini Raja G</title>
+    <meta name="description" content="Asha Mental Wellness – The Therapyst is a premium private practice offering individual, family, and corporate mental wellness consulting by Asha Suhasini Raja G.">
+    <meta property="og:title" content="Asha Mental Wellness – The Therapyst">
+    <meta property="og:description" content="Senior Mental Wellness Consultant & Psychotherapist with 19+ years of experience.">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Loading screen removed for performance and reliability -->
 
-    <!-- Navigation -->
-    <nav id="navbar" aria-label="Primary">
-        <div class="nav-container">
-        <div class="logo">
-                <img src="./assets/logo/logo.png" alt="Profile logo" class="logo-photo">
-                <span class="logo-text">Asha Suhasini Raja G</span>
+    <!-- Mobile Drawer Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar" aria-label="Primary">
+        <div class="sidebar-header">
+            <div class="brand">
+                <img src="./assets/logo/logo.png" alt="Asha Mental Wellness Logo" class="brand-logo">
+                <div class="brand-text">
+                    <span class="brand-title">Asha Mental Wellness</span>
+                    <span class="brand-subtitle">The Therapyst</span>
+                    <span class="brand-descriptor">Private Mental Wellness Practice</span>
+                </div>
             </div>
-            <button class="menu-toggle" id="menuToggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
-                <span></span>
-                <span></span>
-                <span></span>
+            <button class="menu-close" id="menuClose" type="button" aria-label="Close navigation">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
+        </div>
+
+        <nav class="sidebar-nav">
             <ul class="nav-links" id="navLinks">
                 <li><a href="#home" class="nav-link">Home</a></li>
                 <li><a href="#about" class="nav-link">About</a></li>
@@ -29,57 +40,72 @@
                 <li><a href="#experience" class="nav-link">Experience</a></li>
                 <li><a href="#approach" class="nav-link">Approach</a></li>
                 <li><a href="#workshops" class="nav-link">Workshops</a></li>
-                <li><a href="#ratings" class="nav-link">Ratings</a></li>
-                <li><a href="#testimonials" class="nav-link">Testimonials</a></li>
                 <li><a href="#reviews" class="nav-link">Reviews</a></li>
                 <li><a href="#contact" class="nav-link">Contact</a></li>
-                <li>
-                    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme">
-                        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                    </button>
-                </li>
             </ul>
-        </div>
-    </nav>
+        </nav>
 
+        <div class="sidebar-footer">
+            <button class="cta-button primary full-width" onclick="openGoogleCalendarBooking()">Book a Session</button>
+            <div class="theme-toggle-wrapper">
+                <span class="theme-label">Theme</span>
+                <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme">
+                    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </button>
+            </div>
+            <div class="sidebar-location">
+                <p>Online & In-Person</p>
+                <p>Hyderabad</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Header (Visible only on mobile) -->
+    <header class="mobile-header">
+        <div class="mobile-brand">
+            <span class="brand-title">Asha Mental Wellness</span>
+        </div>
+        <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+    </header>
+
+    <div class="page-wrapper">
     <main>
         <!-- Hero Section -->
         <section class="hero" id="home">
-        <div class="hero-bg">
-            <div class="floating-element"></div>
-            <div class="floating-element"></div>
-            <div class="floating-element"></div>
-            <div class="floating-element"></div>
-        </div>
-        <div class="hero-content">
-            <div class="hero-badge">Globally Affiliated Mental Wellness Expert</div>
-            <h1 class="glitch" data-text="Asha Suhasini Raja G">Asha Suhasini Raja G</h1>
-            <p class="subtitle">Senior Mental Wellness Consultant & Psychotherapist</p>
-            <p class="tagline"><strong>Psychotherapist | Trauma &amp; Relationship Specialist | Elite performance coach | 19+ Years Experience</strong></p>
-            <div class="hero-buttons">
-                <button class="cta-button primary" onclick="openGoogleCalendarBooking()">Book a Session</button>
-                <button class="cta-button secondary" onclick="scrollToSection('about')">Learn More</button>
-            </div>
-            <div class="hero-stats">
-                <div class="stat-item">
-                    <span class="stat-number" data-target="19">0</span>
-                    <span class="stat-label">Years Experience</span>
+            <div class="hero-content">
+                <div class="hero-badge">Globally Affiliated Mental Wellness Expert</div>
+                <h1 class="hero-title">Asha Suhasini Raja G</h1>
+                <p class="hero-subtitle">Senior Mental Wellness Consultant & Psychotherapist</p>
+                <div class="hero-divider"></div>
+                <p class="hero-tagline">Psychotherapist | Trauma & Relationship Specialist | Elite performance coach | 19+ Years Experience</p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="19">0</span>
+                        <span class="stat-label">Years Experience</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="1000">0</span>
+                        <span class="stat-label">+ Lives Transformed</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="15">0</span>
+                        <span class="stat-label">+ Organizations</span>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number" data-target="1000">0</span>
-                    <span class="stat-label">+ Lives Transformed</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number" data-target="15">0</span>
-                    <span class="stat-label">+ Organizations</span>
+
+                <div class="hero-buttons">
+                    <button class="cta-button primary" onclick="openGoogleCalendarBooking()">Book a Session</button>
+                    <button class="cta-button secondary" onclick="scrollToSection('about')">Learn More</button>
                 </div>
             </div>
-        </div>
-        <div class="scroll-indicator">
-            <div class="mouse"></div>
-            <p>Scroll to explore</p>
-        </div>
+            
+            <div class="scroll-indicator">
+                <div class="mouse"></div>
+            </div>
         </section>
 
         <!-- About Section -->
@@ -639,13 +665,14 @@
         </div>
         </section>
     </main>
+    </div> <!-- End page-wrapper -->
 
     <!-- Footer -->
-    <footer>
+    <footer class="site-footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Asha Suhasini Raja G</h3>
+                    <h3>Asha Mental Wellness &ndash; The Therapyst</h3>
                     <p>Mental Wellness Consultant & Psychotherapist</p>
                     <p class="footer-reg">Registered with Counsellors Council of India (CRN9047214)</p>
                 </div>
@@ -669,7 +696,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 Asha Suhasini Raja G. All rights reserved.</p>
+                <p>&copy; 2026 Asha Mental Wellness &ndash; The Therapyst. All rights reserved.</p>
             </div>
         </div>
     </footer>
