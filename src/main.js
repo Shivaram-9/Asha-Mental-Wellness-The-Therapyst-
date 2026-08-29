@@ -2,22 +2,26 @@
 
 // Sidebar Mobile Toggle
 const menuToggle = document.getElementById('menuToggle');
+const desktopMenuToggle = document.getElementById('desktopMenuToggle');
 const menuClose = document.getElementById('menuClose');
 const sidebar = document.getElementById('sidebar');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
 
 function toggleSidebar() {
-    sidebar.classList.toggle('open');
-    sidebarOverlay.classList.toggle('active');
-    
-    const isOpen = sidebar.classList.contains('open');
-    if (menuToggle) menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    
-    // Prevent body scrolling when open
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+    if (window.innerWidth > 1024) {
+        document.body.classList.toggle('desktop-sidebar-closed');
+    } else {
+        sidebar.classList.toggle('open');
+        sidebarOverlay.classList.toggle('active');
+        
+        const isOpen = sidebar.classList.contains('open');
+        if (menuToggle) menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
 }
 
 if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
+if (desktopMenuToggle) desktopMenuToggle.addEventListener('click', toggleSidebar);
 if (menuClose) menuClose.addEventListener('click', toggleSidebar);
 if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
 
