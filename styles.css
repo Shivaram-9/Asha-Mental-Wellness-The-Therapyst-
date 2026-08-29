@@ -88,6 +88,8 @@ body {
     color: var(--text-primary);
     background: var(--bg-base);
     line-height: 1.6;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -146,7 +148,7 @@ body {
 }
 
 .loading-screen p {
-    color: white;
+    color: var(--text-primary);
     font-size: 1.5rem;
     margin-top: 1rem;
     font-weight: 600;
@@ -162,6 +164,7 @@ body {
     margin-left: 280px;
     width: calc(100% - 280px);
     max-width: calc(100% - 280px);
+    overflow-x: hidden;
     transition: margin var(--transition-medium), width var(--transition-medium);
     position: relative;
 }
@@ -452,6 +455,8 @@ body {
     margin-bottom: 3rem;
     max-width: 600px;
     line-height: 1.6;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .hero-buttons {
@@ -686,6 +691,8 @@ body {
     font-weight: 600;
     color: var(--primary);
     line-height: 1.6;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
     margin-bottom: 1.5rem;
 }
 
@@ -750,6 +757,8 @@ body {
 .about-text ol li {
     margin-bottom: 0.45rem;
     line-height: 1.6;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
     color: var(--text);
 }
 
@@ -824,6 +833,8 @@ body {
 .service-card p {
     color: var(--muted);
     line-height: 1.6;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
     margin-bottom: 1.5rem;
 }
 
@@ -887,7 +898,7 @@ body {
     top: 50%;
     transform: translate(-50%, -50%);
     background: rgba(0,0,0,0.6);
-    color: white;
+    color: var(--text-primary);
     padding: 10px 12px;
     border-radius: 999px;
     font-size: 1.1rem;
@@ -938,7 +949,7 @@ body {
 
 .modal-controls .nav-btn {
     background: rgba(0,0,0,0.6);
-    color: white;
+    color: var(--text-primary);
     border: none;
     padding: 8px 12px;
     border-radius: 8px;
@@ -947,7 +958,7 @@ body {
 
 .modal-controls .download-btn {
     background: var(--primary);
-    color: white;
+    color: var(--text-primary);
     border: none;
     padding: 8px 12px;
     border-radius: 8px;
@@ -1014,7 +1025,7 @@ body {
     display: inline-block;
     padding: 0.3rem 1rem;
     background: var(--gradient-3);
-    color: white;
+    color: var(--text-primary);
     border-radius: 15px;
     font-size: 0.85rem;
     font-weight: 600;
@@ -1054,7 +1065,7 @@ body {
 .approach-text {
     font-size: 1.3rem;
     line-height: 1.8;
-    color: white;
+    color: var(--text-muted);
     opacity: 0.95;
 }
 
@@ -1066,30 +1077,38 @@ body {
 }
 
 .method-card {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
+    background: var(--bg-surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     padding: 2rem;
     border-radius: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--border-medium);
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .method-card:hover {
     transform: translateY(-10px);
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.4);
+    background: var(--bg-elevated);
+    border-color: var(--accent);
 }
 
 .method-card h4 {
     font-size: 1.8rem;
-    color: white;
+    color: var(--primary);
     margin-bottom: 0.5rem;
 }
 
 .method-card p {
-    color: white;
+    color: var(--text-primary);
     opacity: 0.9;
     font-size: 0.95rem;
 }
@@ -1714,14 +1733,14 @@ footer {
 
 .testimonial-text {
     font-size: 1.2rem;
-    color: white;
+    color: var(--text-primary);
     font-style: italic;
     line-height: 1.8;
     margin-bottom: 2rem;
 }
 
 .testimonial-author h4 {
-    color: white;
+    color: var(--text-primary);
     font-size: 1.2rem;
     margin-bottom: 0.2rem;
 }
