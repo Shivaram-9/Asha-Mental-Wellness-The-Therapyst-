@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asha Mental Wellness – The Therapyst | Asha Suhasini Raja G</title>
-    <meta name="description" content="Asha Mental Wellness – The Therapyst is a premium private practice offering individual, family, and corporate mental wellness consulting by Asha Suhasini Raja G.">
-    <meta property="og:title" content="Asha Mental Wellness – The Therapyst">
+    <title>Asha Mental Wellness &ndash; The Therapyst | Asha Suhasini Raja G</title>
+    <meta name="description" content="Asha Mental Wellness &ndash; The Therapyst is a premium private practice offering individual, family, and corporate mental wellness consulting by Asha Suhasini Raja G.">
+    <meta property="og:title" content="Asha Mental Wellness &ndash; The Therapyst">
     <meta property="og:description" content="Senior Mental Wellness Consultant & Psychotherapist with 19+ years of experience.">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -469,27 +469,27 @@
 
                     <div class="rating-breakdown" aria-label="Rating distribution">
                         <div class="rating-row">
-                            <span class="rating-label">5★</span>
+                            <span class="rating-label">5 stars</span>
                             <div class="rating-bar"><span id="ratingBar5"></span></div>
                             <span class="rating-value" id="ratingCount5">0</span>
                         </div>
                         <div class="rating-row">
-                            <span class="rating-label">4★</span>
+                            <span class="rating-label">4 stars</span>
                             <div class="rating-bar"><span id="ratingBar4"></span></div>
                             <span class="rating-value" id="ratingCount4">0</span>
                         </div>
                         <div class="rating-row">
-                            <span class="rating-label">3★</span>
+                            <span class="rating-label">3 stars</span>
                             <div class="rating-bar"><span id="ratingBar3"></span></div>
                             <span class="rating-value" id="ratingCount3">0</span>
                         </div>
                         <div class="rating-row">
-                            <span class="rating-label">2★</span>
+                            <span class="rating-label">2 stars</span>
                             <div class="rating-bar"><span id="ratingBar2"></span></div>
                             <span class="rating-value" id="ratingCount2">0</span>
                         </div>
                         <div class="rating-row">
-                            <span class="rating-label">1★</span>
+                            <span class="rating-label">1 star</span>
                             <div class="rating-bar"><span id="ratingBar1"></span></div>
                             <span class="rating-value" id="ratingCount1">0</span>
                         </div>
@@ -558,15 +558,15 @@
                                 <input type="text" id="reviewerName" name="reviewerName" placeholder="Enter your name" required>
                             </div>
                             <div class="form-field">
-                                <label for="reviewRating">Rating</label>
-                                <select id="reviewRating" name="reviewRating" required>
-                                    <option value="">Select rating</option>
-                                    <option value="5">5 - Excellent</option>
-                                    <option value="4">4 - Very Good</option>
-                                    <option value="3">3 - Good</option>
-                                    <option value="2">2 - Fair</option>
-                                    <option value="1">1 - Needs Improvement</option>
-                                </select>
+                                <label>Rating</label>
+                                <div class="star-rating-input" id="starRatingInput" role="radiogroup" aria-required="true">
+                                    <button type="button" class="btn-icon star-btn" data-value="1" aria-label="1 star"><span>★</span></button>
+                                    <button type="button" class="btn-icon star-btn" data-value="2" aria-label="2 stars"><span>★</span></button>
+                                    <button type="button" class="btn-icon star-btn" data-value="3" aria-label="3 stars"><span>★</span></button>
+                                    <button type="button" class="btn-icon star-btn" data-value="4" aria-label="4 stars"><span>★</span></button>
+                                    <button type="button" class="btn-icon star-btn" data-value="5" aria-label="5 stars"><span>★</span></button>
+                                </div>
+                                <input type="hidden" id="reviewRating" name="reviewRating" required>
                             </div>
                             <div class="form-field">
                                 <label for="reviewText">Review</label>
@@ -666,8 +666,7 @@
         </div>
         </section>
     </main>
-    </div> <!-- End page-wrapper -->
-
+    
     <!-- Footer -->
     <footer class="site-footer">
         <div class="container">
@@ -701,6 +700,7 @@
             </div>
         </div>
     </footer>
+    </div> <!-- End page-wrapper -->
 
     <!-- Modal Container -->
     <div class="modal-overlay" id="modalOverlay"></div>

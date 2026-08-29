@@ -127,7 +127,7 @@ function getModalContent(modalType) {
         educationModal: `
             <div class="modal-header">
                 <h2>ðŸŽ“ Education</h2>
-                <button class="modal-close" onclick="closeModal()">Ã—</button>
+                <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
                 <h3>Master's in Clinical Psychology</h3>
@@ -147,7 +147,7 @@ function getModalContent(modalType) {
         certificationModal: `
             <div class="modal-header">
                 <h2>ðŸ“œ Certifications & Registration</h2>
-                <button class="modal-close" onclick="closeModal()">Ã—</button>
+                <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
                 <h3>Professional Registration</h3>
@@ -170,7 +170,7 @@ function getModalContent(modalType) {
         specializationModal: `
             <div class="modal-header">
                 <h2>â­ Areas of Specialization</h2>
-                <button class="modal-close" onclick="closeModal()">Ã—</button>
+                <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
                 <h3>Clinical Specializations</h3>
@@ -201,7 +201,7 @@ function getModalContent(modalType) {
         bookingModal: `
             <div class="modal-header">
                 <h2>ðŸ“… Book a Session</h2>
-                <button class="modal-close" onclick="closeModal()">Ã—</button>
+                <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
                 <h3>Session Types</h3>
@@ -233,7 +233,7 @@ function getModalContent(modalType) {
         inquiryModal: `
             <div class="modal-header">
                 <h2>ðŸ’¬ General Inquiry</h2>
-                <button class="modal-close" onclick="closeModal()">Ã—</button>
+                <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
                 <h3>Get in Touch</h3>
@@ -359,7 +359,7 @@ function openServiceModal(serviceType) {
     const modalContent = `
         <div class="modal-header">
             <h2>${service.title}</h2>
-            <button class="modal-close" onclick="closeModal()">Ã—</button>
+            <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
         </div>
         <div class="modal-body">
             <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${service.description}</p>
@@ -481,7 +481,7 @@ function openExperienceModal(orgType) {
     const modalContent = `
         <div class="modal-header">
             <h2>${exp.title}</h2>
-            <button class="modal-close" onclick="closeModal()">Ã—</button>
+            <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
         </div>
         <div class="modal-body">
             <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1rem 1.5rem; border-radius: 15px; margin-bottom: 1.5rem;">
@@ -587,7 +587,7 @@ function openTherapyModal(methodType) {
     const modalContent = `
         <div class="modal-header">
             <h2>${method.title}</h2>
-            <button class="modal-close" onclick="closeModal()">Ã—</button>
+            <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
         </div>
         <div class="modal-body">
             <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${method.description}</p>
@@ -677,7 +677,7 @@ function openWorkshopModal(workshopType) {
     const modalContent = `
         <div class="modal-header">
             <h2>${workshop.title}</h2>
-            <button class="modal-close" onclick="closeModal()">Ã—</button>
+            <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
         </div>
         <div class="modal-body">
             <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${workshop.description}</p>
@@ -962,7 +962,7 @@ if (reviewForm && reviewFormMessage) {
 
         saveReviews(reviews);
         renderReviews();
-        reviewForm.reset();
+        reviewForm.reset();\n        const starBtns = document.querySelectorAll('.star-btn');\n        starBtns.forEach(b => b.classList.remove('active', 'hover'));\n        document.getElementById('reviewRating').value = '';
         reviewFormMessage.textContent = 'Thank you! Your review has been added.';
         reviewFormMessage.classList.add('success');
     });
@@ -1016,9 +1016,9 @@ function openMediaModal(src, type, index = -1, caption = '') {
         ? `<video src="${src}" controls autoplay playsinline></video>`
         : `<img src="${src}" alt="${caption || 'Gallery image'}">`;
 
-    const prevBtn = `<button class="nav-btn" aria-label="Previous" onclick="galleryPrev()"><span>â† Prev</span></button>`;
-    const nextBtn = `<button class="nav-btn" aria-label="Next" onclick="galleryNext()"><span>Next â†’</span></button>`;
-    const downloadBtn = `<a class="download-btn" href="${src}" download><button class="download-btn"><span>Download</span></button></a>`;
+    const prevBtn = `<button class="btn btn-outline" aria-label="Previous" onclick="galleryPrev()"><span>&larr; Prev</span></button>`;
+    const nextBtn = `<button class="btn btn-outline" aria-label="Next" onclick="galleryNext()"><span>Next &rarr;</span></button>`;
+    const downloadBtn = `<a class="download-btn" href="${src}" download style="text-decoration:none;"><button class="btn btn-primary" tabindex="-1"><span>Download</span></button></a>`;
 
     const controlsMarkup = galleryItems.length > 1
         ? `<div class="modal-controls">${prevBtn}<div style="flex:1"></div>${nextBtn}</div>`
@@ -1030,7 +1030,7 @@ function openMediaModal(src, type, index = -1, caption = '') {
 
     const mediaMarkup = `
         <div class="modal-header">
-            <button class="modal-close" onclick="closeModal()">Ã—</button>
+            <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
         </div>
         <div class="modal-body">
             ${mediaEl}
@@ -1174,4 +1174,30 @@ let currentIndex = 0;
         currentIndex = (currentIndex < cards.length - 1) ? currentIndex + 1 : 0;
         showTestimonial(currentIndex);
     }, 6000);
+}
+\n
+const starInputContainer = document.getElementById('starRatingInput');
+const hiddenRatingInput = document.getElementById('reviewRating');
+if (starInputContainer && hiddenRatingInput) {
+    const starBtns = starInputContainer.querySelectorAll('.star-btn');
+    starBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const val = e.currentTarget.dataset.value;
+            hiddenRatingInput.value = val;
+            starBtns.forEach(b => {
+                if (parseInt(b.dataset.value) <= parseInt(val)) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+        });
+        btn.addEventListener('mouseenter', (e) => {
+            const val = e.currentTarget.dataset.value;
+            starBtns.forEach(b => {
+                if (parseInt(b.dataset.value) <= parseInt(val)) b.classList.add('hover');
+                else b.classList.remove('hover');
+            });
+        });
+        btn.addEventListener('mouseleave', () => {
+            starBtns.forEach(b => b.classList.remove('hover'));
+        });
+    });
 }
