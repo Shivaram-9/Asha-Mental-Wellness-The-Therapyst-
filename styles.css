@@ -19,59 +19,64 @@ button, input[type="submit"], input[type="button"] {
     box-sizing: border-box;
 }
 
+img, video {
+    max-width: 100%;
+    height: auto;
+}
+
+
 
 :root {
-    /* Premium Clinical Palette (Light Mode - Soft Blue/Sage) */
-    --bg-base: #F4F7F9;
-    --bg-surface: #FFFFFF;
-    --bg-elevated: #E8EEF2;
-    --sidebar-bg: #FFFFFF;
+    /* Refined Light Palette */
+    --bg-main: #f0f4f8;
+    --bg-surface: #ffffff;
+    --bg-elevated: #f8fafc;
     
-    --text-primary: #1E293B;
+    --text-primary: #1e293b;
     --text-secondary: #475569;
-    --text-muted: #94A3B8;
+    --text-muted: #64748b;
     
-    --primary: #5C7C75;
-    --primary-hover: #4B6B63;
-    --accent: #7FA39A;
-    --accent-hover: #6B9187;
+    --primary: #0f172a;
+    --primary-light: #334155;
+    --accent: #5e8b7e;
+    --accent-light: #82a89d;
     
-    --border-light: #E2E8F0;
-    --border-medium: #CBD5E1;
+    --border-light: rgba(15, 23, 42, 0.08);
+    --border-medium: rgba(15, 23, 42, 0.15);
+    
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #1e293b;
+    --nav-hover-bg: #f1f5f9;
+    
+    /* Variables mapped from old names to prevent breaking */
+    --bg: var(--bg-main);
+    --bg-base: var(--bg-main);
+    --card-bg: var(--bg-surface);
+    --text: var(--text-primary);
+    --muted: var(--text-muted);
+    --light: var(--bg-main);
+    --dark: var(--primary);
+    --primary-hover: var(--primary-light);
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    
+    --font-primary: 'Plus Jakarta Sans', sans-serif;
+    --font-sans: var(--font-primary);
+    --transition-fast: 0.2s ease;
+    --transition-medium: 0.3s ease;
 
-    --shadow-sm: 0 2px 8px rgba(30, 41, 59, 0.04);
-    --shadow-md: 0 8px 24px rgba(30, 41, 59, 0.08);
-    --shadow-lg: 0 16px 48px rgba(30, 41, 59, 0.12);
+    --font-serif: var(--font-primary);
+    --gradient-1: linear-gradient(135deg, var(--bg-surface), var(--bg-main));
+    --gradient-2: linear-gradient(135deg, var(--bg-main), var(--bg-surface));
+    --gradient-3: linear-gradient(135deg, var(--bg-surface), var(--bg-elevated));
+    --transition-smooth: 0.4s ease;
+    --transition-normal: 0.25s ease;
 
-    --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
-    --font-serif: 'Plus Jakarta Sans', -apple-system, sans-serif; /* Unified to Sans per request */
-    --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-body[data-theme="dark"] {
-    /* Premium Clinical Palette (Dark Mode - Deep Navy/Slate) */
-    --bg-base: #0B1120;
-    --bg-surface: #0F172A;
-    --bg-elevated: #1E293B;
-    --sidebar-bg: #0F172A;
-    
-    --text-primary: #F8FAFC;
-    --text-secondary: #CBD5E1;
-    --text-muted: #64748B;
-    
-    --primary: #8EB3AA;
-    --primary-hover: #A3C7BE;
-    --accent: #7FA39A;
-    --accent-hover: #9AC0B7;
-    
-    --border-light: #1E293B;
-    --border-medium: #334155;
 
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
-}
+
 
 html {
     scroll-behavior: smooth;
@@ -156,7 +161,9 @@ body {
 .page-wrapper {
     margin-left: 280px;
     width: calc(100% - 280px);
-    transition: margin var(--transition-smooth), width var(--transition-smooth);
+    max-width: calc(100% - 280px);
+    transition: margin var(--transition-medium), width var(--transition-medium);
+    position: relative;
 }
 
 .mobile-header {
@@ -328,6 +335,7 @@ body {
     .page-wrapper {
         margin-left: 0;
         width: 100%;
+        max-width: 100%;
     }
     
     .sidebar {
@@ -1150,7 +1158,7 @@ body {
 }
 
 body[data-theme="light"] .sun-icon { display: none; }
-body[data-theme="dark"] .moon-icon { display: none; }
+
 
 .focus-card h3 {
     font-size: 1.4rem;
@@ -1660,13 +1668,15 @@ footer {
 }
 
 /* Reveal Animation */
-.reveal {
+.js-enabled .reveal {
     opacity: 0;
     transform: translateY(50px);
+}
+.reveal {
     transition: all 0.8s ease;
 }
 
-.reveal.active {
+.js-enabled .reveal.active {
     opacity: 1;
     transform: translateY(0);
 }
@@ -1803,9 +1813,7 @@ footer {
         visibility: visible;
     }
 
-    body[data-theme="dark"] .nav-links {
-        background: rgba(2, 6, 23, 0.98);
-    }
+    
     
     .hero h1 {
         font-size: 2.5rem;
@@ -2010,9 +2018,7 @@ footer {
 
 
 /* Special overrides for dark mode button readability */
-body[data-theme="dark"] .btn-primary {
-    color: #FAFAF9; /* High contrast text in dark mode */
-}
+
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
@@ -2037,8 +2043,8 @@ body[data-theme="dark"] .btn-primary {
 }
 
 .sun-icon { display: none; }
-body[data-theme="dark"] .sun-icon { display: block; }
-body[data-theme="dark"] .moon-icon { display: none; }
+
+
 
 /* Let's refine the btn-icon for the theme toggle to ensure it looks intentional */
 .btn-icon

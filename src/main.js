@@ -126,7 +126,7 @@ function getModalContent(modalType) {
     const modals = {
         educationModal: `
             <div class="modal-header">
-                <h2>ðŸŽ“ Education</h2>
+                <h2> Education</h2>
                 <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
@@ -146,7 +146,7 @@ function getModalContent(modalType) {
         `,
         certificationModal: `
             <div class="modal-header">
-                <h2>ðŸ“œ Certifications & Registration</h2>
+                <h2> Certifications & Registration</h2>
                 <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
@@ -169,7 +169,7 @@ function getModalContent(modalType) {
         `,
         specializationModal: `
             <div class="modal-header">
-                <h2>â­ Areas of Specialization</h2>
+                <h2> Areas of Specialization</h2>
                 <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
@@ -200,7 +200,7 @@ function getModalContent(modalType) {
         `,
         bookingModal: `
             <div class="modal-header">
-                <h2>ðŸ“… Book a Session</h2>
+                <h2> Book a Session</h2>
                 <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
@@ -213,9 +213,9 @@ function getModalContent(modalType) {
                 </ul>
                 
                 <h3>Session Formats</h3>
-                <p>âœ“ In-person sessions (Hyderabad)</p>
-                <p>âœ“ Online video consultations</p>
-                <p>âœ“ Phone consultations</p>
+                <p> In-person sessions (Hyderabad)</p>
+                <p> Online video consultations</p>
+                <p> Phone consultations</p>
                 
                 <h3>Contact Information</h3>
                 <p><strong>Email:</strong> ashasuhasini02@gmail.com</p>
@@ -232,7 +232,7 @@ function getModalContent(modalType) {
         `,
         inquiryModal: `
             <div class="modal-header">
-                <h2>ðŸ’¬ General Inquiry</h2>
+                <h2> General Inquiry</h2>
                 <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
@@ -240,13 +240,13 @@ function getModalContent(modalType) {
                 <p>For general inquiries about services, workshops, or corporate programs, please reach out through the following channels:</p>
                 
                 <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 15px; margin: 1.5rem 0;">
-                    <h4 style="margin-top: 0;">ðŸ“§ Email</h4>
+                    <h4 style="margin-top: 0;"> Email</h4>
                     <p>ashasuhasini02@gmail.com</p>
                     
-                    <h4>ðŸ“ Location</h4>
+                    <h4> Location</h4>
                     <p>Hyderabad, Telangana, India</p>
                     
-                    <h4>â° Response Time</h4>
+                    <h4> Response Time</h4>
                     <p>Typically within 24-48 hours</p>
                 </div>
                 
@@ -270,7 +270,7 @@ function getModalContent(modalType) {
 function openServiceModal(serviceType) {
     const services = {
         individual: {
-            title: 'ðŸ’­ Individual Therapy',
+            title: ' Individual Therapy',
             description: 'Personalized one-on-one psychotherapy sessions designed to address your unique mental health needs.',
             details: [
                 'Evidence-based therapeutic approaches including CBT, REBT, and DBT',
@@ -283,7 +283,7 @@ function openServiceModal(serviceType) {
             format: 'Available online and in-person'
         },
         family: {
-            title: 'ðŸ‘¨â€ðŸ‘©â€ðŸ‘§â€ðŸ‘¦ Family & Marital Therapy',
+            title: ' Family & Marital Therapy',
             description: 'Strengthen relationships and resolve conflicts through compassionate family and couples counseling.',
             details: [
                 'Improve communication and understanding between family members',
@@ -296,7 +296,7 @@ function openServiceModal(serviceType) {
             format: 'In-person and online options available'
         },
         corporate: {
-            title: 'ðŸ’¼ Corporate Wellness',
+            title: ' Corporate Wellness',
             description: 'Comprehensive mental health programs designed to enhance workplace well-being and productivity.',
             details: [
                 'Employee counseling and support services',
@@ -310,7 +310,7 @@ function openServiceModal(serviceType) {
             format: 'On-site and virtual programs'
         },
         coaching: {
-            title: 'ðŸŽ¯ Life Skills Coaching',
+            title: ' Life Skills Coaching',
             description: 'Personalized coaching programs to build confidence, achieve goals, and develop lasting resilience.',
             details: [
                 'Goal setting and achievement strategies',
@@ -324,7 +324,7 @@ function openServiceModal(serviceType) {
             format: 'Individual and group coaching available'
         },
         trauma: {
-            title: 'ðŸŒ± Trauma Counseling',
+            title: ' Trauma Counseling',
             description: 'Specialized support for healing from traumatic experiences and critical incidents.',
             details: [
                 'PTSD treatment and management',
@@ -338,7 +338,7 @@ function openServiceModal(serviceType) {
             format: 'Sensitive, confidential support'
         },
         student: {
-            title: 'ðŸ“š Student Counseling',
+            title: ' Student Counseling',
             description: 'Academic support and personal development guidance for students of all ages.',
             details: [
                 'Exam stress and academic pressure management',
@@ -362,7 +362,7 @@ function openServiceModal(serviceType) {
             <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
         </div>
         <div class="modal-body">
-            <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${service.description}</p>
+            <p style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 1.5rem;">${service.description}</p>
             
             <h3>What to Expect</h3>
             <ul>
@@ -486,10 +486,10 @@ function openExperienceModal(orgType) {
         <div class="modal-body">
             <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1rem 1.5rem; border-radius: 15px; margin-bottom: 1.5rem;">
                 <p style="margin: 0; font-weight: 600;">${exp.role}</p>
-                <p style="margin: 0.3rem 0 0 0; opacity: 0.9;">${exp.period} â€¢ ${exp.location}</p>
+                <p style="margin: 0.3rem 0 0 0; opacity: 0.9;">${exp.period}  ${exp.location}</p>
             </div>
             
-            <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${exp.description}</p>
+            <p style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 1.5rem;">${exp.description}</p>
             
             <h3>Key Responsibilities</h3>
             <ul>
@@ -590,7 +590,7 @@ function openTherapyModal(methodType) {
             <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
         </div>
         <div class="modal-body">
-            <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${method.description}</p>
+            <p style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 1.5rem;">${method.description}</p>
             
             <h3>Key Benefits</h3>
             <ul>
@@ -680,14 +680,14 @@ function openWorkshopModal(workshopType) {
             <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
         </div>
         <div class="modal-body">
-            <p style="font-size: 1.1rem; color: var(--text); margin-bottom: 1.5rem;">${workshop.description}</p>
+            <p style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 1.5rem;">${workshop.description}</p>
             
             <h3>Workshop Content</h3>
             <ul>
                 ${workshop.content.map(item => `<li>${item}</li>`).join('')}
             </ul>
             
-            <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 15px; margin-top: 2rem;">
+            <div style="background: var(--bg-surface); padding: 1.5rem; border-radius: 15px; margin-top: 2rem;">
                 <p><strong>Duration:</strong> ${workshop.duration}</p>
                 <p style="margin-bottom: 0;"><strong>Target Audience:</strong> ${workshop.audience}</p>
             </div>
@@ -729,28 +729,6 @@ window.addEventListener('scroll', () => {
 });
 
 // Theme Toggle (Light / Dark)
-const themeToggle = document.getElementById('themeToggle');
-
-function applyTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-}
-
-function initTheme() {
-    const savedTheme = localStorage.getItem('asha-theme');
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
-    applyTheme(initialTheme);
-}
-
-if (themeToggle) {
-    initTheme();
-    themeToggle.addEventListener('click', () => {
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-        const nextTheme = isDark ? 'light' : 'dark';
-        applyTheme(nextTheme);
-        localStorage.setItem('asha-theme', nextTheme);
-    });
-}
 
 // Contact Form Handling
 const contactForm = document.getElementById('contactForm');
@@ -1071,8 +1049,8 @@ function initGalleryHandlers() {
     const imgs = Array.from(document.querySelectorAll('.media-item > img'));
 
     imgs.forEach((img, i) => {
-        const src = img.src;   // âœ… FIXED
-        const type = 'image';  // âœ… FIXED
+        const src = img.src;   //  FIXED
+        const type = 'image';  //  FIXED
         const caption = img.alt || '';
 
         galleryItems.push({ src, type, caption });
