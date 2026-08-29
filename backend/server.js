@@ -2,21 +2,41 @@
 import cors from 'cors';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
+// Configure CORS for production GitHub Pages and local testing
+app.use(cors({
+    origin: ['https://shivaram-9.github.io', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Persistent Storage Setup (MongoDB)
+const MONGODB_URI = process.env.MONGODB_URI;
+if (MONGODB_URI) {
+    mongoose.connect(MONGODB_URI)
+        .then(() => console.log('Connected to MongoDB cluster securely.'))
+        .catch(err => console.error('MongoDB connection error:', err));
+} else {
+    console.warn('WARNING: MONGODB_URI is not set. The backend will crash on booking attempts unless configured.');
+}
 
-// In-memory slot storage to prevent double booking.
-// In production, this should be a database (e.g. MongoDB, PostgreSQL).
-const bookedSlots = {};
+const BookingSchema = new mongoose.Schema({
+    name: String,
+    email: String,
+    date: String,
+    slot: String,
+    createdAt: { type: Date, default: Date.now }
+});
+// Enforce unique compound index to prevent race conditions globally
+BookingSchema.index({ date: 1, slot: 1 }, { unique: true });
+const Booking = mongoose.model('Booking', BookingSchema);
 
 app.post('/api/book', async (req, res) => {
     const { name, email, date, slot } = req.body;
@@ -25,26 +45,22 @@ app.post('/api/book', async (req, res) => {
         return res.status(400).json({ error: 'All fields are required.' });
     }
 
-    // Check availability
-    if (!bookedSlots[date]) {
-        bookedSlots[date] = [];
+    if (!MONGODB_URI) {
+        return res.status(500).json({ error: 'Database not configured. Cannot process bookings.' });
     }
 
-    if (bookedSlots[date].includes(slot)) {
-        return res.status(409).json({ error: 'This time slot has already been booked. Please choose another.' });
-    }
-
-    // Mark as booked
-    bookedSlots[date].push(slot);
-
-    // Setup nodemailer
-    // To run this properly, provide SMTP_USER and SMTP_PASS in a .env file.
-    // If not provided, it will use a testing Ethereal account (which doesn't send real emails but logs them).
-    let transporter;
     try {
+        // Pre-check availability
+        const existingBooking = await Booking.findOne({ date, slot });
+        if (existingBooking) {
+            return res.status(409).json({ error: 'This time slot has already been booked. Please choose another.' });
+        }
+
+        // Setup nodemailer
+        let transporter;
         if (process.env.SMTP_USER && process.env.SMTP_PASS) {
             transporter = nodemailer.createTransport({
-                service: 'gmail', // or your email service
+                service: 'gmail',
                 auth: {
                     user: process.env.SMTP_USER,
                     pass: process.env.SMTP_PASS
@@ -106,23 +122,38 @@ app.post('/api/book', async (req, res) => {
             console.log('Test Client Email URL: ' + nodemailer.getTestMessageUrl(clientInfo));
         }
 
+        // Only save to DB if emails succeed, preventing dead slots
+        const newBooking = new Booking({ name, email, date, slot });
+        await newBooking.save();
+
         res.status(200).json({ success: true, message: 'Booking confirmed and emails sent.' });
 
     } catch (error) {
-        console.error('Error sending emails:', error);
-        // Rollback the booking slot if email fails
-        bookedSlots[date] = bookedSlots[date].filter(s => s !== slot);
+        console.error('Error processing booking:', error);
+        
+        // Catch MongoDB Duplicate Key Error for concurrent race conditions
+        if (error.code === 11000) {
+            return res.status(409).json({ error: 'This time slot has already been booked. Please choose another.' });
+        }
+        
         res.status(500).json({ error: 'Failed to process booking or send emails.' });
     }
 });
 
 // Endpoint to fetch currently booked slots for a specific date
-app.get('/api/booked-slots', (req, res) => {
+app.get('/api/booked-slots', async (req, res) => {
     const { date } = req.query;
-    if (!date) {
+    if (!date || !MONGODB_URI) {
         return res.json({ booked: [] });
     }
-    return res.json({ booked: bookedSlots[date] || [] });
+    try {
+        const bookings = await Booking.find({ date });
+        const bookedSlots = bookings.map(b => b.slot);
+        return res.json({ booked: bookedSlots });
+    } catch (error) {
+        console.error('Error fetching slots:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 const PORT = process.env.PORT || 3000;
