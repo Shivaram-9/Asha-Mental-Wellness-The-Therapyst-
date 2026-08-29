@@ -1227,7 +1227,7 @@ async function renderTimeSlots() {
     
     let bookedForDate = [];
     try {
-        const response = await fetch(\/api/booked-slots?date=\);
+        const response = await fetch(`${API_URL}/api/booked-slots?date=${dateInput}`);
         if (response.ok) {
             const data = await response.json();
             bookedForDate = data.booked || [];
@@ -1286,7 +1286,7 @@ async function confirmBooking() {
     submitBtn.disabled = true;
 
     try {
-        const response = await fetch(\/api/book, {
+        const response = await fetch(`${API_URL}/api/book`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, email, date, slot })
@@ -1307,14 +1307,14 @@ async function confirmBooking() {
                 document.getElementById('bookingSystem').appendChild(successMsg);
             }
             successMsg.style.display = 'block';
-            successMsg.innerHTML = 
+            successMsg.innerHTML = `
                 <h4 style="margin-top:0; color:#1e4620;">Session Booked Successfully</h4>
-                <p><strong>Name:</strong> \</p>
-                <p><strong>Email:</strong> \</p>
-                <p><strong>Date:</strong> \</p>
-                <p><strong>Time:</strong> \</p>
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Date:</strong> ${date}</p>
+                <p><strong>Time:</strong> ${slot}</p>
                 <p style="margin-bottom:0; margin-top:10px; font-size:0.9em;">Confirmation emails have been sent.</p>
-            ;
+            `;
         } else {
             alert('Booking failed: ' + (data.error || 'Please try again.'));
             // Refresh slots to see if it was taken
