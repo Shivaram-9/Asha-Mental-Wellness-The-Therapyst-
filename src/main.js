@@ -243,7 +243,7 @@ function getModalContent(modalType) {
                         <input type="date" id="bookingDate" class="form-input" min="2026-08-29" onchange="renderTimeSlots()">
                     </div>
                     <div class="form-field">
-                        <label>Available Slots (5:00 PM - 9:00 PM)</label>
+                        <label id="slotLabel">Available Slots</label>
                         <div id="timeSlots" class="time-slots-grid">
                             <p class="text-muted">Please select a date first.</p>
                         </div>
@@ -1190,7 +1190,6 @@ initGalleryHandlers();
 
 
 // Booking System Logic
-const availableSlots = ['5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
 const API_URL = 'http://localhost:3000'; // Change this in production
 
 async function renderTimeSlots() {
@@ -1198,13 +1197,30 @@ async function renderTimeSlots() {
     const timeSlotsContainer = document.getElementById('timeSlots');
     const bookingFormDetails = document.getElementById('bookingFormDetails');
     const successMsg = document.getElementById('bookingSuccessMessage');
+    const slotLabel = document.getElementById('slotLabel');
     
     bookingFormDetails.style.display = 'none';
     if (successMsg) successMsg.style.display = 'none';
     
     if (!dateInput) {
         timeSlotsContainer.innerHTML = '<p class="text-muted">Please select a date first.</p>';
+        if (slotLabel) slotLabel.innerText = 'Available Slots';
         return;
+    }
+
+    // Determine day of week to set correct slots
+    const [year, month, day] = dateInput.split('-');
+    const selectedDate = new Date(year, month - 1, day);
+    const isSunday = selectedDate.getDay() === 0;
+    
+    const availableSlots = isSunday 
+        ? ['12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM']
+        : ['5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
+        
+    if (slotLabel) {
+        slotLabel.innerText = isSunday
+            ? 'Available Slots (12:00 PM - 4:00 PM)'
+            : 'Available Slots (5:00 PM - 9:00 PM)';
     }
 
     timeSlotsContainer.innerHTML = '<p class="text-muted">Loading available slots...</p>';
