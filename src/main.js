@@ -221,7 +221,7 @@ function getModalContent(modalType) {
                 <p><strong>Email:</strong> ashasuhasini02@gmail.com</p>
                 <p><strong>Location:</strong> Hyderabad, India</p>
 
-                <button class="contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()">
+                <button class="btn btn-primary contact-button" style="margin-top: 1rem;" onclick="openGoogleCalendarBooking()">
                     Open Google Calendar
                 </button>
                 
@@ -374,7 +374,7 @@ function openServiceModal(serviceType) {
                 <p style="margin-bottom: 0;"><strong>Format:</strong> ${service.format}</p>
             </div>
             
-            <button class="contact-button" style="margin-top: 2rem; width: 100%;" onclick="closeModal(); openModal('bookingModal')">
+            <button class="btn btn-primary contact-button" style="margin-top: 2rem; width: 100%;" onclick="closeModal(); openModal('bookingModal')">
                 Book a Session
             </button>
         </div>
@@ -696,7 +696,7 @@ function openWorkshopModal(workshopType) {
                 <strong>Note:</strong> Workshops can be customized for schools, corporate organizations, and community groups.
             </p>
             
-            <button class="contact-button" style="margin-top: 2rem; width: 100%;" onclick="closeModal(); openModal('inquiryModal')">
+            <button class="btn btn-primary contact-button" style="margin-top: 2rem; width: 100%;" onclick="closeModal(); openModal('inquiryModal')">
                 Inquire About This Workshop
             </button>
         </div>
