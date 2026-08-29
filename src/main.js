@@ -962,7 +962,10 @@ if (reviewForm && reviewFormMessage) {
 
         saveReviews(reviews);
         renderReviews();
-        reviewForm.reset();\n        const starBtns = document.querySelectorAll('.star-btn');\n        starBtns.forEach(b => b.classList.remove('active', 'hover'));\n        document.getElementById('reviewRating').value = '';
+        reviewForm.reset();
+        const starBtns = document.querySelectorAll('.star-btn');
+        starBtns.forEach(b => b.classList.remove('active', 'hover'));
+        document.getElementById('reviewRating').value = '';
         reviewFormMessage.textContent = 'Thank you! Your review has been added.';
         reviewFormMessage.classList.add('success');
     });
@@ -1128,6 +1131,7 @@ function initGalleryHandlers() {
 initGalleryHandlers();
 
 // Expose global functions to window
+
 window.openGoogleCalendarBooking = openGoogleCalendarBooking;
 window.scrollToSection = scrollToSection;
 window.openModal = openModal;
@@ -1136,6 +1140,9 @@ window.openServiceModal = openServiceModal;
 window.openExperienceModal = openExperienceModal;
 window.openTherapyModal = openTherapyModal;
 window.openWorkshopModal = openWorkshopModal;
+window.galleryPrev = galleryPrev;
+window.galleryNext = galleryNext;
+
 
 // Testimonials Carousel Logic
 const cards = document.querySelectorAll('.testimonial-card');
@@ -1175,7 +1182,7 @@ let currentIndex = 0;
         showTestimonial(currentIndex);
     }, 6000);
 }
-\n
+
 const starInputContainer = document.getElementById('starRatingInput');
 const hiddenRatingInput = document.getElementById('reviewRating');
 if (starInputContainer && hiddenRatingInput) {
