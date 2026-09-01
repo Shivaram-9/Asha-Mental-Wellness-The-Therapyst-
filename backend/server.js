@@ -13,6 +13,7 @@ const app = express();
 // Configure CORS for production GitHub Pages and local testing
 app.use(cors()); // Allow all origins for Render frontend and GitHub Pages
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Persistent Storage Setup (MongoDB)
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -141,6 +142,7 @@ app.post('/api/reviews', async (req, res) => {
     }
 });
 
+// Step 1: Render a confirmation page to prevent email-scanner auto-clicks
 app.get('/api/reviews/action', async (req, res) => {
     const { id, token, action } = req.query;
     
@@ -152,8 +154,52 @@ app.get('/api/reviews/action', async (req, res) => {
         const review = await Review.findById(id);
         if (!review) return res.status(404).send('Review not found.');
         
-        if (review.approvalToken !== token) {
-            return res.status(403).send('Invalid or expired secure token.');
+        if (!review.approvalToken || review.approvalToken !== token) {
+            return res.status(403).send('Invalid, reused, or expired secure token.');
+        }
+        
+        if (review.tokenExpiry && review.tokenExpiry < new Date()) {
+            return res.status(403).send('This approval link has expired (7 days).');
+        }
+        
+        const actionText = action === 'approve' ? 'Approve' : 'Reject';
+        const color = action === 'approve' ? 'green' : 'red';
+        
+        res.send(`
+            <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+                <h2>Confirm ${actionText}</h2>
+                <p>Are you sure you want to <strong>${actionText.toLowerCase()}</strong> this review by ${review.name}?</p>
+                <form method="POST" action="/api/reviews/action">
+                    <input type="hidden" name="id" value="${id}">
+                    <input type="hidden" name="token" value="${token}">
+                    <input type="hidden" name="action" value="${action}">
+                    <button type="submit" style="padding: 10px 20px; background-color: ${color}; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                        Yes, ${actionText} Review
+                    </button>
+                </form>
+            </div>
+        `);
+    } catch (error) {
+        console.error('Moderation error:', error);
+        res.status(500).send('Server error processing moderation.');
+    }
+});
+
+// Step 2: Actually process the state mutation securely via POST
+app.post('/api/reviews/action', async (req, res) => {
+    // allow parsing URL-encoded bodies for the form submission
+    const { id, token, action } = req.body;
+    
+    if (!id || !token || !action) {
+        return res.status(400).send('Missing required parameters.');
+    }
+    
+    try {
+        const review = await Review.findById(id);
+        if (!review) return res.status(404).send('Review not found.');
+        
+        if (!review.approvalToken || review.approvalToken !== token) {
+            return res.status(403).send('Invalid, reused, or expired secure token.');
         }
         
         if (review.tokenExpiry && review.tokenExpiry < new Date()) {
@@ -168,8 +214,9 @@ app.get('/api/reviews/action', async (req, res) => {
             return res.status(400).send('Invalid action.');
         }
         
-        // Invalidate token so it can't be reused
+        // Nullify the token so this link can never be reused
         review.approvalToken = null;
+        review.tokenExpiry = null;
         await review.save();
         
         const color = action === 'approve' ? 'green' : 'red';
@@ -182,7 +229,7 @@ app.get('/api/reviews/action', async (req, res) => {
             </div>
         `);
     } catch (error) {
-        console.error('Moderation error:', error);
+        console.error('Moderation POST error:', error);
         res.status(500).send('Server error processing moderation.');
     }
 });
