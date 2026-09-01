@@ -89,7 +89,7 @@ app.post('/api/reviews', async (req, res) => {
                 auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
             });
         } else {
-            console.log('No SMTP credentials found. Creating Ethereal test account...');
+            console.warn('CRITICAL: No SMTP credentials found. Falling back to Ethereal test account.');
             const testAccount = await nodemailer.createTestAccount();
             transporter = nodemailer.createTransport({
                 host: 'smtp.ethereal.email', port: 587, secure: false,
@@ -104,8 +104,8 @@ app.post('/api/reviews', async (req, res) => {
         const rejectLink = `${baseUrl}/api/reviews/action?id=${savedReview._id}&token=${approvalToken}&action=reject`;
         
         const adminMailOptions = {
-            from: process.env.SMTP_USER || '"Booking System" <noreply@asha-wellness.com>',
-            to: 'asha.suhasinim@gmail.com, ymvshiva1784@gmail.com',
+            from: process.env.SMTP_USER, // Strictly use the authenticated user to prevent spam drops
+            to: ['asha.suhasinim@gmail.com', 'ymvshiva1784@gmail.com'],
             subject: 'ACTION REQUIRED: New Review Submitted',
             html: `
                 <h2>New Review Pending Approval</h2>
@@ -294,7 +294,7 @@ app.post('/api/book', async (req, res) => {
 
         // 1. Email to the Therapist
         const therapistMailOptions = {
-            from: process.env.SMTP_USER || '"Booking System" <noreply@asha-wellness.com>',
+            from: process.env.SMTP_USER, // Strictly use the authenticated user to prevent spam drops
             to: therapistEmail,
             subject: 'New Session Booking: ' + name,
             html: `
@@ -309,7 +309,7 @@ app.post('/api/book', async (req, res) => {
 
         // 2. Email to the Client
         const clientMailOptions = {
-            from: process.env.SMTP_USER || '"Asha Suhasini Mental Wellness" <noreply@asha-wellness.com>',
+            from: process.env.SMTP_USER,
             to: email,
             subject: 'Booking Confirmation - Asha Suhasini Mental Wellness',
             html: `
