@@ -1,4 +1,4 @@
-import express from 'express';
+﻿code = r"""import express from 'express';
 import cors from 'cors';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
@@ -160,3 +160,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Backend server running on port ${PORT}`);
 });
+"""
+
+with open('backend/server.js', 'w', encoding='utf-8') as f:
+    f.write(code)
