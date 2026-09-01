@@ -10,11 +10,7 @@ dotenv.config();
 
 const app = express();
 // Configure CORS for production GitHub Pages and local testing
-app.use(cors({
-    origin: ['https://shivaram-9.github.io', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'],
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors()); // Allow all origins for Render frontend and GitHub Pages
 app.use(express.json());
 
 // Persistent Storage Setup (MongoDB)

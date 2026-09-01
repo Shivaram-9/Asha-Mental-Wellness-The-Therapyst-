@@ -1190,7 +1190,7 @@ initGalleryHandlers();
 
 
 // Booking System Logic
-const API_URL = window.location.hostname.includes('github.io') ? 'https://asha-mental-wellness-the-therapist.onrender.com' : 'http://localhost:3000';
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : 'https://asha-mental-wellness-the-therapist.onrender.com';
 
 async function renderTimeSlots() {
     const dateInput = document.getElementById('bookingDate').value;
