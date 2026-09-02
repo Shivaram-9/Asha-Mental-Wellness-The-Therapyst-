@@ -82,20 +82,17 @@ app.post('/api/reviews', async (req, res) => {
         const savedReview = await newReview.save();
         
         // Prepare Email
-        let transporter;
-        if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-            transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-            });
-        } else {
-            console.warn('CRITICAL: No SMTP credentials found. Falling back to Ethereal test account.');
-            const testAccount = await nodemailer.createTestAccount();
-            transporter = nodemailer.createTransport({
-                host: 'smtp.ethereal.email', port: 587, secure: false,
-                auth: { user: testAccount.user, pass: testAccount.pass }
-            });
+        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+            return res.status(500).json({ error: 'Server email configuration is missing.' });
         }
+        
+        let transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+            connectionTimeout: 10000,
+            greetingTimeout: 5000,
+            socketTimeout: 10000
+        });
         
         // Define Base URL for approval links
         const baseUrl = req.protocol + '://' + req.get('host');
@@ -130,9 +127,7 @@ app.post('/api/reviews', async (req, res) => {
         };
         
         const info = await transporter.sendMail(adminMailOptions);
-        if (!process.env.SMTP_USER) {
-            console.log('Test Admin Email URL: ' + nodemailer.getTestMessageUrl(info));
-        }
+
         
         res.status(200).json({ success: true, message: 'Review submitted and pending approval.' });
         
