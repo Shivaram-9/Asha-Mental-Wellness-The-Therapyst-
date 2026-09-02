@@ -1,36 +1,38 @@
-﻿function doGet(e) {
-  return ContentService.createTextOutput("Asha Mental Wellness Review Email Relay is active.");
+﻿const RELAY_SECRET = PropertiesService.getScriptProperties().getProperty('RELAY_SECRET');
+const ADMIN_EMAILS = "asha.suhasinim@gmail.com,ymvshiva1784@gmail.com";
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    success: true,
+    message: "Asha Mental Wellness Review Email Relay is active."
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
   try {
-    var postData = JSON.parse(e.postData.contents);
-    var providedSecret = postData.secret;
-    var expectedSecret = PropertiesService.getScriptProperties().getProperty('GOOGLE_RELAY_SECRET');
-    
-    if (!expectedSecret) {
+    if (!RELAY_SECRET) {
       return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Relay not configured" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    if (providedSecret !== expectedSecret) {
+    var postData = JSON.parse(e.postData.contents);
+    var providedSecret = postData.secret;
+    
+    if (providedSecret !== RELAY_SECRET) {
       return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Unauthorized" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    var to = postData.to;
     var subject = postData.subject;
     var htmlBody = postData.htmlBody;
     
-    if (!to || !subject || !htmlBody) {
+    if (!subject || !htmlBody) {
       return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Missing required fields" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    var toAddresses = Array.isArray(to) ? to.join(',') : to;
-    
     MailApp.sendEmail({
-      to: toAddresses,
+      to: ADMIN_EMAILS,
       subject: subject,
       htmlBody: htmlBody
     });

@@ -123,7 +123,7 @@ app.post('/api/reviews', async (req, res) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     secret: relaySecret,
-                    to: ['asha.suhasinim@gmail.com', 'ymvshiva1784@gmail.com'],
+                    
                     subject: 'ACTION REQUIRED: New Review Submitted',
                     htmlBody: htmlBody
                 })
