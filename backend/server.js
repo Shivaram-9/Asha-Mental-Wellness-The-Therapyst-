@@ -82,9 +82,12 @@ app.post('/api/reviews', async (req, res) => {
         
         const savedReview = await newReview.save();
         
-        // Prepare Email (Resend)
-        if (!process.env.RESEND_API_KEY) {
-            return res.status(500).json({ error: 'Server email configuration (Resend) is missing.' });
+        // Prepare Email (Google Apps Script Relay)
+        const relayUrl = process.env.GOOGLE_REVIEW_RELAY_URL;
+        const relaySecret = process.env.GOOGLE_RELAY_SECRET;
+        
+        if (!relayUrl || !relaySecret) {
+            return res.status(500).json({ error: 'Server email configuration (Google Relay) is missing.' });
         }
         
         // Define Base URL for approval links
@@ -93,13 +96,7 @@ app.post('/api/reviews', async (req, res) => {
         const approveLink = `${baseUrl}/api/reviews/action?id=${savedReview._id}&token=${approvalToken}&action=approve`;
         const rejectLink = `${baseUrl}/api/reviews/action?id=${savedReview._id}&token=${approvalToken}&action=reject`;
         
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        
-        const { data, error: resendError } = await resend.emails.send({
-            from: 'onboarding@resend.dev',
-            to: ['asha.suhasinim@gmail.com', 'ymvshiva1784@gmail.com'],
-            subject: 'ACTION REQUIRED: New Review Submitted',
-            html: `
+        const htmlBody = `
                 <h2>New Review Pending Approval</h2>
                 <p>A new review was submitted and is waiting for your approval to appear on the website.</p>
                 <hr>
@@ -118,12 +115,33 @@ app.post('/api/reviews', async (req, res) => {
                 <p><a href="${approveLink}" style="padding:10px 20px; background-color:green; color:white; text-decoration:none; border-radius:5px;">APPROVE REVIEW</a></p>
                 <br>
                 <p><a href="${rejectLink}" style="padding:10px 20px; background-color:red; color:white; text-decoration:none; border-radius:5px;">REJECT REVIEW</a></p>
-            `
-        });
+            `;
 
-        if (resendError) {
-            console.error('Resend API Error:', resendError);
-            return res.status(500).json({ error: 'Failed to send review notification email.' });
+        try {
+            const relayResponse = await fetch(relayUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    secret: relaySecret,
+                    to: ['asha.suhasinim@gmail.com', 'ymvshiva1784@gmail.com'],
+                    subject: 'ACTION REQUIRED: New Review Submitted',
+                    htmlBody: htmlBody
+                })
+            });
+
+            if (!relayResponse.ok) {
+                console.error('Google Relay HTTP Error:', relayResponse.status, relayResponse.statusText);
+                return res.status(500).json({ error: 'Failed to trigger email relay.' });
+            }
+
+            const relayData = await relayResponse.json();
+            if (!relayData.success) {
+                console.error('Google Relay Error:', relayData.error);
+                return res.status(500).json({ error: 'Failed to send review notification email.' });
+            }
+        } catch (relayError) {
+            console.error('Error calling Google Relay:', relayError);
+            return res.status(500).json({ error: 'Failed to connect to email relay.' });
         }
 
         
