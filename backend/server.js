@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
@@ -81,18 +82,10 @@ app.post('/api/reviews', async (req, res) => {
         
         const savedReview = await newReview.save();
         
-        // Prepare Email
-        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-            return res.status(500).json({ error: 'Server email configuration is missing.' });
+        // Prepare Email (Resend)
+        if (!process.env.RESEND_API_KEY) {
+            return res.status(500).json({ error: 'Server email configuration (Resend) is missing.' });
         }
-        
-        let transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-            connectionTimeout: 10000,
-            greetingTimeout: 5000,
-            socketTimeout: 10000
-        });
         
         // Define Base URL for approval links
         const baseUrl = req.protocol + '://' + req.get('host');
@@ -100,8 +93,10 @@ app.post('/api/reviews', async (req, res) => {
         const approveLink = `${baseUrl}/api/reviews/action?id=${savedReview._id}&token=${approvalToken}&action=approve`;
         const rejectLink = `${baseUrl}/api/reviews/action?id=${savedReview._id}&token=${approvalToken}&action=reject`;
         
-        const adminMailOptions = {
-            from: process.env.SMTP_USER, // Strictly use the authenticated user to prevent spam drops
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        
+        const { data, error: resendError } = await resend.emails.send({
+            from: 'onboarding@resend.dev',
             to: ['asha.suhasinim@gmail.com', 'ymvshiva1784@gmail.com'],
             subject: 'ACTION REQUIRED: New Review Submitted',
             html: `
@@ -124,9 +119,12 @@ app.post('/api/reviews', async (req, res) => {
                 <br>
                 <p><a href="${rejectLink}" style="padding:10px 20px; background-color:red; color:white; text-decoration:none; border-radius:5px;">REJECT REVIEW</a></p>
             `
-        };
-        
-        const info = await transporter.sendMail(adminMailOptions);
+        });
+
+        if (resendError) {
+            console.error('Resend API Error:', resendError);
+            return res.status(500).json({ error: 'Failed to send review notification email.' });
+        }
 
         
         res.status(200).json({ success: true, message: 'Review submitted and pending approval.' });
