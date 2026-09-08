@@ -418,6 +418,16 @@ app.get('/api/booked-slots', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+app.get('/api/debug/reviews', async (req, res) => {
+    try {
+        const reviews = await mongoose.model('Review').find();
+        res.json({ reviews });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Backend server running on port ${PORT}`);
 });
