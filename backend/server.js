@@ -57,7 +57,7 @@ const Review = mongoose.model('Review', ReviewSchema);
 app.post('/api/reviews', async (req, res) => {
     const { name, email, rating, message, country, state, city } = req.body;
     
-    if (!name || !email || !rating || !message) {
+    if (!name || !email || !rating || !message || !country || !state || !city) {
         return res.status(400).json({ error: 'All fields are required.' });
     }
     
@@ -281,7 +281,7 @@ app.get('/api/reviews', async (req, res) => {
     try {
         const reviews = await Review.find({ status: 'approved' })
             .sort({ createdAt: -1 })
-            .select('name rating message country state city createdAt');
+            .select('rating');
             
         res.json({ reviews });
     } catch (error) {

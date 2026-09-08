@@ -1218,9 +1218,6 @@ async function fetchAndRenderReviews() {
         const data = await response.json();
         const reviews = data.reviews || [];
         
-        const carousel = document.querySelector('.testimonials-carousel');
-        const reviewsList = document.getElementById('reviewsList');
-        
         if (reviews.length === 0) {
             // Empty State
             const emptyState = `
@@ -1229,8 +1226,6 @@ async function fetchAndRenderReviews() {
                     <p style="color:#666;">Be the first to share your experience!</p>
                 </div>
             `;
-            if (carousel) carousel.innerHTML = emptyState;
-            if (reviewsList) reviewsList.innerHTML = emptyState;
             return;
         }
 
