@@ -419,23 +419,9 @@ app.get('/api/booked-slots', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-
-
-        res.send(`Deleted ${result.deletedCount} reviews.`);
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-
 app.get('/api/debug/wipe_all_reviews_DANGER', async (req, res) => {
     try {
+        const mongoose = require('mongoose');
         const result = await mongoose.model('Review').deleteMany({});
         res.send(`Deleted ${result.deletedCount} reviews.`);
     } catch (error) {

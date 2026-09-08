@@ -1256,7 +1256,7 @@ async function fetchAndRenderReviews() {
             
 
             // Render Review Cards
-            const reviewsContainer = document.getElementById('publicReviewsContainer');
+            var reviewsContainer = document.getElementById('publicReviewsContainer');
             if (reviewsContainer) {
                 let cardsHtml = '';
                 reviews.forEach(rev => {
@@ -1304,7 +1304,7 @@ async function fetchAndRenderReviews() {
             
 
             // Render Review Cards
-            const reviewsContainer = document.getElementById('publicReviewsContainer');
+            var reviewsContainer = document.getElementById('publicReviewsContainer');
             if (reviewsContainer) {
                 let cardsHtml = '';
                 reviews.forEach(rev => {
@@ -1331,7 +1331,7 @@ async function fetchAndRenderReviews() {
             }
 
 
-            const reviewsContainer = document.getElementById('publicReviewsContainer');
+            var reviewsContainer = document.getElementById('publicReviewsContainer');
             if (reviewsContainer) reviewsContainer.innerHTML = '';
 
             for (let i = 1; i <= 5; i++) {
