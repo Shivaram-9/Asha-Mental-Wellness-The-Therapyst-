@@ -1212,7 +1212,7 @@ let currentIndex = 0;
 // --- Dynamic Review System ---
 async function fetchAndRenderReviews() {
     try {
-        const response = await fetch(`${API_URL}/api/reviews`);
+        const response = await fetch(`${API_URL}/api/reviews`, { cache: "no-store" });
         if (!response.ok) throw new Error('Failed to fetch reviews');
         
         const data = await response.json();
@@ -1241,7 +1241,9 @@ async function fetchAndRenderReviews() {
         });
 
         if (reviews.length > 0) {
-            const avg = (totalRating / reviews.length).toFixed(1);
+            const rawAvg = totalRating / reviews.length;
+            let avg = rawAvg.toFixed(2);
+            if (avg.endsWith('0')) avg = rawAvg.toFixed(1);
             
             const avgRatingEl = document.getElementById('averageRating');
             if (avgRatingEl) avgRatingEl.textContent = avg;

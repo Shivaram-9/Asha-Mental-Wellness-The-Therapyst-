@@ -78,6 +78,9 @@ app.post('/api/reviews', async (req, res) => {
             email,
             rating: numRating,
             message,
+            country,
+            state,
+            city,
             status: 'pending',
             approvalToken,
             tokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
@@ -279,6 +282,11 @@ app.post('/api/reviews/action', async (req, res) => {
 
 app.get('/api/reviews', async (req, res) => {
     try {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Surrogate-Control', 'no-store');
+
         const reviews = await Review.find({ status: 'approved' })
             .sort({ createdAt: -1 })
             .select('rating');
