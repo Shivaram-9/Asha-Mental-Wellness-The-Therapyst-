@@ -1235,6 +1235,58 @@ async function fetchAndRenderReviews() {
         }
 
         // Render Testimonials Carousel
+        
+        // Calculate Ratings Summary
+        let totalRating = 0;
+        let counts = {1:0, 2:0, 3:0, 4:0, 5:0};
+        
+        reviews.forEach((rev) => {
+            totalRating += rev.rating;
+            counts[rev.rating] = (counts[rev.rating] || 0) + 1;
+        });
+
+        if (reviews.length > 0) {
+            const avg = (totalRating / reviews.length).toFixed(1);
+            
+            const avgRatingEl = document.getElementById('averageRating');
+            if (avgRatingEl) avgRatingEl.textContent = avg;
+            
+            const avgStarsEl = document.getElementById('averageStars');
+            if (avgStarsEl) avgStarsEl.innerHTML = '&#9733;'.repeat(Math.round(avg)) + '&#9734;'.repeat(5 - Math.round(avg));
+            
+            const reviewCountEl = document.getElementById('reviewCount');
+            if (reviewCountEl) reviewCountEl.textContent = reviews.length;
+            
+            for (let i = 1; i <= 5; i++) {
+                const count = counts[i] || 0;
+                
+                const countEl = document.getElementById('ratingCount' + i);
+                if (countEl) countEl.textContent = count;
+                
+                const percentage = (count / reviews.length) * 100;
+                const bar = document.getElementById('ratingBar' + i);
+                if (bar) bar.style.width = percentage + '%';
+            }
+        } else {
+            // Reset if no reviews
+            const avgRatingEl = document.getElementById('averageRating');
+            if (avgRatingEl) avgRatingEl.textContent = '0.0';
+            
+            const avgStarsEl = document.getElementById('averageStars');
+            if (avgStarsEl) avgStarsEl.innerHTML = '&#9734;&#9734;&#9734;&#9734;&#9734;';
+            
+            const reviewCountEl = document.getElementById('reviewCount');
+            if (reviewCountEl) reviewCountEl.textContent = '0';
+            
+            for (let i = 1; i <= 5; i++) {
+                const countEl = document.getElementById('ratingCount' + i);
+                if (countEl) countEl.textContent = '0';
+                
+                const bar = document.getElementById('ratingBar' + i);
+                if (bar) bar.style.width = '0%';
+            }
+        }
+
         if (carousel) {
             let cardsHtml = '';
             let indicatorsHtml = '<div class="carousel-controls"><button class="btn-icon prev-btn" aria-label="Previous testimonial">&#8592;</button><div class="carousel-indicators">';
@@ -1246,11 +1298,21 @@ async function fetchAndRenderReviews() {
                 cardsHtml += `
                     <div class="testimonial-card ${activeClass}">
                         <div class="quote-icon">"</div>
-                        <div style="color: #f59e0b; font-size: 1.2rem; margin-bottom: 10px;">${stars}</div>
-                        <p class="testimonial-text">${escapeHTML(rev.message)}</p>
-                        <div class="testimonial-author">
-                            <h4>${escapeHTML(rev.name)}</h4>
+                        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:10px;">
+                            <h4 style="color:#1e4620; margin:0; font-size:1.05rem;">${escapeHTML(rev.name)}</h4>
+                            <div style="color:#f59e0b; font-size:1.1rem;">${stars}</div>
                         </div>
+                        <p class="testimonial-text" style="margin-bottom:15px;">"${escapeHTML(rev.message)}"</p>
+                        ${(function(){
+                            let locArr = [];
+                            if (rev.country) locArr.push(escapeHTML(rev.country));
+                            if (rev.state) locArr.push(escapeHTML(rev.state));
+                            if (rev.city) locArr.push(escapeHTML(rev.city));
+                            if (locArr.length > 0) {
+                                return '<p style="margin:0; color:#888; font-size:0.85rem;">' + locArr.join(', ') + '</p>';
+                            }
+                            return '';
+                        })()}
                     </div>
                 `;
                 indicatorsHtml += `<button class="indicator ${activeClass}" data-index="${index}" aria-label="Go to slide ${index + 1}"></button>`;
@@ -1270,9 +1332,21 @@ async function fetchAndRenderReviews() {
                 const stars = '★'.repeat(rev.rating) + '☆'.repeat(5 - rev.rating);
                 listHtml += `
                     <div style="background:#fff; padding:20px; border-radius:8px; margin-bottom:15px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                        <div style="color:#f59e0b; margin-bottom:10px;">${stars}</div>
-                        <p style="margin-bottom:15px; color:#444;">"${escapeHTML(rev.message)}"</p>
-                        <h4 style="color:#1e4620; margin:0; font-size:0.95rem;">- ${escapeHTML(rev.name)}</h4>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h4 style="color:#1e4620; margin:0; font-size:1.05rem;">${escapeHTML(rev.name)}</h4>
+                            <div style="color:#f59e0b; font-size:1.1rem;">${stars}</div>
+                        </div>
+                        <p style="margin:0; color:#444;">"${escapeHTML(rev.message)}"</p>
+                        ${(function(){
+                            let locArr = [];
+                            if (rev.country) locArr.push(escapeHTML(rev.country));
+                            if (rev.state) locArr.push(escapeHTML(rev.state));
+                            if (rev.city) locArr.push(escapeHTML(rev.city));
+                            if (locArr.length > 0) {
+                                return '<p style="margin-top:15px; margin-bottom:0; color:#888; font-size:0.85rem;">' + locArr.join(', ') + '</p>';
+                            }
+                            return '';
+                        })()}
                     </div>
                 `;
             });
@@ -1375,7 +1449,7 @@ function initReviewForm() {
             const response = await fetch(`${API_URL}/api/reviews`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, rating, message })
+                body: JSON.stringify({ name, email, rating, message, country, state, city })
             });
             
             const data = await response.json();

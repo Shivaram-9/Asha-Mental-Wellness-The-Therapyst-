@@ -578,7 +578,21 @@
                                 </div>
                                 <input type="hidden" id="reviewRating" name="reviewRating" required>
                             </div>
-                            <div class="form-field">
+                                                        <div class="form-field" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <div style="flex: 1; min-width: 120px;">
+                                    <label for="reviewerCountry">Country (Optional)</label>
+                                    <input type="text" id="reviewerCountry" name="reviewerCountry" placeholder="e.g. India">
+                                </div>
+                                <div style="flex: 1; min-width: 120px;">
+                                    <label for="reviewerState">State (Optional)</label>
+                                    <input type="text" id="reviewerState" name="reviewerState" placeholder="e.g. Telangana">
+                                </div>
+                                <div style="flex: 1; min-width: 120px;">
+                                    <label for="reviewerCity">City (Optional)</label>
+                                    <input type="text" id="reviewerCity" name="reviewerCity" placeholder="e.g. Hyderabad">
+                                </div>
+                            </div>
+<div class="form-field">
                                 <label for="reviewText">Review</label>
                                 <textarea id="reviewText" name="reviewText" rows="4" placeholder="Write a short review..." required></textarea>
                             </div>

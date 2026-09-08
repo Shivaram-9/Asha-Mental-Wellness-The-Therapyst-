@@ -44,6 +44,9 @@ const ReviewSchema = new mongoose.Schema({
     email: { type: String, required: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     message: { type: String, required: true },
+    country: { type: String },
+    state: { type: String },
+    city: { type: String },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     approvalToken: { type: String },
     tokenExpiry: { type: Date },
@@ -52,7 +55,7 @@ const ReviewSchema = new mongoose.Schema({
 const Review = mongoose.model('Review', ReviewSchema);
 
 app.post('/api/reviews', async (req, res) => {
-    const { name, email, rating, message } = req.body;
+    const { name, email, rating, message, country, state, city } = req.body;
     
     if (!name || !email || !rating || !message) {
         return res.status(400).json({ error: 'All fields are required.' });
@@ -278,7 +281,7 @@ app.get('/api/reviews', async (req, res) => {
     try {
         const reviews = await Review.find({ status: 'approved' })
             .sort({ createdAt: -1 })
-            .select('name rating message createdAt');
+            .select('name rating message country state city createdAt');
             
         res.json({ reviews });
     } catch (error) {
