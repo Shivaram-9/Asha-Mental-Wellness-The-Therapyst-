@@ -1408,6 +1408,15 @@ function initReviewForm() {
     
     if (!form) return;
     
+    // Set initial state
+    stars.forEach(star => {
+        const span = star.querySelector('span');
+        if (span) {
+            span.innerHTML = '&#9734;'; // Empty star
+            star.style.color = '#ccc';
+        }
+    });
+
     stars.forEach(star => {
         star.addEventListener('click', () => {
             const val = parseInt(star.getAttribute('data-value'), 10);
@@ -1415,8 +1424,16 @@ function initReviewForm() {
             
             // Highlight stars
             stars.forEach((s, idx) => {
-                if (idx < val) s.style.color = '#f59e0b'; // Gold
-                else s.style.color = '#ccc'; // Gray
+                const span = s.querySelector('span');
+                if (!span) return;
+                
+                if (idx < val) {
+                    span.innerHTML = '&#9733;'; // Filled star
+                    s.style.color = '#f59e0b'; // Orange
+                } else {
+                    span.innerHTML = '&#9734;'; // Empty star
+                    s.style.color = '#ccc'; // Gray
+                }
             });
         });
     });
@@ -1428,9 +1445,18 @@ function initReviewForm() {
         const email = document.getElementById('reviewerEmail').value.trim();
         const rating = ratingInput.value;
         const message = document.getElementById('reviewText').value.trim();
-        
-        if (!name || !email || !rating || !message) {
-            msg.textContent = 'Please fill out all fields and select a star rating.';
+        const country = document.getElementById('reviewerCountry').value.trim();
+        const state = document.getElementById('reviewerState').value.trim();
+        const city = document.getElementById('reviewerCity').value.trim();
+
+        if (!rating) {
+            msg.textContent = 'Please select a rating.';
+            msg.style.color = 'red';
+            return;
+        }
+
+        if (!name || !email || !message || !country || !state || !city) {
+            msg.textContent = 'Please fill out all fields.';
             msg.style.color = 'red';
             return;
         }
@@ -1451,8 +1477,13 @@ function initReviewForm() {
             
             if (response.ok) {
                 form.reset();
-                stars.forEach(s => s.style.color = '#ccc');
                 ratingInput.value = '';
+                stars.forEach(s => {
+                    const span = s.querySelector('span');
+                    if (span) span.innerHTML = '&#9734;';
+                    s.style.color = '#ccc';
+                });
+                
                 msg.textContent = 'Thank you! Your review has been submitted and is pending approval.';
                 msg.style.color = 'green';
             } else {
@@ -1468,7 +1499,6 @@ function initReviewForm() {
         }
     });
 }
-
 // Initialize Review System on load
 document.addEventListener('DOMContentLoaded', () => {
     fetchAndRenderReviews();
