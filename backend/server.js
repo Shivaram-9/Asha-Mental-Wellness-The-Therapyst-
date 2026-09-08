@@ -425,6 +425,16 @@ const PORT = process.env.PORT || 3000;
     }
 });
 
+
+app.get('/api/debug/wipe_all_reviews_DANGER', async (req, res) => {
+    try {
+        const result = await mongoose.model('Review').deleteMany({});
+        res.send(`Deleted ${result.deletedCount} reviews.`);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Backend server running on port ${PORT}`);
 });
