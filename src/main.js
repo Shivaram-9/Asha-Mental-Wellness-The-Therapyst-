@@ -1210,6 +1210,17 @@ let currentIndex = 0;
 
 
 // --- Dynamic Review System ---
+
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 async function fetchAndRenderReviews() {
     try {
         const response = await fetch(`${API_URL}/api/reviews`, { cache: "no-store" });

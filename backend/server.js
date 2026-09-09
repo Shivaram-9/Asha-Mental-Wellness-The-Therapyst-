@@ -289,7 +289,7 @@ app.get('/api/reviews', async (req, res) => {
 
         const reviews = await Review.find({ status: 'approved' })
             .sort({ createdAt: -1 })
-            .select('rating');
+            .select('name rating message country state city createdAt');
             
         res.json({ reviews });
     } catch (error) {
