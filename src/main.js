@@ -1246,7 +1246,7 @@ async function fetchAndRenderReviews() {
                 const barEl = document.getElementById('ratingBar' + i);
                 if (barEl) barEl.style.width = '0%';
             }
-            if (reviewsContainer) reviewsContainer.innerHTML = '';
+            if (reviewsContainer) reviewsContainer.innerHTML = '<p style="text-align:center; color:#666; font-style:italic; margin-top:20px; width: 100%;">No reviews yet.</p>';
             return;
         }
 
@@ -1288,13 +1288,13 @@ async function fetchAndRenderReviews() {
                 const locText = locArr.join(', ');
                 
                 cardsHtml += `
-                    <div style="background:#fff; padding:20px; border-radius:8px; margin-bottom:20px; box-shadow:0 2px 5px rgba(0,0,0,0.05); text-align: left;">
+                    <div style="background:#fff; padding:25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; text-align: left; width: 100%;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                            <h4 style="color:#1e4620; margin:0; font-size:1.1rem; font-weight:600;">${escapeHTML(rev.name)}</h4>
-                            <div style="color:#f59e0b; font-size:1.2rem;">${stars}</div>
+                            <h4 style="color:#1e4620; margin:0; font-size:1.1rem; font-weight:700;">${escapeHTML(rev.name)}</h4>
+                            <div style="color:#f59e0b; font-size:1.1rem; letter-spacing: 2px;">${stars}</div>
                         </div>
-                        <p style="margin:0 0 15px 0; color:#333; font-style:italic;">"${escapeHTML(rev.message)}"</p>
-                        <p style="margin:0; color:#666; font-size:0.9rem;">${locText}</p>
+                        <p style="margin:0 0 15px 0; color:#444; font-style:italic; line-height: 1.5;">"${escapeHTML(rev.message)}"</p>
+                        <p style="margin:0; color:#888; font-size:0.85rem;">${locText}</p>
                     </div>
                 `;
             });
