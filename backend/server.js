@@ -52,6 +52,7 @@ const ReviewSchema = new mongoose.Schema({
     tokenExpiry: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });
+ReviewSchema.index({ status: 1, createdAt: -1 });
 const Review = mongoose.model('Review', ReviewSchema);
 
 app.post('/api/reviews', async (req, res) => {
@@ -280,18 +281,82 @@ app.post('/api/reviews/action', async (req, res) => {
     }
 });
 
+app.get('/api/reviews/stats', async (req, res) => {
+    try {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        const stats = await Review.aggregate([
+            { $match: { status: 'approved' } },
+            {
+                $group: {
+                    _id: null,
+                    totalRatings: { $sum: 1 },
+                    averageRating: { $avg: "$rating" },
+                    star1: { $sum: { $cond: [{ $eq: ["$rating", 1] }, 1, 0] } },
+                    star2: { $sum: { $cond: [{ $eq: ["$rating", 2] }, 1, 0] } },
+                    star3: { $sum: { $cond: [{ $eq: ["$rating", 3] }, 1, 0] } },
+                    star4: { $sum: { $cond: [{ $eq: ["$rating", 4] }, 1, 0] } },
+                    star5: { $sum: { $cond: [{ $eq: ["$rating", 5] }, 1, 0] } }
+                }
+            }
+        ]);
+
+        if (stats.length === 0) {
+            return res.json({ averageRating: 0, totalRatings: 0, distribution: {1:0, 2:0, 3:0, 4:0, 5:0} });
+        }
+
+        const data = stats[0];
+        res.json({
+            averageRating: Number(data.averageRating.toFixed(2)),
+            totalRatings: data.totalRatings,
+            distribution: {
+                1: data.star1, 2: data.star2, 3: data.star3, 4: data.star4, 5: data.star5
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching review stats:', error);
+        res.status(500).json({ error: 'Failed to fetch review stats.' });
+    }
+});
+
 app.get('/api/reviews', async (req, res) => {
     try {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
-        res.setHeader('Surrogate-Control', 'no-store');
 
-        const reviews = await Review.find({ status: 'approved' })
-            .sort({ createdAt: -1 })
-            .select('name rating message country state city createdAt');
-            
-        res.json({ reviews });
+        let page = parseInt(req.query.page, 10) || 1;
+        let limit = parseInt(req.query.limit, 10) || 10;
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 10;
+        if (limit > 20) limit = 20;
+
+        const skip = (page - 1) * limit;
+
+        const [reviews, total] = await Promise.all([
+            Review.find({ status: 'approved' })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .select('name rating message country state city createdAt'),
+            Review.countDocuments({ status: 'approved' })
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        res.json({
+            reviews,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1
+            }
+        });
     } catch (error) {
         console.error('Error fetching reviews:', error);
         res.status(500).json({ error: 'Failed to fetch reviews.' });
