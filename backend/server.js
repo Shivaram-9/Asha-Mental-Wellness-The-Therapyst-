@@ -499,16 +499,6 @@ app.get('/api/booked-slots', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-
-app.get('/api/secret_cleanup_x9v2k', async (req, res) => {
-    try {
-        await Review.deleteMany({});
-        res.send("CLEANUP_SUCCESS");
-    } catch (e) {
-        res.status(500).send(e.message);
-    }
-});
-
 app.listen(PORT, () => {
     console.log(`Backend server running on port ${PORT}`);
 });
