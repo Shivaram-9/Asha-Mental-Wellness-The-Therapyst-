@@ -419,29 +419,6 @@ app.get('/api/booked-slots', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-
-        res.send(`Deleted ${result.deletedCount} reviews.`);
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-
-
-        res.send(`Deleted ${result.deletedCount} reviews.`);
-    } catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-
-
-
-        res.json({ message: `Deleted ${result.deletedCount} reviews.` });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
 app.listen(PORT, () => {
     console.log(`Backend server running on port ${PORT}`);
 });
