@@ -659,13 +659,13 @@ app.get('/api/book/action', async (req, res) => {
                     </div>
                     
                     <div class="actions">
-                        <form method="POST" action="/api/book/action" style="margin: 0;">
+                        <form method="POST" action="/api/book/action?id=${id}&token=${token}&action=approve" style="margin: 0;">
                             <input type="hidden" name="id" value="${id}">
                             <input type="hidden" name="token" value="${token}">
                             <input type="hidden" name="action" value="approve">
                             <button type="submit" class="btn btn-approve">Confirm Approve</button>
                         </form>
-                        <form method="POST" action="/api/book/action" style="margin: 0;">
+                        <form method="POST" action="/api/book/action?id=${id}&token=${token}&action=reject" style="margin: 0;">
                             <input type="hidden" name="id" value="${id}">
                             <input type="hidden" name="token" value="${token}">
                             <input type="hidden" name="action" value="reject">
@@ -684,7 +684,12 @@ app.get('/api/book/action', async (req, res) => {
 });
 
 app.post('/api/book/action', async (req, res) => {
-    const { id, token, action } = req.body;
+    const body = req.body || {};
+    const query = req.query || {};
+    
+    const id = body.id || query.id;
+    const token = body.token || query.token;
+    const action = body.action || query.action;
     
     if (!id || !token || !action) {
         return res.status(400).send('Missing required parameters.');
@@ -692,6 +697,10 @@ app.post('/api/book/action', async (req, res) => {
     
     if (action !== 'approve' && action !== 'reject') {
         return res.status(400).send('Invalid action.');
+    }
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).send('Invalid booking ID format.');
     }
     
     try {
@@ -754,26 +763,29 @@ app.post('/api/book/action', async (req, res) => {
             }
 
             let createCalendarEvent = null;
-            if (action === 'approve' && !booking.calendarEventCreated) {
+            if (action === 'approve' && !booking.calendarEventCreated && booking.date && booking.slot) {
                 try {
-                    const [yyyy, mm, dd] = booking.date.split('-').map(Number);
-                    const slotMatch = booking.slot.match(/^(\d{1,2}):\d{2}\s+(AM|PM)$/);
-                    if (slotMatch) {
-                        let slotHour = parseInt(slotMatch[1], 10);
-                        const ampm = slotMatch[2];
-                        if (ampm === 'PM' && slotHour !== 12) slotHour += 12;
-                        if (ampm === 'AM' && slotHour === 12) slotHour = 0;
-                        
-                        // Treat as IST (UTC+5:30)
-                        const startIST = new Date(Date.UTC(yyyy, mm - 1, dd, slotHour - 5, -30));
-                        const endIST = new Date(startIST.getTime() + 60 * 60 * 1000); // 1 hour session
-                        
-                        createCalendarEvent = {
-                            title: `Online Mental Wellness Session - ${booking.name}`,
-                            startTime: startIST.toISOString(),
-                            endTime: endIST.toISOString(),
-                            guestEmail: booking.email
-                        };
+                    const dateParts = booking.date.split('-');
+                    if (dateParts.length === 3) {
+                        const [yyyy, mm, dd] = dateParts.map(Number);
+                        const slotMatch = booking.slot.match(/^(\d{1,2}):\d{2}\s+(AM|PM)$/);
+                        if (slotMatch) {
+                            let slotHour = parseInt(slotMatch[1], 10);
+                            const ampm = slotMatch[2];
+                            if (ampm === 'PM' && slotHour !== 12) slotHour += 12;
+                            if (ampm === 'AM' && slotHour === 12) slotHour = 0;
+                            
+                            // Treat as IST (UTC+5:30)
+                            const startIST = new Date(Date.UTC(yyyy, mm - 1, dd, slotHour - 5, -30));
+                            const endIST = new Date(startIST.getTime() + 60 * 60 * 1000); // 1 hour session
+                            
+                            createCalendarEvent = {
+                                title: `Online Mental Wellness Session - ${booking.name}`,
+                                startTime: startIST.toISOString(),
+                                endTime: endIST.toISOString(),
+                                guestEmail: booking.email
+                            };
+                        }
                     }
                 } catch(err) {
                     console.error("Failed to parse dates for calendar", err);
@@ -807,7 +819,7 @@ app.post('/api/book/action', async (req, res) => {
 
                 if (!relayResponse.ok) {
                     console.error('Google Relay HTTP Error sending customer email:', relayResponse.status);
-                    customerEmailStatus = '<p style="color: red;">Error: Failed to contact Google Apps Script relay.</p>';
+                    customerEmailStatus = '<p style="color: #c62828;">Error: Failed to contact Google Apps Script relay.</p>';
                     booking.confirmationError = `HTTP ${relayResponse.status}`;
                 } else {
                     const relayData = await relayResponse.json();
@@ -819,10 +831,10 @@ app.post('/api/book/action', async (req, res) => {
                             booking.calendarEventCreated = true;
                             calendarStatus = `<p>Google Calendar event created.</p>`;
                             if (booking.meetingUrl) {
-                                calendarStatus += `<p>Google Meet link created: <a href="${booking.meetingUrl}" target="_blank">Join Meeting</a></p>`;
+                                calendarStatus += `<p>Google Meet link created: <a href="${booking.meetingUrl}" target="_blank">Join Google Meet</a></p>`;
                             }
                         } else if (relayData.calendarError) {
-                            calendarStatus = `<p style="color: red;">Calendar creation failed: ${relayData.calendarError}. (Ensure Advanced Calendar Service is enabled in Apps Script)</p>`;
+                            calendarStatus = `<p style="color: #c62828;">Calendar creation failed: ${relayData.calendarError}. (Ensure Advanced Calendar Service is enabled in Apps Script)</p>`;
                             booking.confirmationError = relayData.calendarError;
                         }
                     }
@@ -837,17 +849,17 @@ app.post('/api/book/action', async (req, res) => {
                             booking.confirmationError = null;
                         }
                     } else {
-                        customerEmailStatus = `<p style="color: red;">Error: Customer email failed to send. ${relayData.emailError || ''}</p>`;
+                        customerEmailStatus = `<p style="color: #c62828;">Error: Customer email failed to send. ${relayData.emailError || ''}</p>`;
                         booking.confirmationError = relayData.emailError || 'Email send failed';
                     }
                 }
             } catch (emailError) {
                 console.error('Customer email relay failed:', emailError);
-                customerEmailStatus = '<p style="color: red;">Error: Server failed to execute relay request.</p>';
+                customerEmailStatus = '<p style="color: #c62828;">Error: Server failed to execute relay request.</p>';
                 booking.confirmationError = emailError.toString();
             }
         } else {
-            customerEmailStatus = '<p style="color: orange;">Warning: Google Relay URL/Secret not configured. Cannot send email or create calendar event.</p>';
+            customerEmailStatus = '<p style="color: #f57c00;">Warning: Google Relay URL/Secret not configured. Cannot send email or create calendar event.</p>';
         }
 
         if (sideEffectsSuccess) {
@@ -856,7 +868,7 @@ app.post('/api/book/action', async (req, res) => {
         }
         await booking.save();
 
-        const color = action === 'approve' ? 'green' : 'red';
+        const color = action === 'approve' ? '#2e7d32' : '#c62828';
         const msg = action === 'approve' ? 'Approved and Confirmed' : 'Rejected and Slot Released';
         
         let displayHtml = `
@@ -868,7 +880,7 @@ app.post('/api/book/action', async (req, res) => {
                 <title>Booking Moderation</title>
                 <style>
                     body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-                    .card { background: #fff; max-width: 500px; width: 100%; padding: 30px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); text-align: center; }
+                    .card { background: #fff; max-width: 500px; width: 100%; padding: 30px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); text-align: center; box-sizing: border-box; }
                     h2 { color: ${color}; margin-top: 0; }
                     .status-box { text-align: left; margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 5px; color: #444; line-height: 1.5; }
                     .warning-box { margin-top: 20px; padding: 15px; background: #fff3f3; border: 1px solid #ffcdd2; border-radius: 5px; text-align: left; }
@@ -889,7 +901,7 @@ app.post('/api/book/action', async (req, res) => {
             displayHtml += `
                 <div class="warning-box">
                     <p style="color: #c62828; font-weight: bold; margin-top: 0;">Warning: Some operations failed.</p>
-                    <p style="margin-bottom: 0;">The booking status was updated to ${action}, but calendar or email operations did not complete successfully. You can refresh this page to retry.</p>
+                    <p style="margin-bottom: 0; color: #444;">The booking status was updated to ${action}, but calendar or email operations did not complete successfully. You can refresh this page to retry.</p>
                 </div>
             `;
         } else {
