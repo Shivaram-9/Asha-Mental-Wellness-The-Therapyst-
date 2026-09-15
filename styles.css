@@ -671,7 +671,7 @@ body {
 .profile-image {
     width: 100%;
     height: 500px;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
     border-radius: 30px;
     box-shadow: var(--shadow-lg);
