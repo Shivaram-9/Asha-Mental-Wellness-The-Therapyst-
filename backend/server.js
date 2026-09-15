@@ -780,6 +780,7 @@ app.post('/api/book/action', async (req, res) => {
                             const endIST = new Date(startIST.getTime() + 60 * 60 * 1000); // 1 hour session
                             
                             createCalendarEvent = {
+                                bookingId: booking._id.toString(),
                                 title: `Online Mental Wellness Session - ${booking.name}`,
                                 startTime: startIST.toISOString(),
                                 endTime: endIST.toISOString(),
@@ -834,23 +835,21 @@ app.post('/api/book/action', async (req, res) => {
                                 calendarStatus += `<p>Google Meet link created: <a href="${booking.meetingUrl}" target="_blank">Join Google Meet</a></p>`;
                             }
                         } else if (relayData.calendarError) {
-                            calendarStatus = `<p style="color: #c62828;">Calendar creation failed: ${relayData.calendarError}. (Ensure Advanced Calendar Service is enabled in Apps Script)</p>`;
+                            calendarStatus = `<p style="color: #c62828;">Calendar creation failed: ${relayData.calendarError}.</p>`;
                             booking.confirmationError = relayData.calendarError;
                         }
                     }
                     
-                    if (relayData.emailSent) {
+                    if (relayData.success) {
                         customerEmailStatus = '<p>Customer has been notified via email.</p>';
                         booking.confirmationEmailSent = true;
-                        
-                        // If everything succeeded, mark success
-                        if (action === 'reject' || (action === 'approve' && booking.calendarEventCreated)) {
-                            sideEffectsSuccess = true;
-                            booking.confirmationError = null;
-                        }
+                        sideEffectsSuccess = true;
+                        booking.confirmationError = null;
                     } else {
-                        customerEmailStatus = `<p style="color: #c62828;">Error: Customer email failed to send. ${relayData.emailError || ''}</p>`;
-                        booking.confirmationError = relayData.emailError || 'Email send failed';
+                        let errMsg = relayData.error || 'Operation incomplete';
+                        if (relayData.emailError) errMsg += ' - ' + relayData.emailError;
+                        customerEmailStatus = `<p style="color: #c62828;">Error: ${errMsg}</p>`;
+                        booking.confirmationError = errMsg;
                     }
                 }
             } catch (emailError) {

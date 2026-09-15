@@ -1,4 +1,4 @@
-const RELAY_SECRET = PropertiesService.getScriptProperties().getProperty('RELAY_SECRET');
+﻿code = """const RELAY_SECRET = PropertiesService.getScriptProperties().getProperty('RELAY_SECRET');
 const ADMIN_EMAILS = "asha.suhasinim@gmail.com,ymvshiva1784@gmail.com";
 
 function doGet(e) {
@@ -126,3 +126,9 @@ function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() })).setMimeType(ContentService.MimeType.JSON);
   }
 }
+"""
+
+with open("google_apps_script/Code.gs", "w", encoding="utf-8") as f:
+    f.write(code)
+
+print("Updated google_apps_script/Code.gs")
