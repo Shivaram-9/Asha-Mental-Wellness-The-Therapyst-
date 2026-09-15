@@ -50,7 +50,7 @@ img, video {
     
     /* Variables mapped from old names to prevent breaking */
     --bg: var(--bg-main);
-    --bg-base: linear-gradient(135deg, #FDFCF9 0%, #EFE6D5 50%, #E3D1B8 100%);
+    --bg-base: #FDFCF9;
     --card-bg: var(--bg-surface);
     --text: var(--text-primary);
     --muted: var(--text-muted);
@@ -90,8 +90,8 @@ body {
     overflow-x: hidden;
     font-family: var(--font-sans);
     color: var(--text-primary);
-    background: var(--bg-base);
-    background-attachment: fixed;
+    background: radial-gradient(circle at center, rgba(253, 252, 249, 0.95) 0%, rgba(253, 252, 249, 0.7) 40%, rgba(253, 252, 249, 0.1) 100%), url('/bg-champagne.jpg') center/cover fixed no-repeat;
+    background-color: var(--bg-base);
     line-height: 1.6;
     overflow-wrap: break-word;
     word-wrap: break-word;
