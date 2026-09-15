@@ -60,7 +60,6 @@
             <button class="btn btn-primary full-width" onclick="openModal('bookingModal')"><span>Book a Session</span></button>
             <div class="sidebar-location">
                 <p>Online Sessions</p>
-                <p>Hyderabad</p>
             </div>
         </div>
     </aside>
@@ -611,7 +610,7 @@
                             <div class="contact-icon"></div>
                             <div>
                                 <h4>Location</h4>
-                                <p>Hyderabad, India</p>
+                                <p>Online Sessions Only</p>
                             </div>
                         </div>
                         <div class="contact-method">
@@ -649,10 +648,8 @@
                             </div>
                             <div class="form-field">
                                 <label for="mode">Preferred session format</label>
-                                <select id="mode" name="mode">
-                                    <option value="">No preference</option>
-                                    <option value="online">Online</option>
-                                    <option value="in-person">Hyderabad</option>
+                                <select id="mode" name="mode" required>
+                                    <option value="online" selected>Online Session</option>
                                 </select>
                             </div>
                         </div>

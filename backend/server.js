@@ -490,7 +490,7 @@ app.post('/api/book', async (req, res) => {
                 from: process.env.SMTP_USER || '"Test" <test@ethereal.email>',
                 to: email,
                 subject: 'Booking Confirmation - Asha Suhasini Mental Wellness',
-                html: `<h2>Booking Confirmed</h2><p>Dear ${name},</p><p>Your session has been successfully booked.</p><p><strong>Date:</strong> ${date}</p><p><strong>Time:</strong> ${slot}</p><p><strong>Location:</strong> Online / Hyderabad</p>`
+                html: `<h2>Booking Confirmed</h2><p>Dear ${name},</p><p>Your session has been successfully booked.</p><p><strong>Date:</strong> ${date}</p><p><strong>Time:</strong> ${slot}</p><p><strong>Location:</strong> Online Session</p>`
             });
         } catch (emailError) {
             console.error('Email sending failed, but booking was saved:', emailError);

@@ -43,7 +43,7 @@ function scrollToSection(sectionId) {
 }
 
 function openGoogleCalendarBooking() {
-    const calendarUrl = 'https://calendar.google.com/calendar/u/0/r/eventedit?text=Therapy%20Session%20with%20Asha%20Suhasini%20Raja%20G&details=Please%20share%20your%20concern%20briefly.%20Contact%3A%20asha.suhasinim%40gmail.com&location=Online%20or%20Hyderabad&add=asha.suhasinim%40gmail.com';
+    const calendarUrl = 'https://calendar.google.com/calendar/u/0/r/eventedit?text=Therapy%20Session%20with%20Asha%20Suhasini%20Raja%20G&details=Please%20share%20your%20concern%20briefly.%20Contact%3A%20asha.suhasinim%40gmail.com&location=Online%20Session&add=asha.suhasinim%40gmail.com';
     window.open(calendarUrl, '_blank', 'noopener,noreferrer');
 }
 
@@ -231,7 +231,6 @@ function getModalContent(modalType) {
                 </ul>
                 
                 <h3>Session Formats</h3>
-                <p> Hyderabad</p>
                 <p> Online video consultations</p>
                 <p> Phone consultations</p>
                 
@@ -283,7 +282,7 @@ function getModalContent(modalType) {
                     <p>asha.suhasinim@gmail.com</p>
                     
                     <h4> Location</h4>
-                    <p>Hyderabad, Telangana, India</p>
+                    <p>Online Sessions Only</p>
                     
                     <h4> Response Time</h4>
                     <p>Typically within 24-48 hours</p>
