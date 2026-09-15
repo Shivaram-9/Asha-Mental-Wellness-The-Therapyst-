@@ -2181,3 +2181,10 @@ footer {
 .booking-system .form-field {
     margin-bottom: 1.5rem;
 }
+
+/* FIX: Prevent Chrome background-attachment bug on desktop sidebar */
+@media (min-width: 1025px) {
+    .sidebar {
+        background: transparent !important;
+    }
+}
