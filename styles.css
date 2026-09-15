@@ -28,9 +28,9 @@ img, video {
 
 :root {
     /* Refined Light Palette */
-    --bg-main: #f0f4f8;
+    --bg-main: #EFE6D5;
     --bg-surface: #ffffff;
-    --bg-elevated: #f8fafc;
+    --bg-elevated: #F9F6F0;
     
     --text-primary: #1e293b;
     --text-secondary: #475569;
@@ -50,7 +50,7 @@ img, video {
     
     /* Variables mapped from old names to prevent breaking */
     --bg: var(--bg-main);
-    --bg-base: var(--bg-main);
+    --bg-base: linear-gradient(135deg, #FDFCF9 0%, #EFE6D5 50%, #E3D1B8 100%);
     --card-bg: var(--bg-surface);
     --text: var(--text-primary);
     --muted: var(--text-muted);
@@ -91,6 +91,7 @@ body {
     font-family: var(--font-sans);
     color: var(--text-primary);
     background: var(--bg-base);
+    background-attachment: fixed;
     line-height: 1.6;
     overflow-wrap: break-word;
     word-wrap: break-word;
@@ -404,7 +405,7 @@ body {
     position: relative;
     overflow: hidden;
     padding: 6rem 2rem;
-    background: var(--bg-surface);
+    background: transparent;
 }
 
 .hero-content {
@@ -1533,7 +1534,7 @@ body[data-theme="light"] .sun-icon { display: none; }
 
 /* Footer */
 footer {
-    background: var(--bg-surface);
+    background: transparent;
     border-top: 1px solid var(--border-light);
     color: var(--text-primary);
     padding: 3rem 0 1.5rem 0;
