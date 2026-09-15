@@ -126,3 +126,15 @@ function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() })).setMimeType(ContentService.MimeType.JSON);
   }
 }
+
+
+// TEMPORARY AUTHORIZATION HELPER
+// Run this function manually in the Apps Script editor to trigger the OAuth consent screen.
+function authorizeCalendar() {
+  try {
+    var calendars = Calendar.CalendarList.list({maxResults: 1});
+    Logger.log('Google Calendar authorization successful. Found ' + calendars.items.length + ' calendars.');
+  } catch (e) {
+    Logger.log('Authorization failed or Calendar Advanced Service not enabled: ' + e.toString());
+  }
+}
