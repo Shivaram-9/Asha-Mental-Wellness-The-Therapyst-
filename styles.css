@@ -92,6 +92,7 @@ body {
     color: var(--text-primary);
     background: radial-gradient(circle at center, rgba(253, 252, 249, 0.95) 0%, rgba(253, 252, 249, 0.7) 40%, rgba(253, 252, 249, 0.1) 100%), url('/bg-champagne.jpg') center/cover fixed no-repeat;
     background-color: var(--bg-base);
+    background-attachment: fixed;
     line-height: 1.6;
     overflow-wrap: break-word;
     word-wrap: break-word;
@@ -111,11 +112,11 @@ body {
 }
 
 .bg-light {
-    background: var(--light);
+    background: transparent;
 }
 
 .bg-gradient {
-    background: var(--gradient-1);
+    background: transparent;
 }
 
 .text-white {
@@ -184,7 +185,9 @@ body {
     left: 0;
     width: 280px;
     height: 100vh;
-    background: var(--sidebar-bg);
+    background: radial-gradient(circle at center, rgba(253, 252, 249, 0.95) 0%, rgba(253, 252, 249, 0.7) 40%, rgba(253, 252, 249, 0.1) 100%), url('/bg-champagne.jpg') center/cover fixed no-repeat;
+    background-color: var(--bg-base);
+    background-attachment: fixed;
     border-right: 1px solid var(--border-light);
     display: flex;
     flex-direction: column;
@@ -373,7 +376,9 @@ body {
         justify-content: space-between;
         align-items: center;
         padding: 1rem 5%;
-        background: var(--bg-surface);
+        background: radial-gradient(circle at center, rgba(253, 252, 249, 0.95) 0%, rgba(253, 252, 249, 0.7) 40%, rgba(253, 252, 249, 0.1) 100%), url('/bg-champagne.jpg') center/cover fixed no-repeat;
+    background-color: var(--bg-base);
+    background-attachment: fixed;
         border-bottom: 1px solid var(--border-light);
         position: sticky;
         top: 0;
@@ -2134,7 +2139,9 @@ footer {
         display: flex;
         align-items: center;
         padding: 1rem 5%;
-        background: var(--bg-surface);
+        background: radial-gradient(circle at center, rgba(253, 252, 249, 0.95) 0%, rgba(253, 252, 249, 0.7) 40%, rgba(253, 252, 249, 0.1) 100%), url('/bg-champagne.jpg') center/cover fixed no-repeat;
+    background-color: var(--bg-base);
+    background-attachment: fixed;
         border-bottom: 1px solid var(--border-light);
         position: sticky;
         top: 0;
