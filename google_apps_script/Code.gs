@@ -25,6 +25,7 @@ function doPost(e) {
     
     var subject = postData.subject;
     var htmlBody = postData.htmlBody;
+    var recipient = postData.to || ADMIN_EMAILS;
     
     if (!subject || !htmlBody) {
       return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Missing required fields" }))
@@ -32,10 +33,26 @@ function doPost(e) {
     }
     
     MailApp.sendEmail({
-      to: ADMIN_EMAILS,
+      to: recipient,
       subject: subject,
       htmlBody: htmlBody
     });
+
+    if (postData.createCalendarEvent) {
+      try {
+        var evt = postData.createCalendarEvent;
+        var startTime = new Date(evt.startTime);
+        var endTime = new Date(evt.endTime);
+        CalendarApp.getDefaultCalendar().createEvent(evt.title, startTime, endTime, {
+          guests: evt.guestEmail,
+          sendInvites: true
+        });
+      } catch (calError) {
+        // Log but do not fail email
+        console.error("Calendar creation failed: " + calError.toString());
+      }
+    }
+
     
     return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Email sent via relay" }))
       .setMimeType(ContentService.MimeType.JSON);
