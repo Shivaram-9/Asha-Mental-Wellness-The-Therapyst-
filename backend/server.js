@@ -386,102 +386,123 @@ app.post('/api/book', async (req, res) => {
         return res.status(400).json({ error: 'All fields are required.' });
     }
 
-    if (!MONGODB_URI) {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        return res.status(400).json({ error: 'Invalid email address.' });
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ error: 'Invalid date format (expected YYYY-MM-DD).' });
+    }
+
+    const [yyyy, mm, dd] = date.split('-').map(Number);
+    const bookingDate = new Date(Date.UTC(yyyy, mm - 1, dd));
+    
+    if (isNaN(bookingDate.getTime())) {
+        return res.status(400).json({ error: 'Invalid date.' });
+    }
+
+    // Timezone check: India (IST is UTC +5:30)
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const nowIst = new Date(now.getTime() + istOffset);
+    const todayIst = new Date(Date.UTC(nowIst.getUTCFullYear(), nowIst.getUTCMonth(), nowIst.getUTCDate()));
+
+    if (bookingDate < todayIst) {
+        return res.status(400).json({ error: 'Cannot book appointments in the past.' });
+    }
+
+    const isSunday = bookingDate.getUTCDay() === 0;
+    const validSlots = isSunday 
+        ? ['12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM']
+        : ['5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
+
+    if (!validSlots.includes(slot)) {
+        return res.status(400).json({ error: 'Invalid or unavailable time slot for this date.' });
+    }
+
+    // If booking is today, block past slots in IST
+    if (bookingDate.getTime() === todayIst.getTime()) {
+        const slotMatch = slot.match(/^(\d{1,2}):\d{2}\s+(AM|PM)$/);
+        if (slotMatch) {
+            let slotHour = parseInt(slotMatch[1], 10);
+            const ampm = slotMatch[2];
+            if (ampm === 'PM' && slotHour !== 12) slotHour += 12;
+            if (ampm === 'AM' && slotHour === 12) slotHour = 0;
+            
+            const currentIstHour = nowIst.getUTCHours();
+            if (slotHour <= currentIstHour) {
+                return res.status(400).json({ error: 'This time slot has already passed today.' });
+            }
+        }
+    }
+
+    if (!process.env.MONGODB_URI) {
         return res.status(500).json({ error: 'Database not configured. Cannot process bookings.' });
     }
 
     try {
-        // Pre-check availability
-        const existingBooking = await Booking.findOne({ date, slot });
-        if (existingBooking) {
-            return res.status(409).json({ error: 'This time slot has already been booked. Please choose another.' });
+        const newBooking = new Booking({ name, email: email.trim().toLowerCase(), date, slot });
+        
+        try {
+            await newBooking.save();
+        } catch (saveError) {
+            if (saveError.code === 11000) {
+                return res.status(409).json({ error: 'This time slot has already been booked. Please choose another.' });
+            }
+            throw saveError;
         }
 
-        // Setup nodemailer
-        let transporter;
-        if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-            transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASS
-                }
+        // Email dispatch is secondary. If it fails, the booking still succeeded.
+        try {
+            let transporter;
+            if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+                transporter = require('nodemailer').createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASS
+                    }
+                });
+            } else {
+                console.log('No SMTP credentials found. Attempting Ethereal for dummy emails...');
+                const testAccount = await require('nodemailer').createTestAccount();
+                transporter = require('nodemailer').createTransport({
+                    host: 'smtp.ethereal.email',
+                    port: 587,
+                    secure: false,
+                    auth: {
+                        user: testAccount.user,
+                        pass: testAccount.pass
+                    }
+                });
+            }
+
+            const therapistEmail = 'asha.suhasinim@gmail.com';
+            
+            await transporter.sendMail({
+                from: process.env.SMTP_USER || '"Test" <test@ethereal.email>',
+                to: therapistEmail,
+                subject: 'New Session Booking: ' + name,
+                html: `<h2>New Booking Confirmed</h2><p><strong>Client Name:</strong> ${name}</p><p><strong>Client Email:</strong> ${email}</p><p><strong>Date:</strong> ${date}</p><p><strong>Time:</strong> ${slot}</p>`
             });
-        } else {
-            console.log('No SMTP credentials found in .env. Creating an Ethereal test account...');
-            const testAccount = await nodemailer.createTestAccount();
-            transporter = nodemailer.createTransport({
-                host: 'smtp.ethereal.email',
-                port: 587,
-                secure: false,
-                auth: {
-                    user: testAccount.user,
-                    pass: testAccount.pass
-                }
+
+            await transporter.sendMail({
+                from: process.env.SMTP_USER || '"Test" <test@ethereal.email>',
+                to: email,
+                subject: 'Booking Confirmation - Asha Suhasini Mental Wellness',
+                html: `<h2>Booking Confirmed</h2><p>Dear ${name},</p><p>Your session has been successfully booked.</p><p><strong>Date:</strong> ${date}</p><p><strong>Time:</strong> ${slot}</p><p><strong>Location:</strong> Online / Hyderabad</p>`
             });
+        } catch (emailError) {
+            console.error('Email sending failed, but booking was saved:', emailError);
         }
 
-        const therapistEmail = 'asha.suhasinim@gmail.com';
-
-        // 1. Email to the Therapist
-        const therapistMailOptions = {
-            from: process.env.SMTP_USER, // Strictly use the authenticated user to prevent spam drops
-            to: therapistEmail,
-            subject: 'New Session Booking: ' + name,
-            html: `
-                <h2>New Booking Confirmed</h2>
-                <p><strong>Client Name:</strong> ${name}</p>
-                <p><strong>Client Email:</strong> ${email}</p>
-                <p><strong>Date:</strong> ${date}</p>
-                <p><strong>Time:</strong> ${slot}</p>
-                <p><strong>Status:</strong> Confirmed</p>
-            `
-        };
-
-        // 2. Email to the Client
-        const clientMailOptions = {
-            from: process.env.SMTP_USER,
-            to: email,
-            subject: 'Booking Confirmation - Asha Suhasini Mental Wellness',
-            html: `
-                <h2>Booking Confirmed</h2>
-                <p>Dear ${name},</p>
-                <p>Your session with Asha Suhasini has been successfully booked.</p>
-                <p><strong>Date:</strong> ${date}</p>
-                <p><strong>Time:</strong> ${slot}</p>
-                <p><strong>Location:</strong> Online / Hyderabad</p>
-                <br>
-                <p>We will share the consultation link shortly. Thank you!</p>
-            `
-        };
-
-        const therapistInfo = await transporter.sendMail(therapistMailOptions);
-        const clientInfo = await transporter.sendMail(clientMailOptions);
-
-        if (!process.env.SMTP_USER) {
-            console.log('Test Therapist Email URL: ' + nodemailer.getTestMessageUrl(therapistInfo));
-            console.log('Test Client Email URL: ' + nodemailer.getTestMessageUrl(clientInfo));
-        }
-
-        // Only save to DB if emails succeed, preventing dead slots
-        const newBooking = new Booking({ name, email, date, slot });
-        await newBooking.save();
-
-        res.status(200).json({ success: true, message: 'Booking confirmed and emails sent.' });
+        res.status(200).json({ success: true, message: 'Booking confirmed.' });
 
     } catch (error) {
         console.error('Error processing booking:', error);
-        
-        // Catch MongoDB Duplicate Key Error for concurrent race conditions
-        if (error.code === 11000) {
-            return res.status(409).json({ error: 'This time slot has already been booked. Please choose another.' });
-        }
-        
-        res.status(500).json({ error: 'Failed to process booking or send emails.' });
+        res.status(500).json({ error: 'Failed to process booking.' });
     }
 });
-
-// Endpoint to fetch currently booked slots for a specific date
 app.get('/api/booked-slots', async (req, res) => {
     const { date } = req.query;
     if (!date || !MONGODB_URI) {
