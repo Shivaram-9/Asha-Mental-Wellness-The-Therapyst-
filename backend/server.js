@@ -702,6 +702,8 @@ app.post('/api/book/action', async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).send('Invalid booking ID format.');
     }
+
+    const targetStatus = action === 'approve' ? 'approved' : 'rejected';
     
     try {
         let booking = await Booking.findOne({ _id: id, approvalToken: token });
@@ -717,7 +719,7 @@ app.post('/api/book/action', async (req, res) => {
             // Atomic update to prevent race conditions
             booking = await Booking.findOneAndUpdate(
                 { _id: id, approvalToken: token, status: 'pending' },
-                { $set: { status: action, actionTimestamp: new Date() } },
+                { $set: { status: targetStatus, actionTimestamp: new Date() } },
                 { new: true }
             );
             
@@ -728,7 +730,7 @@ app.post('/api/book/action', async (req, res) => {
                 if (checkBooking.status === 'rejected') return res.send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: red;">This booking has already been rejected.</h2><p>No further action is required.</p></div>');
                 return res.status(403).send('Invalid token.');
             }
-        } else if (booking.status !== action) {
+        } else if (booking.status !== targetStatus) {
             return res.send(`<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: red;">This booking has already been ${booking.status}.</h2></div>`);
         }
 
