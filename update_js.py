@@ -1,29 +1,23 @@
 ﻿import re
 
-# Update main.js
 with open("src/main.js", "r", encoding="utf-8") as f:
-    main_js = f.read()
+    js = f.read()
 
-main_js = re.sub(
-    r"location=Online%20or%20Hyderabad",
-    r"location=Online%20Session",
-    main_js
+# 1. Add sessionFormat reading in confirmBooking()
+js = re.sub(
+    r"const name = document\.getElementById\('bookingName'\)\.value;\s*const email = document\.getElementById\('bookingEmail'\)\.value;",
+    r"const name = document.getElementById('bookingName').value;\n    const email = document.getElementById('bookingEmail').value;\n    const sessionFormat = document.getElementById('mode') ? document.getElementById('mode').value : 'online';",
+    js
+)
+
+# 2. Update the fetch body to include sessionFormat
+js = re.sub(
+    r"body: JSON\.stringify\(\{ name, email, date, slot \}\)",
+    r"body: JSON.stringify({ name, email, date, slot, sessionFormat })",
+    js
 )
 
 with open("src/main.js", "w", encoding="utf-8") as f:
-    f.write(main_js)
+    f.write(js)
 
-# Update backend/server.js
-with open("backend/server.js", "r", encoding="utf-8") as f:
-    server_js = f.read()
-
-server_js = re.sub(
-    r"<strong>Location:</strong> Online / Hyderabad",
-    r"<strong>Location:</strong> Online Session",
-    server_js
-)
-
-with open("backend/server.js", "w", encoding="utf-8") as f:
-    f.write(server_js)
-
-print("Updated JS files")
+print("Updated main.js")

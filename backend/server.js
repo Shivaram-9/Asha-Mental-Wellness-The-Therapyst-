@@ -380,10 +380,14 @@ app.get('/api/reviews', async (req, res) => {
 // --- End Review System ---
 
 app.post('/api/book', async (req, res) => {
-    const { name, email, date, slot } = req.body;
+    const { name, email, date, slot, sessionFormat } = req.body;
 
-    if (!name || !email || !date || !slot) {
+        if (!name || !email || !date || !slot) {
         return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    if (sessionFormat !== 'online') {
+        return res.status(400).json({ error: 'Invalid session format. Only online sessions are available.' });
     }
 
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {

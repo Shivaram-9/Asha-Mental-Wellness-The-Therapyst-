@@ -1093,6 +1093,7 @@ async function confirmBooking() {
     const slot = document.getElementById('selectedSlot').value;
     const name = document.getElementById('bookingName').value;
     const email = document.getElementById('bookingEmail').value;
+    const sessionFormat = document.getElementById('mode') ? document.getElementById('mode').value : 'online';
     
     if (!date || !slot || !name || !email) {
         alert('Please fill in all fields to confirm booking.');
@@ -1108,7 +1109,7 @@ async function confirmBooking() {
         const response = await fetch(`${API_URL}/api/book`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, date, slot })
+            body: JSON.stringify({ name, email, date, slot, sessionFormat })
         });
         
         const data = await response.json();
