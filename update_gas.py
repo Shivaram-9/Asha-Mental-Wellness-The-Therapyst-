@@ -1,18 +1,111 @@
 ﻿import re
 
-with open("google_apps_script/Code.gs", "r", encoding="utf-8") as f:
-    code = f.read()
+code = """const RELAY_SECRET = PropertiesService.getScriptProperties().getProperty('RELAY_SECRET');
+const ADMIN_EMAILS = "asha.suhasinim@gmail.com,ymvshiva1784@gmail.com";
 
-code = code.replace(
-    'var subject = postData.subject;\n    var htmlBody = postData.htmlBody;',
-    'var subject = postData.subject;\n    var htmlBody = postData.htmlBody;\n    var recipient = postData.to || ADMIN_EMAILS;'
-)
-code = code.replace(
-    'to: ADMIN_EMAILS,',
-    'to: recipient,'
-)
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    success: true,
+    message: "Asha Mental Wellness Review Email Relay is active."
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    if (!RELAY_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Relay not configured" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    var postData = JSON.parse(e.postData.contents);
+    var providedSecret = postData.secret;
+    
+    if (providedSecret !== RELAY_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Unauthorized" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    var subject = postData.subject;
+    var htmlBody = postData.htmlBody;
+    var recipient = postData.to || ADMIN_EMAILS;
+    
+    var calendarEventId = postData.calendarEventId || null;
+    var meetingUrl = postData.meetingUrl || null;
+    var calendarError = null;
+
+    if (postData.createCalendarEvent && !calendarEventId) {
+      try {
+        var evt = postData.createCalendarEvent;
+        var event = {
+          summary: evt.title,
+          location: 'Online Session',
+          description: 'Mental Wellness Session',
+          start: { dateTime: evt.startTime, timeZone: 'Asia/Kolkata' },
+          end: { dateTime: evt.endTime, timeZone: 'Asia/Kolkata' },
+          attendees: [{email: evt.guestEmail}],
+          conferenceData: {
+            createRequest: {
+              requestId: Math.random().toString(36).substring(7),
+              conferenceSolutionKey: { type: "hangoutsMeet" }
+            }
+          }
+        };
+        
+        // Requires Advanced Calendar Service to be enabled in Apps Script editor
+        var createdEvent = Calendar.Events.insert(event, 'primary', {
+          conferenceDataVersion: 1,
+          sendUpdates: 'all'
+        });
+        
+        calendarEventId = createdEvent.id;
+        if (createdEvent.conferenceData && createdEvent.conferenceData.entryPoints && createdEvent.conferenceData.entryPoints.length > 0) {
+            meetingUrl = createdEvent.conferenceData.entryPoints[0].uri;
+        } else {
+            meetingUrl = createdEvent.hangoutLink;
+        }
+      } catch (calError) {
+        calendarError = calError.toString();
+        console.error("Calendar creation failed: " + calendarError);
+      }
+    }
+
+    if (meetingUrl && postData.replaceMeetPlaceholder) {
+        htmlBody = htmlBody.replace("{{MEET_URL}}", meetingUrl);
+    }
+
+    var emailSent = false;
+    var emailError = null;
+    if (subject && htmlBody) {
+      try {
+        MailApp.sendEmail({
+          to: recipient,
+          subject: subject,
+          htmlBody: htmlBody
+        });
+        emailSent = true;
+      } catch(e) {
+        emailError = e.toString();
+      }
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({ 
+        success: true, 
+        message: "Operation completed",
+        calendarEventId: calendarEventId,
+        meetingUrl: meetingUrl,
+        calendarError: calendarError,
+        emailSent: emailSent,
+        emailError: emailError
+    })).setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+"""
 
 with open("google_apps_script/Code.gs", "w", encoding="utf-8") as f:
     f.write(code)
 
-print("Updated Code.gs to support dynamic recipients.")
+print("Updated Code.gs")

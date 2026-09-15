@@ -1046,7 +1046,7 @@ async function renderTimeSlots() {
     
     let bookedForDate = [];
     try {
-        const response = await fetch(`${API_URL}/api/booked-slots?date=${dateInput}`);
+        const response = await fetch(`${API_URL}/api/booked-slots?date=${dateInput}`, { cache: 'no-store' });
         if (response.ok) {
             const data = await response.json();
             bookedForDate = data.booked || [];
@@ -1114,12 +1114,15 @@ async function confirmBooking() {
         
         const data = await response.json();
         
-        if (response.ok) {
-            document.getElementById('bookingFormDetails').style.display = 'none';
-            document.getElementById('timeSlots').innerHTML = '';
-            
-            // Show clear professional confirmation
-            let successMsg = document.getElementById('bookingSuccessMessage');
+            if (response.ok) {
+                document.getElementById('bookingFormDetails').style.display = 'none';
+                
+                // Refresh slots to correctly show it's no longer available
+                await renderTimeSlots();
+                
+                // Show clear professional confirmation
+                let successMsg = document.getElementById('bookingSuccessMessage');
+
             if (!successMsg) {
                 successMsg = document.createElement('div');
                 successMsg.id = 'bookingSuccessMessage';

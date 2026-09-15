@@ -1,4 +1,4 @@
-﻿const RELAY_SECRET = PropertiesService.getScriptProperties().getProperty('RELAY_SECRET');
+const RELAY_SECRET = PropertiesService.getScriptProperties().getProperty('RELAY_SECRET');
 const ADMIN_EMAILS = "asha.suhasinim@gmail.com,ymvshiva1784@gmail.com";
 
 function doGet(e) {
@@ -27,35 +27,74 @@ function doPost(e) {
     var htmlBody = postData.htmlBody;
     var recipient = postData.to || ADMIN_EMAILS;
     
-    if (!subject || !htmlBody) {
-      return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Missing required fields" }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    MailApp.sendEmail({
-      to: recipient,
-      subject: subject,
-      htmlBody: htmlBody
-    });
+    var calendarEventId = postData.calendarEventId || null;
+    var meetingUrl = postData.meetingUrl || null;
+    var calendarError = null;
 
-    if (postData.createCalendarEvent) {
+    if (postData.createCalendarEvent && !calendarEventId) {
       try {
         var evt = postData.createCalendarEvent;
-        var startTime = new Date(evt.startTime);
-        var endTime = new Date(evt.endTime);
-        CalendarApp.getDefaultCalendar().createEvent(evt.title, startTime, endTime, {
-          guests: evt.guestEmail,
-          sendInvites: true
+        var event = {
+          summary: evt.title,
+          location: 'Online Session',
+          description: 'Mental Wellness Session',
+          start: { dateTime: evt.startTime, timeZone: 'Asia/Kolkata' },
+          end: { dateTime: evt.endTime, timeZone: 'Asia/Kolkata' },
+          attendees: [{email: evt.guestEmail}],
+          conferenceData: {
+            createRequest: {
+              requestId: Math.random().toString(36).substring(7),
+              conferenceSolutionKey: { type: "hangoutsMeet" }
+            }
+          }
+        };
+        
+        // Requires Advanced Calendar Service to be enabled in Apps Script editor
+        var createdEvent = Calendar.Events.insert(event, 'primary', {
+          conferenceDataVersion: 1,
+          sendUpdates: 'all'
         });
+        
+        calendarEventId = createdEvent.id;
+        if (createdEvent.conferenceData && createdEvent.conferenceData.entryPoints && createdEvent.conferenceData.entryPoints.length > 0) {
+            meetingUrl = createdEvent.conferenceData.entryPoints[0].uri;
+        } else {
+            meetingUrl = createdEvent.hangoutLink;
+        }
       } catch (calError) {
-        // Log but do not fail email
-        console.error("Calendar creation failed: " + calError.toString());
+        calendarError = calError.toString();
+        console.error("Calendar creation failed: " + calendarError);
       }
     }
 
+    if (meetingUrl && postData.replaceMeetPlaceholder) {
+        htmlBody = htmlBody.replace("{{MEET_URL}}", meetingUrl);
+    }
+
+    var emailSent = false;
+    var emailError = null;
+    if (subject && htmlBody) {
+      try {
+        MailApp.sendEmail({
+          to: recipient,
+          subject: subject,
+          htmlBody: htmlBody
+        });
+        emailSent = true;
+      } catch(e) {
+        emailError = e.toString();
+      }
+    }
     
-    return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Email sent via relay" }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({ 
+        success: true, 
+        message: "Operation completed",
+        calendarEventId: calendarEventId,
+        meetingUrl: meetingUrl,
+        calendarError: calendarError,
+        emailSent: emailSent,
+        emailError: emailError
+    })).setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
