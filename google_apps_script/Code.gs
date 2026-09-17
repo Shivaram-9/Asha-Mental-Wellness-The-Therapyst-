@@ -128,13 +128,29 @@ function doPost(e) {
 }
 
 
-// TEMPORARY AUTHORIZATION HELPER
-// Run this function manually in the Apps Script editor to trigger the OAuth consent screen.
-function authorizeCalendar() {
+// TEMPORARY AUTHORIZATION HELPER - WRITE ACCESS
+// Run this function manually in the Apps Script editor to trigger the OAuth consent screen for Calendar write access.
+function authorizeCalendarWrite() {
   try {
-    var calendars = Calendar.CalendarList.list({maxResults: 1});
-    Logger.log('Google Calendar authorization successful. Found ' + calendars.items.length + ' calendars.');
+    var now = new Date();
+    var later = new Date(now.getTime() + 30 * 60 * 1000); // +30 mins
+    
+    var event = {
+      summary: "Asha Mental Wellness - Calendar Authorization Test",
+      start: { dateTime: now.toISOString() },
+      end: { dateTime: later.toISOString() }
+    };
+    
+    // 1. Insert event to trigger full calendar write permissions
+    var createdEvent = Calendar.Events.insert(event, 'primary');
+    Logger.log("Calendar Events.insert authorization successful. Event ID: " + createdEvent.id);
+    
+    // 2. Immediately remove the test event
+    if (createdEvent.id) {
+      Calendar.Events.remove('primary', createdEvent.id);
+      Logger.log("Temporary event successfully removed.");
+    }
   } catch (e) {
-    Logger.log('Authorization failed or Calendar Advanced Service not enabled: ' + e.toString());
+    Logger.log("Authorization failed: " + e.toString());
   }
 }
