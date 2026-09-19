@@ -153,7 +153,7 @@ app.post('/api/reviews', async (req, res) => {
             `;
 
         try {
-            const relayResponse = await fetch(relayUrl, {
+            let relayResponse = await fetch(relayUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -161,8 +161,16 @@ app.post('/api/reviews', async (req, res) => {
                     
                     subject: 'ACTION REQUIRED: New Review Submitted',
                     htmlBody: htmlBody
-                })
+                }),
+                redirect: 'manual'
             });
+            
+            if (relayResponse.status === 302 || relayResponse.status === 303) {
+                const location = relayResponse.headers.get('location');
+                if (location) {
+                    relayResponse = await fetch(location, { method: 'GET' });
+                }
+            }
 
             if (!relayResponse.ok) {
                 console.error('Google Relay HTTP Error:', relayResponse.status, relayResponse.statusText);
@@ -526,15 +534,23 @@ app.post('/api/book', async (req, res) => {
 
             try {
                 // By not specifying 'to', our modified GAS script will default to both admins
-                const relayResponse = await fetch(relayUrl, {
+                let relayResponse = await fetch(relayUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         secret: relaySecret,
                         subject: 'ACTION REQUIRED: New Session Booking Request',
                         htmlBody: htmlBody
-                    })
+                    }),
+                    redirect: 'manual'
                 });
+                
+                if (relayResponse.status === 302 || relayResponse.status === 303) {
+                    const location = relayResponse.headers.get('location');
+                    if (location) {
+                        relayResponse = await fetch(location, { method: 'GET' });
+                    }
+                }
 
                 if (!relayResponse.ok) {
                     console.error('Google Relay HTTP Error for booking admin email:', relayResponse.status);
@@ -739,6 +755,11 @@ app.post('/api/book/action', async (req, res) => {
                 if (checkBooking.status === 'rejected') return res.send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: red;">This booking has already been rejected.</h2><p>No further action is required.</p></div>');
                 return res.status(403).send('Invalid token.');
             }
+        } else if (booking.status === 'approved' && action === 'approve' && booking.calendarEventId && booking.meetingUrl && booking.confirmationEmailSent) {
+            booking.approvalToken = null;
+            booking.tokenExpiry = null;
+            await booking.save();
+            return res.send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: green;">This booking has already been approved and confirmed.</h2><p>All side effects (Calendar, Meet, Email) were successful.</p></div>');
         } else if (booking.status !== targetStatus) {
             return res.send(`<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: red;">This booking has already been ${booking.status}.</h2></div>`);
         }
@@ -826,19 +847,34 @@ app.post('/api/book/action', async (req, res) => {
                     payload.meetingUrl = booking.meetingUrl;
                 }
 
-                const relayResponse = await fetch(relayUrl, {
+                let relayResponse = await fetch(relayUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(payload),
+                    redirect: 'manual'
                 });
 
-                if (!relayResponse.ok) {
+                if (relayResponse.status === 302 || relayResponse.status === 303) {
+                    const location = relayResponse.headers.get('location');
+                    if (location) {
+                        relayResponse = await fetch(location, { method: 'GET' });
+                    }
+                }
+
+                let relayData = null;
+                try {
+                    const text = await relayResponse.text();
+                    if (text) relayData = JSON.parse(text);
+                } catch (e) {
+                    console.error('Relay response was not JSON:', e);
+                }
+
+                if (!relayResponse.ok && !relayData) {
                     console.error('Google Relay HTTP Error sending customer email:', relayResponse.status);
                     customerEmailStatus = '<p style="color: #c62828;">Error: Failed to contact Google Apps Script relay.</p>';
                     booking.confirmationError = `HTTP ${relayResponse.status}`;
                 } else {
-                    const relayData = await relayResponse.json();
-                    
+                    relayData = relayData || {};
                     if (action === 'approve') {
                         if (relayData.calendarEventId) {
                             booking.calendarEventId = relayData.calendarEventId;
