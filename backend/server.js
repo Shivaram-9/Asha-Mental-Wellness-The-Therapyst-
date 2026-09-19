@@ -914,7 +914,7 @@ app.post('/api/book/action', async (req, res) => {
             displayHtml += `
                 <div class="warning-box">
                     <p style="color: #c62828; font-weight: bold; margin-top: 0;">Warning: Some operations failed.</p>
-                    <p style="margin-bottom: 0; color: #444;">The booking status was updated to ${action}, but calendar or email operations did not complete successfully. You can refresh this page to retry.</p>
+                    <p style="margin-bottom: 0; color: #444;">The booking status was updated to ${targetStatus}, but calendar or email operations did not complete successfully. You can refresh this page to retry.</p>
                 </div>
             `;
         } else {
