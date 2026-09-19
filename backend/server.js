@@ -757,11 +757,20 @@ app.post('/api/book/action', async (req, res) => {
                 if (checkBooking.status === 'rejected') return res.send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: red;">This booking has already been rejected.</h2><p>No further action is required.</p></div>');
                 return res.status(403).send('Invalid token.');
             }
-        } else if (booking.status === 'approved' && action === 'approve' && booking.calendarEventId && booking.meetingUrl && booking.confirmationEmailSent && booking.therapistConfirmationEmailSent) {
-            booking.approvalToken = null;
-            booking.tokenExpiry = null;
-            await booking.save();
-            return res.send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: green;">This booking has already been approved and confirmed.</h2><p>All side effects (Calendar, Meet, Email) were successful.</p></div>');
+        } else if (booking.status === targetStatus) {
+            if (action === 'approve' && booking.calendarEventId && booking.meetingUrl && booking.confirmationEmailSent && booking.therapistConfirmationEmailSent) {
+                booking.approvalToken = null;
+                booking.tokenExpiry = null;
+                await booking.save();
+                return res.send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: green;">This booking has already been approved and confirmed.</h2><p>All side effects (Calendar, Meet, Email) were successful.</p></div>');
+            }
+            
+            if (booking.actionTimestamp) {
+                const secondsSinceAction = (new Date() - booking.actionTimestamp) / 1000;
+                if (secondsSinceAction < 45) {
+                    return res.send(`<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: #f57c00;">Booking is currently processing...</h2><p>Another administrator has already approved this and the system is currently generating the Calendar and Meet links. Please check your email shortly.</p></div>`);
+                }
+            }
         } else if (booking.status !== targetStatus) {
             return res.send(`<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: red;">This booking has already been ${booking.status}.</h2></div>`);
         }
@@ -907,6 +916,8 @@ app.post('/api/book/action', async (req, res) => {
                             booking.confirmationError = errMsg;
                         }
                     }
+                    // Save intermediate state so calendarEventId is persisted immediately
+                    await booking.save();
                 } catch (emailError) {
                     console.error('Customer email relay failed:', emailError);
                     customerEmailStatus = '<p style="color: #c62828;">Error: Server failed to execute customer relay request.</p>';
