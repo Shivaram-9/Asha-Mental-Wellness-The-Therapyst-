@@ -40,7 +40,10 @@ function doPost(e) {
           description: 'Mental Wellness Session',
           start: { dateTime: evt.startTime, timeZone: 'Asia/Kolkata' },
           end: { dateTime: evt.endTime, timeZone: 'Asia/Kolkata' },
-          attendees: [{email: evt.guestEmail}],
+                    attendees: [
+            {email: evt.guestEmail},
+            ...(evt.therapistEmail ? [{email: evt.therapistEmail}] : [])
+          ],
           conferenceData: {
             createRequest: {
               requestId: reqId,

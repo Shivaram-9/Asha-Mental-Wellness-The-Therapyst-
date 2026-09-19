@@ -38,8 +38,10 @@ const BookingSchema = new mongoose.Schema({
     calendarEventId: String,
     meetingUrl: String,
     confirmationEmailSent: { type: Boolean, default: false },
+    therapistConfirmationEmailSent: { type: Boolean, default: false },
     calendarEventCreated: { type: Boolean, default: false },
     confirmationError: String,
+    therapistConfirmationError: String,
     createdAt: { type: Date, default: Date.now },
     actionTimestamp: Date
 });
@@ -755,7 +757,7 @@ app.post('/api/book/action', async (req, res) => {
                 if (checkBooking.status === 'rejected') return res.send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: red;">This booking has already been rejected.</h2><p>No further action is required.</p></div>');
                 return res.status(403).send('Invalid token.');
             }
-        } else if (booking.status === 'approved' && action === 'approve' && booking.calendarEventId && booking.meetingUrl && booking.confirmationEmailSent) {
+        } else if (booking.status === 'approved' && action === 'approve' && booking.calendarEventId && booking.meetingUrl && booking.confirmationEmailSent && booking.therapistConfirmationEmailSent) {
             booking.approvalToken = null;
             booking.tokenExpiry = null;
             await booking.save();
@@ -769,6 +771,7 @@ app.post('/api/book/action', async (req, res) => {
         const relaySecret = process.env.GOOGLE_RELAY_SECRET;
         
         let customerEmailStatus = '';
+        let therapistEmailStatus = '';
         let calendarStatus = '';
         let sideEffectsSuccess = false;
         
@@ -819,7 +822,8 @@ app.post('/api/book/action', async (req, res) => {
                                 title: `Mental Wellness Session - ${booking.name}`,
                                 startTime: startIST.toISOString(),
                                 endTime: endIST.toISOString(),
-                                guestEmail: booking.email
+                                guestEmail: booking.email,
+                                therapistEmail: 'asha.suhasinim@gmail.com'
                             };
                         }
                     }
@@ -828,87 +832,177 @@ app.post('/api/book/action', async (req, res) => {
                 }
             }
 
-            try {
-                const payload = {
-                    secret: relaySecret,
-                    subject: subject,
-                    htmlBody: htmlBody,
-                    to: booking.email,
-                    replaceMeetPlaceholder: action === 'approve'
-                };
-                
-                if (createCalendarEvent) {
-                    payload.createCalendarEvent = createCalendarEvent;
-                }
-                if (booking.calendarEventId) {
-                    payload.calendarEventId = booking.calendarEventId;
-                }
-                if (booking.meetingUrl) {
-                    payload.meetingUrl = booking.meetingUrl;
-                }
-
-                let relayResponse = await fetch(relayUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                    redirect: 'manual'
-                });
-
-                if (relayResponse.status === 302 || relayResponse.status === 303) {
-                    const location = relayResponse.headers.get('location');
-                    if (location) {
-                        relayResponse = await fetch(location, { method: 'GET' });
-                    }
-                }
-
-                let relayData = null;
+            // --- 1. PROCESS CUSTOMER EMAIL & CALENDAR ---
+            if (!booking.confirmationEmailSent || (action === 'approve' && !booking.calendarEventCreated)) {
                 try {
-                    const text = await relayResponse.text();
-                    if (text) relayData = JSON.parse(text);
-                } catch (e) {
-                    console.error('Relay response was not JSON:', e);
-                }
+                    const payload = {
+                        secret: relaySecret,
+                        subject: subject,
+                        htmlBody: htmlBody,
+                        to: booking.email,
+                        replaceMeetPlaceholder: action === 'approve'
+                    };
 
-                if (!relayResponse.ok && !relayData) {
-                    console.error('Google Relay HTTP Error sending customer email:', relayResponse.status);
-                    customerEmailStatus = '<p style="color: #c62828;">Error: Failed to contact Google Apps Script relay.</p>';
-                    booking.confirmationError = `HTTP ${relayResponse.status}`;
-                } else {
-                    relayData = relayData || {};
-                    if (action === 'approve') {
-                        if (relayData.calendarEventId) {
-                            booking.calendarEventId = relayData.calendarEventId;
-                            booking.meetingUrl = relayData.meetingUrl;
-                            booking.calendarEventCreated = true;
-                            calendarStatus = `<p>Google Calendar event created.</p>`;
-                            if (booking.meetingUrl) {
-                                calendarStatus += `<p>Google Meet link created: <a href="${booking.meetingUrl}" target="_blank">Join Google Meet</a></p>`;
-                            }
-                        } else if (relayData.calendarError) {
-                            calendarStatus = `<p style="color: #c62828;">Calendar creation failed: ${relayData.calendarError}.</p>`;
-                            booking.confirmationError = relayData.calendarError;
+                    if (createCalendarEvent) {
+                        payload.createCalendarEvent = createCalendarEvent;
+                    }
+                    if (booking.calendarEventId) {
+                        payload.calendarEventId = booking.calendarEventId;
+                    }
+                    if (booking.meetingUrl) {
+                        payload.meetingUrl = booking.meetingUrl;
+                    }
+
+                    let relayResponse = await fetch(relayUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                        redirect: 'manual'
+                    });
+
+                    if (relayResponse.status === 302 || relayResponse.status === 303) {
+                        const location = relayResponse.headers.get('location');
+                        if (location) {
+                            relayResponse = await fetch(location, { method: 'GET' });
                         }
                     }
-                    
-                    if (relayData.success) {
-                        customerEmailStatus = '<p>Customer has been notified via email.</p>';
-                        booking.confirmationEmailSent = true;
-                        sideEffectsSuccess = true;
-                        booking.confirmationError = null;
-                    } else {
-                        let errMsg = relayData.error || 'Operation incomplete';
-                        if (relayData.emailError) errMsg += ' - ' + relayData.emailError;
-                        customerEmailStatus = `<p style="color: #c62828;">Error: ${errMsg}</p>`;
-                        booking.confirmationError = errMsg;
+
+                    let relayData = null;
+                    try {
+                        const text = await relayResponse.text();
+                        if (text) relayData = JSON.parse(text);
+                    } catch (e) {
+                        console.error('Relay response was not JSON:', e);
                     }
+
+                    if (!relayResponse.ok && !relayData) {
+                        console.error('Google Relay HTTP Error sending customer email:', relayResponse.status);
+                        customerEmailStatus = '<p style="color: #c62828;">Error: Failed to contact Google Apps Script relay for customer.</p>';
+                        booking.confirmationError = `HTTP ${relayResponse.status}`;
+                    } else {
+                        relayData = relayData || {};
+                        if (action === 'approve') {
+                            if (relayData.calendarEventId) {
+                                booking.calendarEventId = relayData.calendarEventId;
+                                booking.meetingUrl = relayData.meetingUrl;
+                                booking.calendarEventCreated = true;
+                                calendarStatus = `<p>Google Calendar event created.</p>`;
+                                if (booking.meetingUrl) {
+                                    calendarStatus += `<p>Google Meet link created: <a href="${booking.meetingUrl}" target="_blank">Join Google Meet</a></p>`;
+                                }
+                            } else if (relayData.calendarError) {
+                                calendarStatus = `<p style="color: #c62828;">Calendar creation failed: ${relayData.calendarError}.</p>`;
+                                booking.confirmationError = relayData.calendarError;
+                            }
+                        }
+                        
+                        if (relayData.success) {
+                            customerEmailStatus = '<p>Customer has been notified via email.</p>';
+                            booking.confirmationEmailSent = true;
+                            booking.confirmationError = null;
+                        } else {
+                            let errMsg = relayData.error || 'Operation incomplete';
+                            if (relayData.emailError) errMsg += ' - ' + relayData.emailError;
+                            customerEmailStatus = `<p style="color: #c62828;">Customer Email Error: ${errMsg}</p>`;
+                            booking.confirmationError = errMsg;
+                        }
+                    }
+                } catch (emailError) {
+                    console.error('Customer email relay failed:', emailError);
+                    customerEmailStatus = '<p style="color: #c62828;">Error: Server failed to execute customer relay request.</p>';
+                    booking.confirmationError = emailError.toString();
                 }
-            } catch (emailError) {
-                console.error('Customer email relay failed:', emailError);
-                customerEmailStatus = '<p style="color: #c62828;">Error: Server failed to execute relay request.</p>';
-                booking.confirmationError = emailError.toString();
+            } else {
+                if (booking.confirmationEmailSent) {
+                    customerEmailStatus = '<p>Customer has already been notified via email.</p>';
+                }
+            }
+
+            // --- 2. PROCESS THERAPIST NOTIFICATION EMAIL ---
+            if (action === 'approve' && booking.calendarEventCreated && booking.meetingUrl && !booking.therapistConfirmationEmailSent) {
+                try {
+                    const therapistSubject = `NEW SESSION CONFIRMED - Asha Suhasini Mental Wellness`;
+                    const therapistHtmlBody = `<h2>New Session Confirmed</h2>
+                        <p>A new online session has been confirmed and scheduled.</p>
+                        <hr>
+                        <p><strong>Client Name:</strong> ${booking.name}</p>
+                        <p><strong>Client Email:</strong> ${booking.email}</p>
+                        <p><strong>Session Date:</strong> ${booking.date}</p>
+                        <p><strong>Session Time:</strong> ${booking.slot}</p>
+                        <p><strong>Session Duration:</strong> 1 hour</p>
+                        <p><strong>Session Format:</strong> Online Session</p>
+                        <hr>
+                        <p>&#10003; Google Calendar event created successfully.</p>
+                        <p>&#10003; Client email (${booking.email}) added as guest.</p>
+                        <br>
+                        <p><a href="{{MEET_URL}}" style="padding:10px 20px; background-color:#1a73e8; color:white; text-decoration:none; border-radius:5px; display:inline-block; font-weight:bold;">JOIN GOOGLE MEET</a></p>
+                        <br><p>This is a confirmed upcoming session.</p>`;
+
+                    const therapistPayload = {
+                        secret: relaySecret,
+                        subject: therapistSubject,
+                        htmlBody: therapistHtmlBody,
+                        to: 'asha.suhasinim@gmail.com',
+                        replaceMeetPlaceholder: true,
+                        meetingUrl: booking.meetingUrl
+                    };
+
+                    let relayResponse = await fetch(relayUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(therapistPayload),
+                        redirect: 'manual'
+                    });
+
+                    if (relayResponse.status === 302 || relayResponse.status === 303) {
+                        const location = relayResponse.headers.get('location');
+                        if (location) {
+                            relayResponse = await fetch(location, { method: 'GET' });
+                        }
+                    }
+
+                    let relayData = null;
+                    try {
+                        const text = await relayResponse.text();
+                        if (text) relayData = JSON.parse(text);
+                    } catch (e) {
+                        console.error('Therapist relay response was not JSON:', e);
+                    }
+
+                    if (!relayResponse.ok && !relayData) {
+                        console.error('Google Relay HTTP Error sending therapist email:', relayResponse.status);
+                        therapistEmailStatus = '<p style="color: #c62828;">Error: Failed to contact Google Apps Script relay for therapist.</p>';
+                        booking.therapistConfirmationError = `HTTP ${relayResponse.status}`;
+                    } else {
+                        relayData = relayData || {};
+                        if (relayData.success) {
+                            therapistEmailStatus = '<p>Therapist has been notified via email.</p>';
+                            booking.therapistConfirmationEmailSent = true;
+                            booking.therapistConfirmationError = null;
+                        } else {
+                            let errMsg = relayData.error || 'Operation incomplete';
+                            if (relayData.emailError) errMsg += ' - ' + relayData.emailError;
+                            therapistEmailStatus = `<p style="color: #c62828;">Therapist Email Error: ${errMsg}</p>`;
+                            booking.therapistConfirmationError = errMsg;
+                        }
+                    }
+                } catch (emailError) {
+                    console.error('Therapist email relay failed:', emailError);
+                    therapistEmailStatus = '<p style="color: #c62828;">Error: Server failed to execute therapist relay request.</p>';
+                    booking.therapistConfirmationError = emailError.toString();
+                }
+            } else if (booking.therapistConfirmationEmailSent) {
+                therapistEmailStatus = '<p>Therapist has already been notified via email.</p>';
+            }
+
+            // --- 3. OVERALL SUCCESS CHECK ---
+            if (action === 'approve') {
+                sideEffectsSuccess = booking.confirmationEmailSent && booking.therapistConfirmationEmailSent && booking.calendarEventCreated;
+            } else {
+                sideEffectsSuccess = booking.confirmationEmailSent;
             }
         } else {
-            customerEmailStatus = '<p style="color: #f57c00;">Warning: Google Relay URL/Secret not configured. Cannot send email or create calendar event.</p>';
+            customerEmailStatus = '<p style="color: #f57c00;">Warning: Google Relay URL/Secret not configured. Cannot send emails or create calendar events.</p>';
         }
 
         if (sideEffectsSuccess) {
