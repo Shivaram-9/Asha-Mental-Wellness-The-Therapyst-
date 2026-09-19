@@ -2,10 +2,24 @@ const RELAY_SECRET = PropertiesService.getScriptProperties().getProperty('RELAY_
 const ADMIN_EMAILS = "asha.suhasinim@gmail.com,ymvshiva1784@gmail.com";
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({
-    success: true,
-    message: "Asha Mental Wellness Review Email Relay is active."
-  })).setMimeType(ContentService.MimeType.JSON);
+  try {
+    var token = ScriptApp.getOAuthToken();
+    var tokenInfoUrl = "https://oauth2.googleapis.com/tokeninfo?access_token=" + token;
+    var scopeResponse = UrlFetchApp.fetch(tokenInfoUrl, {muteHttpExceptions: true});
+    var scopeData = JSON.parse(scopeResponse.getContentText());
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      diagnostic: true,
+      scopes: scopeData.scope || "No scopes returned"
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      diagnostic: true,
+      error: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function doPost(e) {
