@@ -2,24 +2,10 @@ const RELAY_SECRET = PropertiesService.getScriptProperties().getProperty('RELAY_
 const ADMIN_EMAILS = "asha.suhasinim@gmail.com,ymvshiva1784@gmail.com";
 
 function doGet(e) {
-  try {
-    var token = ScriptApp.getOAuthToken();
-    var tokenInfoUrl = "https://oauth2.googleapis.com/tokeninfo?access_token=" + token;
-    var scopeResponse = UrlFetchApp.fetch(tokenInfoUrl, {muteHttpExceptions: true});
-    var scopeData = JSON.parse(scopeResponse.getContentText());
-    
-    return ContentService.createTextOutput(JSON.stringify({
-      success: true,
-      diagnostic: true,
-      scopes: scopeData.scope || "No scopes returned"
-    })).setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({
-      success: false,
-      diagnostic: true,
-      error: err.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
+  return ContentService.createTextOutput(JSON.stringify({
+    success: true,
+    message: "Asha Mental Wellness Review Email Relay is active."
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
@@ -42,25 +28,6 @@ function doPost(e) {
     var calendarEventId = postData.calendarEventId || null;
     var meetingUrl = postData.meetingUrl || null;
     var calendarError = null;
-
-    // TEMPORARY DIAGNOSTIC BLOCK
-    try {
-      var token = ScriptApp.getOAuthToken();
-      var tokenInfoUrl = "https://oauth2.googleapis.com/tokeninfo?access_token=" + token;
-      var scopeResponse = UrlFetchApp.fetch(tokenInfoUrl, {muteHttpExceptions: true});
-      var status = scopeResponse.getResponseCode();
-      var scopeData = JSON.parse(scopeResponse.getContentText());
-      var scopes = scopeData.scope || "";
-      var hasCalendarEvents = scopes.indexOf("calendar.events") !== -1;
-      
-      console.log("DIAGNOSTIC - TokenInfo HTTP Status: " + status);
-      console.log("DIAGNOSTIC - Active Web App Scopes: " + scopes);
-      console.log("DIAGNOSTIC - Contains calendar.events: " + hasCalendarEvents);
-    } catch (diagError) {
-      console.error("DIAGNOSTIC FAILED: " + diagError.toString());
-    }
-    // END TEMPORARY DIAGNOSTIC BLOCK
-
     if (postData.createCalendarEvent && !calendarEventId) {
       try {
         var evt = postData.createCalendarEvent;
@@ -156,33 +123,5 @@ function doPost(e) {
       
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-
-// TEMPORARY AUTHORIZATION HELPER - WRITE ACCESS
-// Run this function manually in the Apps Script editor to trigger the OAuth consent screen for Calendar write access.
-function authorizeCalendarWrite() {
-  try {
-    var now = new Date();
-    var later = new Date(now.getTime() + 30 * 60 * 1000); // +30 mins
-    
-    var event = {
-      summary: "Asha Mental Wellness - Calendar Authorization Test",
-      start: { dateTime: now.toISOString() },
-      end: { dateTime: later.toISOString() }
-    };
-    
-    // 1. Insert event to trigger full calendar write permissions
-    var createdEvent = Calendar.Events.insert(event, 'primary');
-    Logger.log("Calendar Events.insert authorization successful. Event ID: " + createdEvent.id);
-    
-    // 2. Immediately remove the test event
-    if (createdEvent.id) {
-      Calendar.Events.remove('primary', createdEvent.id);
-      Logger.log("Temporary event successfully removed.");
-    }
-  } catch (e) {
-    Logger.log("Authorization failed: " + e.toString());
   }
 }
