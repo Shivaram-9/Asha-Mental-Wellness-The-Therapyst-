@@ -29,6 +29,24 @@ function doPost(e) {
     var meetingUrl = postData.meetingUrl || null;
     var calendarError = null;
 
+    // TEMPORARY DIAGNOSTIC BLOCK
+    try {
+      var token = ScriptApp.getOAuthToken();
+      var tokenInfoUrl = "https://oauth2.googleapis.com/tokeninfo?access_token=" + token;
+      var scopeResponse = UrlFetchApp.fetch(tokenInfoUrl, {muteHttpExceptions: true});
+      var status = scopeResponse.getResponseCode();
+      var scopeData = JSON.parse(scopeResponse.getContentText());
+      var scopes = scopeData.scope || "";
+      var hasCalendarEvents = scopes.indexOf("calendar.events") !== -1;
+      
+      console.log("DIAGNOSTIC - TokenInfo HTTP Status: " + status);
+      console.log("DIAGNOSTIC - Active Web App Scopes: " + scopes);
+      console.log("DIAGNOSTIC - Contains calendar.events: " + hasCalendarEvents);
+    } catch (diagError) {
+      console.error("DIAGNOSTIC FAILED: " + diagError.toString());
+    }
+    // END TEMPORARY DIAGNOSTIC BLOCK
+
     if (postData.createCalendarEvent && !calendarEventId) {
       try {
         var evt = postData.createCalendarEvent;
