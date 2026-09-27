@@ -1063,18 +1063,18 @@ body::before {
 }
 
 .timeline-content {
-    background: var(--card-bg);
-    padding: 2rem;
-    border-radius: 20px;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
-    box-sizing: border-box;
     width: 100%;
+    /* Flip container setup */
+    perspective: 1000px;
+    cursor: pointer;
+    box-sizing: border-box;
 }
 
-.timeline-item:hover .timeline-content {
-    transform: translateX(10px);
-    box-shadow: var(--shadow-md);
+.timeline-item:hover .timeline-content .flip-inner {
+    transform: translateX(5px);
+}
+.timeline-item:hover .timeline-content.is-flipped .flip-inner {
+    transform: rotateY(180deg) translateX(-5px);
 }
 
 .timeline-period {
@@ -2504,4 +2504,134 @@ input:focus, textarea:focus, select:focus {
 body, p, .btn, .cta-button, .nav-links a {
     font-family: var(--font-sans);
     letter-spacing: -0.01em;
+}
+
+
+/* ==========================================================================
+   INTERACTIVE EXPERIENCE FLIP CARDS
+   ========================================================================== */
+
+.flip-container:focus-visible .flip-inner {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+}
+
+.flip-inner {
+    position: relative;
+    width: 100%;
+    /* Same height required to prevent layout shifts. Using a min-height that fits most fronts/backs */
+    min-height: 380px; 
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+    box-sizing: border-box;
+    border-radius: 20px;
+}
+
+.timeline-content.is-flipped .flip-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-front, .flip-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    padding: 2rem;
+    box-sizing: border-box;
+    background: #FDFCF9; /* warm ivory base */
+    border: 1px solid rgba(130, 168, 157, 0.15); /* subtle sage border */
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+}
+
+.flip-front {
+    z-index: 2;
+    transform: rotateY(0deg);
+}
+
+.flip-back {
+    transform: rotateY(180deg);
+    background: #FDFCF9;
+    /* Allow scrolling inside the back side if content is too long on mobile */
+    overflow-y: auto;
+}
+
+/* Internal styling for Front */
+.flip-front h3 {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    margin: 0.5rem 0;
+}
+.flip-front .timeline-role {
+    color: var(--primary);
+    font-weight: 600;
+    margin: 0.5rem 0;
+}
+
+/* Internal styling for Back */
+.flip-back h4 {
+    font-family: var(--font-display);
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+}
+.timeline-role-back {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+.flip-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+.flip-resp {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    padding-left: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+.flip-resp li {
+    margin-bottom: 0.4rem;
+}
+
+/* Subtle Cues */
+.flip-cue {
+    margin-top: auto;
+    padding-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+.flip-container:hover .flip-cue {
+    opacity: 1;
+}
+.flip-cue-back {
+    justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+    .flip-inner {
+        min-height: 420px;
+    }
+    .flip-front, .flip-back {
+        padding: 1.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .flip-inner {
+        transition: none !important;
+    }
 }
