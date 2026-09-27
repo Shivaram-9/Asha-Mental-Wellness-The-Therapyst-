@@ -67,7 +67,7 @@ img, video {
     --transition-fast: 0.2s ease;
     --transition-medium: 0.3s ease;
 
-    --font-serif: var(--font-primary);
+    --font-serif: 'Playfair Display', serif;
     --gradient-1: linear-gradient(135deg, var(--bg-surface), var(--bg-main));
     --gradient-2: linear-gradient(135deg, var(--bg-main), var(--bg-surface));
     --gradient-3: linear-gradient(135deg, var(--bg-surface), var(--bg-elevated));
@@ -297,18 +297,37 @@ body::before {
 
 .nav-links a span {
     display: inline-block;
-    transition: transform var(--transition-normal);
 }
 
+.nav-links a {
+    position: relative;
+    overflow: hidden;
+}
+.nav-links a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: var(--primary);
+    transform: scaleY(0);
+    transform-origin: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 .nav-links a:hover, .nav-links a.active {
     background: var(--bg-elevated);
     color: var(--primary);
-    border-left: 3px solid var(--primary);
+}
+.nav-links a:hover::before, .nav-links a.active::before {
+    transform: scaleY(1);
+}
+.nav-links a span {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nav-links a:hover span, .nav-links a.active span {
-    transform: translateX(4px);
-}
+
+
 
 
 .sidebar-footer {
@@ -2354,3 +2373,101 @@ section::before, section::after {
     #contact::before { background-size: 400px; background-position: right bottom; opacity: 0.4; }
     #contact::after { background-size: 350px; background-position: left -100px top -100px; opacity: 0.3; }
 }
+
+
+/* ==========================================================================
+   REFINED MICRO-INTERACTIONS & HOVER EFFECTS (EDITORIAL)
+   ========================================================================== */
+
+/* Buttons */
+.btn-primary:hover:not(:disabled),
+.btn-outline:hover:not(:disabled),
+.btn-ghost:hover:not(:disabled),
+.contact-button:hover,
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-primary:active:not(:disabled),
+.btn-outline:active:not(:disabled),
+.contact-button:active,
+.submit-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Accessible Focus States */
+a:focus-visible, 
+button:focus-visible, 
+input:focus-visible, 
+textarea:focus-visible, 
+select:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(130, 168, 157, 0.2);
+}
+
+/* Cards Hover (Service, Reviews, Credentials) */
+.service-card, .review-card, .credential-item, .workshop-card {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.service-card:hover, .review-card:hover, .credential-item:hover, .workshop-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Gallery Images Hover */
+.gallery-item, .media-grid .media-item {
+    overflow: hidden;
+    border-radius: 12px;
+}
+.gallery-item img, .media-grid img {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease;
+}
+.gallery-item:hover img, .media-grid .media-item:hover img {
+    transform: scale(1.03);
+}
+
+/* Animated Underline for text links */
+.footer-links a, .contact-info p a {
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+}
+.footer-links a::after, .contact-info p a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    transform: scaleX(0);
+    height: 1px;
+    bottom: -2px;
+    left: 0;
+    background-color: currentColor;
+    transform-origin: bottom right;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.footer-links a:hover::after, .contact-info p a:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
+
+/* Forms */
+input, textarea, select {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+input:focus, textarea:focus, select:focus {
+    border-color: var(--primary);
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+.nav-links a:hover span, .nav-links a.active span { transform: translateX(3px); }
