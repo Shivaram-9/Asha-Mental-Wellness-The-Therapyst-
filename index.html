@@ -648,9 +648,9 @@
                 
                 <!-- LEFT COLUMN: Submit Review -->
                 <div class="reviews-left-col" style="flex: 1; min-width: 250px; max-width: 450px; width: 100%;">
-                    <div class="review-form-card" id="reviews-form" style="background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #f0f0f0;">
-                        <h3 style="text-align: center; margin-bottom: 10px; color: #1e4620; font-size: 1.5rem; font-weight: 700;">Submit a Review</h3>
-                        <p style="text-align: center; color: #666; margin-bottom: 25px; font-size: 0.95rem;">Share your experience with Asha</p>
+                    <div class="review-form-card" id="reviews-form" style="background: #FDFCF9; padding: 30px; border-radius: 12px; box-shadow: var(--shadow-sm); border: 1px solid rgba(130, 168, 157, 0.15);">
+                        <h3 style="text-align: center; margin-bottom: 10px; color: var(--primary); font-size: 1.5rem; font-weight: 700;">Submit a Review</h3>
+                        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 25px; font-size: 0.95rem;">Share your experience with Asha</p>
                         <form id="reviewForm" novalidate>
                             <div class="form-field">
                                 <label for="reviewerName">Your Name</label>
@@ -663,11 +663,11 @@
                             <div class="form-field">
                                 <label>Rating</label>
                                 <div class="star-rating-input" id="starRatingInput" role="radiogroup" aria-required="true" style="display: flex; gap: 5px; margin-top: 5px;">
-                                    <button type="button" class="btn-icon star-btn" style="color: #ccc; font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="1" aria-label="1 star"><span>&#9734;</span></button>
-                                    <button type="button" class="btn-icon star-btn" style="color: #ccc; font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="2" aria-label="2 stars"><span>&#9734;</span></button>
-                                    <button type="button" class="btn-icon star-btn" style="color: #ccc; font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="3" aria-label="3 stars"><span>&#9734;</span></button>
-                                    <button type="button" class="btn-icon star-btn" style="color: #ccc; font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="4" aria-label="4 stars"><span>&#9734;</span></button>
-                                    <button type="button" class="btn-icon star-btn" style="color: #ccc; font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="5" aria-label="5 stars"><span>&#9734;</span></button>
+                                    <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.3); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="1" aria-label="1 star"><span>&#9734;</span></button>
+                                    <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.3); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="2" aria-label="2 stars"><span>&#9734;</span></button>
+                                    <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.3); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="3" aria-label="3 stars"><span>&#9734;</span></button>
+                                    <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.3); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="4" aria-label="4 stars"><span>&#9734;</span></button>
+                                    <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.3); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="5" aria-label="5 stars"><span>&#9734;</span></button>
                                 </div>
                                 <input type="hidden" id="reviewRating" name="reviewRating" required>
                             </div>
@@ -701,7 +701,7 @@
                     <div id="publicReviewsContainer" style="display: flex; flex-direction: column; gap: 20px;">
                         <!-- Reviews injected here -->
                     </div>
-                    <button id="loadMoreReviewsBtn" class="btn btn-secondary" style="display: none; width: 100%; margin-top: 20px; border-radius: 8px; padding: 12px; background: #eef2eb; color: #1e4620; border: 1px solid #d4dfce; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">Load More Reviews</button>
+                    <button id="loadMoreReviewsBtn" class="btn btn-secondary" style="display: none; width: 100%; margin-top: 20px; border-radius: 8px; padding: 12px; background: rgba(130, 168, 157, 0.08); color: var(--primary); border: 1px solid rgba(130, 168, 157, 0.2); font-weight: 600; cursor: pointer; transition: all 0.3s ease;">Load More Reviews</button>
 
                 </div>
 

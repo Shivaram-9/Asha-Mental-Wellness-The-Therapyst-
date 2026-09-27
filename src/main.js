@@ -257,12 +257,12 @@ function getModalContent(modalType) {
                         </div>
                         <button class="btn btn-primary full-width" onclick="confirmBooking()">Confirm Booking</button>
                     </div>
-                    <div id="bookingSuccessMessage" style="display:none; margin-top: 1rem; padding: 1rem; background: #e6f4ea; color: #1e4620; border-radius: 8px;">
+                    <div id="bookingSuccessMessage" style="display:none; margin-top: 1rem; padding: 1rem; background: rgba(130, 168, 157, 0.15); border: 1px solid rgba(130, 168, 157, 0.3); color: var(--primary); border-radius: 8px;">
                         Booking confirmed! Your time slot has been successfully reserved.
                     </div>
                 </div>
                 
-                <p style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 15px;">
+                <p style="margin-top: 2rem; padding: 1.5rem; background: #FDFCF9; border: 1px solid rgba(130, 168, 157, 0.15); border-radius: 15px;">
                     <strong>Note:</strong> First consultations include a comprehensive assessment to understand your needs and create a personalized treatment plan.
                 </p>
 
@@ -277,7 +277,7 @@ function getModalContent(modalType) {
                 <h3>Get in Touch</h3>
                 <p>For general inquiries about services, workshops, or corporate programs, please reach out through the following channels:</p>
                 
-                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 15px; margin: 1.5rem 0;">
+                <div style="background: #FDFCF9; border: 1px solid rgba(130, 168, 157, 0.15); padding: 1.5rem; border-radius: 15px; margin: 1.5rem 0;">
                     <h4 style="margin-top: 0;"> Email</h4>
                     <p>asha.suhasinim@gmail.com</p>
                     
@@ -408,7 +408,7 @@ function openServiceModal(serviceType) {
                 ${service.details.map(detail => `<li>${detail}</li>`).join('')}
             </ul>
             
-            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 15px; margin-top: 2rem;">
+            <div style="background: #FDFCF9; border: 1px solid rgba(130, 168, 157, 0.15); padding: 1.5rem; border-radius: 15px; margin-top: 2rem;">
                 <p><strong>Session Duration:</strong> ${service.duration}</p>
                 <p style="margin-bottom: 0;"><strong>Format:</strong> ${service.format}</p>
             </div>
@@ -531,7 +531,7 @@ function openExperienceModal(orgType) {
             <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
         </div>
         <div class="modal-body">
-            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1rem 1.5rem; border-radius: 15px; margin-bottom: 1.5rem;">
+            <div style="background: rgba(130, 168, 157, 0.15); border: 1px solid rgba(130, 168, 157, 0.3); color: var(--text-primary); padding: 1rem 1.5rem; border-radius: 15px; margin-bottom: 1.5rem;">
                 <p style="margin: 0; font-weight: 600;">${exp.role}</p>
                 <p style="margin: 0.3rem 0 0 0; opacity: 0.9;">${exp.period}  ${exp.location}</p>
             </div>
@@ -652,8 +652,8 @@ function openTherapyModal(methodType) {
                 ${method.benefits.map(benefit => `<li>${benefit}</li>`).join('')}
             </ul>
             
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 15px; margin-top: 2rem;">
-                <h4 style="margin-top: 0; color: white;">Best For</h4>
+            <div style="background: rgba(235, 215, 215, 0.3); border: 1px solid rgba(235, 215, 215, 0.5); color: var(--text-primary); padding: 1.5rem; border-radius: 15px; margin-top: 2rem;">
+                <h4 style="margin-top: 0; color: var(--primary); font-family: var(--font-display);">Best For</h4>
                 <p style="margin: 0;">${method.ideal}</p>
             </div>
         </div>
@@ -755,7 +755,7 @@ function openWorkshopModal(workshopType) {
                 <p style="margin-bottom: 0;"><strong>Target Audience:</strong> ${workshop.audience}</p>
             </div>
             
-            <p style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 10px; border-left: 4px solid #ffc107;">
+            <p style="margin-top: 1.5rem; padding: 1rem; background: #FDFCF9; border-radius: 10px; border: 1px solid rgba(130, 168, 157, 0.2); border-left: 4px solid rgba(130, 168, 157, 0.8);">
                 <strong>Note:</strong> Workshops can be customized for schools, corporate organizations, and community groups.
             </p>
             
@@ -1126,12 +1126,12 @@ async function confirmBooking() {
             if (!successMsg) {
                 successMsg = document.createElement('div');
                 successMsg.id = 'bookingSuccessMessage';
-                successMsg.style.cssText = 'margin-top: 1rem; padding: 1rem; background: #e6f4ea; color: #1e4620; border-radius: 8px;';
+                successMsg.style.cssText = 'margin-top: 1rem; padding: 1rem; background: rgba(130, 168, 157, 0.15); border: 1px solid rgba(130, 168, 157, 0.3); color: var(--primary); border-radius: 8px;';
                 document.getElementById('bookingSystem').appendChild(successMsg);
             }
             successMsg.style.display = 'block';
             successMsg.innerHTML = `
-                <h4 style="margin-top:0; color:#1e4620;">Booking Request Submitted</h4>
+                <h4 style="margin-top:0; color:var(--primary);">Booking Request Submitted</h4>
                 <p>Your online session request has been received and is awaiting confirmation. You will receive a confirmation email once your request is approved.</p>
                 <p><strong>Name:</strong> ${name}</p>
                 <p><strong>Email:</strong> ${email}</p>
@@ -1284,7 +1284,7 @@ async function fetchAndRenderReviews(page = 1, append = false) {
         const loadMoreBtn = document.getElementById('loadMoreReviewsBtn');
         
         if (!append && reviews.length === 0) {
-            if (reviewsContainer) reviewsContainer.innerHTML = '<p style="text-align:center; color:#666; font-style:italic; margin-top:20px; width: 100%;">No reviews yet.</p>';
+            if (reviewsContainer) reviewsContainer.innerHTML = '<p style="text-align:center; color:var(--text-secondary); font-style:italic; margin-top:20px; width: 100%;">No reviews yet.</p>';
             if (loadMoreBtn) loadMoreBtn.style.display = 'none';
             return;
         }
@@ -1299,13 +1299,13 @@ async function fetchAndRenderReviews(page = 1, append = false) {
             const locText = locArr.join(', ');
             
             cardsHtml += `
-                <div style="background:#fff; padding:25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; text-align: left; width: 100%;">
+                <div style="background:var(--bg-base); padding:25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(130, 168, 157, 0.15); text-align: left; width: 100%;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h4 style="color:#1e4620; margin:0; font-size:1.1rem; font-weight:700;">${escapeHTML(rev.name)}</h4>
-                        <div style="color:#f59e0b; font-size:1.1rem; letter-spacing: 2px;">${stars}</div>
+                        <h4 style="color:var(--primary); margin:0; font-size:1.1rem; font-weight:700;">${escapeHTML(rev.name)}</h4>
+                        <div style="color:#c5a66a; font-size:1.1rem; letter-spacing: 2px;">${stars}</div>
                     </div>
-                    <p style="margin:0 0 15px 0; color:#444; font-style:italic; line-height: 1.5;">"${escapeHTML(rev.message)}"</p>
-                    <p style="margin:0; color:#888; font-size:0.85rem;">${locText}</p>
+                    <p style="margin:0 0 15px 0; color:var(--text-secondary); font-style:italic; line-height: 1.5;">"${escapeHTML(rev.message)}"</p>
+                    <p style="margin:0; color:var(--text-muted); font-size:0.85rem;">${locText}</p>
                 </div>
             `;
         });
@@ -1369,10 +1369,10 @@ function initReviewForm() {
                 const bVal = parseInt(b.getAttribute('data-value'), 10);
                 if (bVal <= val) {
                     b.innerHTML = '<span>&#9733;</span>'; // Filled star
-                    b.style.color = '#f59e0b';
+                    b.style.color = '#c5a66a';
                 } else {
                     b.innerHTML = '<span>&#9734;</span>'; // Empty star
-                    b.style.color = '#ccc';
+                    b.style.color = 'rgba(130, 168, 157, 0.3)';
                 }
             });
         });
@@ -1424,7 +1424,7 @@ function initReviewForm() {
                 ratingInput.value = '';
                 starBtns.forEach(b => {
                     b.innerHTML = '<span>&#9734;</span>';
-                    b.style.color = '#ccc';
+                    b.style.color = 'rgba(130, 168, 157, 0.3)';
                 });
             } else {
                 msg.textContent = data.error || 'Submission failed.';
