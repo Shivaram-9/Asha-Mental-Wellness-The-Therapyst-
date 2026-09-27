@@ -28,13 +28,13 @@ img, video {
 
 :root {
     /* Refined Light Palette */
-    --bg-main: #131211;
-    --bg-surface: #1a1a1a;
-    --bg-elevated: #222222;
+    --bg-main: #EFE6D5;
+    --bg-surface: #ffffff;
+    --bg-elevated: #F9F6F0;
     
-    --text-primary: #FDFCF9;
-    --text-secondary: #e2e8f0;
-    --text-muted: #cbd5e1;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
     
     --primary: #0f172a;
     --primary-light: #334155;
@@ -50,7 +50,7 @@ img, video {
     
     /* Variables mapped from old names to prevent breaking */
     --bg: var(--bg-main);
-    --bg-base: #131211;
+    --bg-base: #FDFCF9;
     --card-bg: var(--bg-surface);
     --text: var(--text-primary);
     --muted: var(--text-muted);
@@ -2225,12 +2225,15 @@ h1, h2, h3, h4, h5, h6, .section-title, .hero-title {
 
 
 
+
+
+
 /* ==========================================================================
-   SECTION-SPECIFIC ART-DIRECTED BACKGROUNDS (DARK THEME)
+   SECTION-SPECIFIC ART-DIRECTED BACKGROUNDS (LIGHT PREMIUM THEME)
    ========================================================================== */
 
 body {
-    background-color: var(--bg-main);
+    background-color: var(--bg-base);
 }
 
 section {
@@ -2249,135 +2252,149 @@ section::before, section::after {
     transform: translateZ(0);
 }
 
+/* Subtle light overlays behind text to ensure readability if flowers overlap */
 section::after {
     z-index: -1;
-    /* Soft dark overlay to ensure light text remains readable against bright flowers */
-    background: radial-gradient(ellipse at center, rgba(19, 18, 17, 0.4) 0%, rgba(19, 18, 17, 0.7) 100%);
+    background: radial-gradient(ellipse at center, rgba(253, 252, 249, 0.6) 0%, rgba(253, 252, 249, 0) 80%);
 }
 
-/* Unique Dark Background Colors for each section */
-#home { background-color: #131211; }
-#about { background-color: #161816; }
-#gallery { background-color: #141414; }
-#services { background-color: #1a1512; }
-#focus { background-color: #1a1417; }
-#experience { background-color: #161914; }
-#approach { background-color: #181716; }
-#workshops { background-color: #141716; }
-#ratings { background-color: #171717; }
-#reviews { background-color: #1a1516; }
-#contact { background-color: #141313; }
+/* Unique Light Background Colors for each section */
+#home { background-color: #FDFCF9; } /* warm ivory */
+#about { background: linear-gradient(180deg, #FDFCF9, #F4F7F6); } /* soft sage to ivory */
+#gallery { background-color: #FCFBF8; } /* clean cream */
+#services { background-color: #F9F6F0; } /* warm champagne */
+#focus { background: linear-gradient(180deg, #F9F6F0, #FBF6F6); } /* champagne to soft blush */
+#experience { background-color: #F8F7F4; } /* light champagne */
+#approach { background: linear-gradient(180deg, #F8F7F4, #F3F6F4); } /* champagne to soft sage */
+#workshops { background-color: #FCF7F7; } /* very light blush */
+#ratings { background-color: #FDFCF9; } /* clean ivory */
+#reviews { background: linear-gradient(180deg, #FDFCF9, #FCF9F7); } /* ivory to warm cream/blush */
+#contact { background-color: #FDFBF7; } /* warm ivory / champagne */
 
 /* 1. Home / Hero */
 #home::before {
     background: url('/flower_hero.png') no-repeat right top;
     background-size: 700px;
-    opacity: 0.9;
+    opacity: 0.85;
     background-position: right -100px top -50px;
+    
 }
 #home::after {
-    background: radial-gradient(circle at 30% 50%, rgba(19,18,17,0.7) 0%, rgba(19,18,17,0.3) 100%);
+    background: radial-gradient(circle at 30% 50%, rgba(253,252,249,0.7) 0%, rgba(253,252,249,0) 100%);
 }
 
 /* 2. About */
 #about::before {
     background: url('/flower_sage.png') no-repeat right 30%;
     background-size: 800px;
-    opacity: 0.8;
+    opacity: 0.7;
     background-position: calc(100% + 200px) 30%;
+    
+}
+#about::after {
+    background: radial-gradient(ellipse at 50% 50%, rgba(253, 252, 249, 0.5) 0%, transparent 80%);
 }
 
 /* 3. Gallery */
 #gallery::before {
     background: url('/flower_cream.png') no-repeat left center;
     background-size: 900px;
-    opacity: 0.7;
+    opacity: 0.6;
     background-position: -400px center;
+    
 }
 
 /* 4. Services */
 #services::before {
     background: url('/flower_hero.png') no-repeat right bottom;
     background-size: 600px;
-    opacity: 0.85;
+    opacity: 0.65;
     background-position: calc(100% + 150px) calc(100% + 100px);
+    
 }
 
 /* 5. Focus */
 #focus::before {
     background: url('/flower_cream.png') no-repeat center top;
     background-size: 700px;
-    opacity: 0.75;
-    background-position: center -200px;
+    opacity: 0.7;
+    background-position: center -250px;
+    
 }
 
 /* 6. Experience */
 #experience::before {
     background: url('/flower_sage.png') no-repeat left center;
     background-size: 650px;
-    opacity: 0.8;
+    opacity: 0.75;
     background-position: -250px center;
+    
 }
 
 /* 7. Approach */
 #approach::before {
     background: url('/flower_hero.png') no-repeat center center;
     background-size: 900px;
-    opacity: 0.5;
+    opacity: 0.4;
     filter: blur(5px);
+    
 }
 
 /* 8. Workshops */
 #workshops::before {
     background: url('/flower_cream.png') no-repeat right center;
     background-size: 800px;
-    opacity: 0.8;
-    background-position: calc(100% + 200px) center;
+    opacity: 0.75;
+    background-position: calc(100% + 250px) center;
+    
 }
 
 /* 9. Ratings */
 #ratings::before {
     background: url('/flower_sage.png') no-repeat center bottom;
     background-size: 600px;
-    opacity: 0.7;
+    opacity: 0.6;
     background-position: center calc(100% + 150px);
+    
 }
 
 /* 10. Reviews */
 #reviews::before {
     background: url('/flower_hero.png') no-repeat left 20%;
     background-size: 450px;
-    opacity: 0.85;
+    opacity: 0.75;
     background-position: -150px 20%;
+    
 }
 
 /* 11. Contact */
 #contact::before {
     background: url('/flower_cream.png') no-repeat right bottom;
     background-size: 700px;
-    opacity: 0.9;
+    opacity: 0.85;
     background-position: right bottom;
+    
 }
 
 /* Sidebar & Header Adaptations */
 .sidebar, .mobile-header, .desktop-header {
-    background: rgba(15, 15, 15, 0.65) !important;
+    background: rgba(253, 252, 249, 0.7) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-color: rgba(255,255,255,0.1) !important;
+    color: var(--text-primary);
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    #home::before { background-size: 400px; background-position: right -50px top; opacity: 0.7; }
-    #about::before { background-size: 450px; background-position: right -150px top 30%; opacity: 0.6; }
-    #gallery::before { background-size: 500px; background-position: left -250px center; opacity: 0.5; }
-    #services::before { background-size: 350px; background-position: right -150px bottom -50px; opacity: 0.7; }
-    #focus::before { background-size: 450px; background-position: center top -150px; opacity: 0.6; }
-    #experience::before { background-size: 350px; background-position: left -150px center; opacity: 0.6; }
-    #approach::before { background-size: 500px; opacity: 0.4; }
-    #workshops::before { background-size: 450px; background-position: right -150px center; opacity: 0.6; }
-    #ratings::before { background-size: 350px; background-position: center bottom -150px; opacity: 0.6; }
-    #reviews::before { background-size: 300px; background-position: left -150px top 20%; opacity: 0.7; }
-    #contact::before { background-size: 400px; background-position: right bottom; opacity: 0.8; }
+    #home::before { background-size: 400px; background-position: right -50px top; opacity: 0.6; }
+    #about::before { background-size: 450px; background-position: right -150px top 30%; opacity: 0.5; }
+    #gallery::before { background-size: 500px; background-position: left -250px center; opacity: 0.4; }
+    #services::before { background-size: 350px; background-position: right -150px bottom -50px; opacity: 0.5; }
+    #focus::before { background-size: 450px; background-position: center top -150px; opacity: 0.5; }
+    #experience::before { background-size: 350px; background-position: left -150px center; opacity: 0.5; }
+    #approach::before { background-size: 500px; opacity: 0.3; }
+    #workshops::before { background-size: 450px; background-position: right -150px center; opacity: 0.5; }
+    #ratings::before { background-size: 350px; background-position: center bottom -150px; opacity: 0.4; }
+    #reviews::before { background-size: 300px; background-position: left -150px top 20%; opacity: 0.5; }
+    #contact::before { background-size: 400px; background-position: right bottom; opacity: 0.6; }
 }
