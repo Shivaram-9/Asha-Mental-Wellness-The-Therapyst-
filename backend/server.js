@@ -765,12 +765,24 @@ app.post('/api/book/action', async (req, res) => {
                 return res.send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: green;">This booking has already been approved and confirmed.</h2><p>All side effects (Calendar, Meet, Email) were successful.</p></div>');
             }
             
-            if (booking.actionTimestamp) {
-                const secondsSinceAction = (new Date() - booking.actionTimestamp) / 1000;
-                if (secondsSinceAction < 45) {
-                    return res.send(`<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: #f57c00;">Booking is currently processing...</h2><p>Another administrator has already approved this and the system is currently generating the Calendar and Meet links. Please check your email shortly.</p></div>`);
-                }
+            const lockCutoff = new Date(Date.now() - 45 * 1000);
+            const updatedBooking = await Booking.findOneAndUpdate(
+                {
+                    _id: id,
+                    $or: [
+                        { actionTimestamp: null },
+                        { actionTimestamp: { $exists: false } },
+                        { actionTimestamp: { $lt: lockCutoff } }
+                    ]
+                },
+                { $set: { actionTimestamp: new Date() } },
+                { new: true }
+            );
+
+            if (!updatedBooking) {
+                return res.send(`<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: #f57c00;">Booking is currently processing...</h2><p>Another administrator has already approved this and the system is currently generating the Calendar and Meet links. Please check your email shortly.</p></div>`);
             }
+            booking = updatedBooking;
         } else if (booking.status !== targetStatus) {
             return res.send(`<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2 style="color: red;">This booking has already been ${booking.status}.</h2></div>`);
         }

@@ -28,35 +28,65 @@ function doPost(e) {
     var calendarEventId = postData.calendarEventId || null;
     var meetingUrl = postData.meetingUrl || null;
     var calendarError = null;
+    
+    if (calendarEventId && !meetingUrl) {
+      try {
+        var existingEvent = Calendar.Events.get('primary', calendarEventId);
+        if (existingEvent.conferenceData && existingEvent.conferenceData.entryPoints && existingEvent.conferenceData.entryPoints.length > 0) {
+            var videoEntry = existingEvent.conferenceData.entryPoints.filter(function(ep) { return ep.entryPointType === 'video'; })[0];
+            meetingUrl = videoEntry ? videoEntry.uri : existingEvent.conferenceData.entryPoints[0].uri;
+        } else if (existingEvent.hangoutLink) {
+            meetingUrl = existingEvent.hangoutLink;
+        }
+      } catch (getErr) {
+        console.error("Failed to retrieve existing calendar event: " + getErr);
+      }
+    }
+
     if (postData.createCalendarEvent && !calendarEventId) {
       try {
         var evt = postData.createCalendarEvent;
         // Use the deterministic booking ID for true idempotency
         var reqId = evt.bookingId ? "meet_" + evt.bookingId : Math.random().toString(36).substring(7);
         
-        var event = {
-          summary: evt.title,
-          location: 'Online Session',
-          description: 'Mental Wellness Session',
-          start: { dateTime: evt.startTime, timeZone: 'Asia/Kolkata' },
-          end: { dateTime: evt.endTime, timeZone: 'Asia/Kolkata' },
-                    attendees: [
-            {email: evt.guestEmail},
-            ...(evt.therapistEmail ? [{email: evt.therapistEmail}] : [])
-          ],
-          conferenceData: {
-            createRequest: {
-              requestId: reqId,
-              conferenceSolutionKey: { type: "hangoutsMeet" }
-            }
-          }
-        };
         
-        // Requires Advanced Calendar Service to be enabled in Apps Script editor
-        var createdEvent = Calendar.Events.insert(event, 'primary', {
-          conferenceDataVersion: 1,
-          sendUpdates: 'all'
-        });
+          var deterministicEventId = evt.bookingId ? "booking" + evt.bookingId.toLowerCase().replace(/[^0-9a-v]/g, '') : null;
+          var event = {
+            summary: evt.title,
+            location: 'Online Session',
+            description: 'Mental Wellness Session',
+            start: { dateTime: evt.startTime, timeZone: 'Asia/Kolkata' },
+            end: { dateTime: evt.endTime, timeZone: 'Asia/Kolkata' },
+                      attendees: [
+              {email: evt.guestEmail},
+              ...(evt.therapistEmail ? [{email: evt.therapistEmail}] : [])
+            ],
+            conferenceData: {
+              createRequest: {
+                requestId: reqId,
+                conferenceSolutionKey: { type: "hangoutsMeet" }
+              }
+            }
+          };
+          
+          if (deterministicEventId) {
+            event.id = deterministicEventId;
+          }
+          
+          var createdEvent;
+          try {
+              createdEvent = Calendar.Events.insert(event, 'primary', {
+                conferenceDataVersion: 1,
+                sendUpdates: 'all'
+              });
+          } catch (insertError) {
+              if (insertError.toString().indexOf('already exists') !== -1 || insertError.toString().indexOf('409') !== -1) {
+                  createdEvent = Calendar.Events.get('primary', deterministicEventId);
+              } else {
+                  throw insertError;
+              }
+          }
+
         
         calendarEventId = createdEvent.id;
         if (createdEvent.conferenceData && createdEvent.conferenceData.entryPoints && createdEvent.conferenceData.entryPoints.length > 0) {
