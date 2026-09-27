@@ -96,10 +96,7 @@ body::before {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: 
-        radial-gradient(circle at 15% 20%, rgba(235, 215, 215, 0.4) 0%, transparent 50%),
-        radial-gradient(circle at 85% 80%, rgba(215, 225, 215, 0.35) 0%, transparent 50%),
-        #fcfaf7;
+    background: radial-gradient(circle at center, rgba(253, 252, 249, 0.95) 0%, rgba(253, 252, 249, 0.7) 40%, rgba(253, 252, 249, 0.1) 100%), url('/bg-champagne.jpg') center/cover no-repeat;
     z-index: -10;
     pointer-events: none;
 
@@ -196,10 +193,7 @@ body::before {
     left: 0;
     width: 280px;
     height: 100vh;
-    background: 
-        radial-gradient(circle at 15% 20%, rgba(235, 215, 215, 0.4) 0%, transparent 50%),
-        radial-gradient(circle at 85% 80%, rgba(215, 225, 215, 0.35) 0%, transparent 50%),
-        #fcfaf7;
+    background: radial-gradient(circle at center, rgba(253, 252, 249, 0.95) 0%, rgba(253, 252, 249, 0.7) 40%, rgba(253, 252, 249, 0.1) 100%), url('/bg-champagne.jpg') center/cover fixed no-repeat;
     background-color: var(--bg-base);
     background-attachment: fixed;
     border-right: 1px solid var(--border-light);
@@ -411,10 +405,7 @@ body::before {
         justify-content: space-between;
         align-items: center;
         padding: 1rem 5%;
-        background: 
-        radial-gradient(circle at 15% 20%, rgba(235, 215, 215, 0.4) 0%, transparent 50%),
-        radial-gradient(circle at 85% 80%, rgba(215, 225, 215, 0.35) 0%, transparent 50%),
-        #fcfaf7;
+        background: radial-gradient(circle at center, rgba(253, 252, 249, 0.95) 0%, rgba(253, 252, 249, 0.7) 40%, rgba(253, 252, 249, 0.1) 100%), url('/bg-champagne.jpg') center/cover fixed no-repeat;
     background-color: var(--bg-base);
     background-attachment: fixed;
         border-bottom: 1px solid var(--border-light);
@@ -2180,10 +2171,7 @@ footer {
         display: flex;
         align-items: center;
         padding: 1rem 5%;
-        background: 
-        radial-gradient(circle at 15% 20%, rgba(235, 215, 215, 0.4) 0%, transparent 50%),
-        radial-gradient(circle at 85% 80%, rgba(215, 225, 215, 0.35) 0%, transparent 50%),
-        #fcfaf7;
+        background: radial-gradient(circle at center, rgba(253, 252, 249, 0.95) 0%, rgba(253, 252, 249, 0.7) 40%, rgba(253, 252, 249, 0.1) 100%), url('/bg-champagne.jpg') center/cover fixed no-repeat;
     background-color: var(--bg-base);
     background-attachment: fixed;
         border-bottom: 1px solid var(--border-light);
