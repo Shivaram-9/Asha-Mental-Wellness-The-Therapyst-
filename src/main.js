@@ -1447,3 +1447,33 @@ document.addEventListener('DOMContentLoaded', () => {
     initReviewForm();
 });
 // --- End Dynamic Review System ---
+
+// Experience Expandable Panels Logic
+function openExperiencePanel(element) {
+    // Close any currently open panels
+    document.querySelectorAll('.timeline-content-wrapper.is-open').forEach(el => {
+        el.classList.remove('is-open');
+    });
+    // Open the clicked panel
+    element.closest('.timeline-content-wrapper').classList.add('is-open');
+    
+    // Add global escape key listener
+    document.addEventListener('keydown', handleExperienceEscape);
+}
+
+function closeExperiencePanel(element) {
+    element.closest('.timeline-content-wrapper').classList.remove('is-open');
+    document.removeEventListener('keydown', handleExperienceEscape);
+}
+
+function handleExperienceEscape(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.timeline-content-wrapper.is-open').forEach(el => {
+            el.classList.remove('is-open');
+        });
+        document.removeEventListener('keydown', handleExperienceEscape);
+    }
+}
+
+window.openExperiencePanel = openExperiencePanel;
+window.closeExperiencePanel = closeExperiencePanel;
