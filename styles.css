@@ -2228,13 +2228,12 @@ h1, h2, h3, h4, h5, h6, .section-title, .hero-title {
 
 
 
-/* ==========================================================================
-   SECTION-SPECIFIC ART-DIRECTED BACKGROUNDS (LIGHT PREMIUM THEME)
-   ========================================================================== */
 
-body {
-    background-color: var(--bg-base);
-}
+
+
+/* ==========================================================================
+   SECTION-SPECIFIC ART-DIRECTED BACKGROUNDS (FULL BLEED PHOTOGRAPHIC)
+   ========================================================================== */
 
 section {
     position: relative;
@@ -2242,159 +2241,57 @@ section {
     background-color: transparent !important;
 }
 
-/* Base pseudo-element setup for background layers */
-section::before, section::after {
+/* The Full Bleed Photographic Background */
+section::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: -2;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     pointer-events: none;
     transform: translateZ(0);
 }
 
-/* Subtle light overlays behind text to ensure readability if flowers overlap */
+/* Subtle Readability Overlay */
 section::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
     z-index: -1;
-    background: radial-gradient(ellipse at center, rgba(253, 252, 249, 0.6) 0%, rgba(253, 252, 249, 0) 80%);
+    /* Soft white/ivory wash fading to transparent edges, ensuring text in center is pristine */
+    background: radial-gradient(ellipse at center, rgba(253, 252, 249, 0.85) 0%, rgba(253, 252, 249, 0.6) 50%, rgba(253, 252, 249, 0.2) 100%);
+    pointer-events: none;
+    transform: translateZ(0);
 }
 
-/* Unique Light Background Colors for each section */
-#home { background-color: #FDFCF9; } /* warm ivory */
-#about { background: linear-gradient(180deg, #FDFCF9, #F4F7F6); } /* soft sage to ivory */
-#gallery { background-color: #FCFBF8; } /* clean cream */
-#services { background-color: #F9F6F0; } /* warm champagne */
-#focus { background: linear-gradient(180deg, #F9F6F0, #FBF6F6); } /* champagne to soft blush */
-#experience { background-color: #F8F7F4; } /* light champagne */
-#approach { background: linear-gradient(180deg, #F8F7F4, #F3F6F4); } /* champagne to soft sage */
-#workshops { background-color: #FCF7F7; } /* very light blush */
-#ratings { background-color: #FDFCF9; } /* clean ivory */
-#reviews { background: linear-gradient(180deg, #FDFCF9, #FCF9F7); } /* ivory to warm cream/blush */
-#contact { background-color: #FDFBF7; } /* warm ivory / champagne */
-
-/* 1. Home / Hero */
-#home::before {
-    background: url('/flower_hero.png') no-repeat right top;
-    background-size: 700px;
-    opacity: 0.85;
-    background-position: right -100px top -50px;
-    
-}
-#home::after {
-    background: radial-gradient(circle at 30% 50%, rgba(253,252,249,0.7) 0%, rgba(253,252,249,0) 100%);
-}
-
-/* 2. About */
-#about::before {
-    background: url('/flower_sage.png') no-repeat right 30%;
-    background-size: 800px;
-    opacity: 0.7;
-    background-position: calc(100% + 200px) 30%;
-    
-}
-#about::after {
-    background: radial-gradient(ellipse at 50% 50%, rgba(253, 252, 249, 0.5) 0%, transparent 80%);
-}
-
-/* 3. Gallery */
-#gallery::before {
-    background: url('/flower_cream.png') no-repeat left center;
-    background-size: 900px;
-    opacity: 0.6;
-    background-position: -400px center;
-    
-}
-
-/* 4. Services */
-#services::before {
-    background: url('/flower_hero.png') no-repeat right bottom;
-    background-size: 600px;
-    opacity: 0.65;
-    background-position: calc(100% + 150px) calc(100% + 100px);
-    
-}
-
-/* 5. Focus */
-#focus::before {
-    background: url('/flower_cream.png') no-repeat center top;
-    background-size: 700px;
-    opacity: 0.7;
-    background-position: center -250px;
-    
-}
-
-/* 6. Experience */
-#experience::before {
-    background: url('/flower_sage.png') no-repeat left center;
-    background-size: 650px;
-    opacity: 0.75;
-    background-position: -250px center;
-    
-}
-
-/* 7. Approach */
-#approach::before {
-    background: url('/flower_hero.png') no-repeat center center;
-    background-size: 900px;
-    opacity: 0.4;
-    filter: blur(5px);
-    
-}
-
-/* 8. Workshops */
-#workshops::before {
-    background: url('/flower_cream.png') no-repeat right center;
-    background-size: 800px;
-    opacity: 0.75;
-    background-position: calc(100% + 250px) center;
-    
-}
-
-/* 9. Ratings */
-#ratings::before {
-    background: url('/flower_sage.png') no-repeat center bottom;
-    background-size: 600px;
-    opacity: 0.6;
-    background-position: center calc(100% + 150px);
-    
-}
-
-/* 10. Reviews */
-#reviews::before {
-    background: url('/flower_hero.png') no-repeat left 20%;
-    background-size: 450px;
-    opacity: 0.75;
-    background-position: -150px 20%;
-    
-}
-
-/* 11. Contact */
-#contact::before {
-    background: url('/flower_cream.png') no-repeat right bottom;
-    background-size: 700px;
-    opacity: 0.85;
-    background-position: right bottom;
-    
-}
+/* Specific Section Backgrounds */
+#home::before { background-image: url('/bg_home.webp'); }
+#about::before { background-image: url('/bg_about.webp'); }
+#gallery::before { background-image: url('/bg_services.webp'); }
+#services::before { background-image: url('/bg_services.webp'); transform: scaleX(-1) translateZ(0); }
+#focus::before { background-image: url('/bg_contact.webp'); }
+#experience::before { background-image: url('/bg_about.webp'); transform: scaleX(-1) translateZ(0); }
+#approach::before { background-image: url('/bg_contact.webp'); transform: scaleY(-1) translateZ(0); }
+#workshops::before { background-image: url('/bg_home.webp'); transform: scaleX(-1) translateZ(0); }
+#ratings::before { background-image: url('/bg_services.webp'); }
+#reviews::before { background-image: url('/bg_about.webp'); }
+#contact::before { background-image: url('/bg_contact.webp'); transform: scaleX(-1) translateZ(0); }
 
 /* Sidebar & Header Adaptations */
 .sidebar, .mobile-header, .desktop-header {
     background: rgba(253, 252, 249, 0.7) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    color: var(--text-primary);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-color: rgba(15, 23, 42, 0.08) !important;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    #home::before { background-size: 400px; background-position: right -50px top; opacity: 0.6; }
-    #about::before { background-size: 450px; background-position: right -150px top 30%; opacity: 0.5; }
-    #gallery::before { background-size: 500px; background-position: left -250px center; opacity: 0.4; }
-    #services::before { background-size: 350px; background-position: right -150px bottom -50px; opacity: 0.5; }
-    #focus::before { background-size: 450px; background-position: center top -150px; opacity: 0.5; }
-    #experience::before { background-size: 350px; background-position: left -150px center; opacity: 0.5; }
-    #approach::before { background-size: 500px; opacity: 0.3; }
-    #workshops::before { background-size: 450px; background-position: right -150px center; opacity: 0.5; }
-    #ratings::before { background-size: 350px; background-position: center bottom -150px; opacity: 0.4; }
-    #reviews::before { background-size: 300px; background-position: left -150px top 20%; opacity: 0.5; }
-    #contact::before { background-size: 400px; background-position: right bottom; opacity: 0.6; }
+    section::before {
+        /* On mobile, keep it centered and let the sides crop naturally */
+        background-position: center;
+        background-size: cover;
+    }
 }
