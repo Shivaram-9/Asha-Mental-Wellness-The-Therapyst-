@@ -67,7 +67,7 @@ img, video {
     --transition-fast: 0.2s ease;
     --transition-medium: 0.3s ease;
 
-    --font-serif: 'Playfair Display', serif;
+    --font-display: 'Syne', sans-serif;
     --gradient-1: linear-gradient(135deg, var(--bg-surface), var(--bg-main));
     --gradient-2: linear-gradient(135deg, var(--bg-main), var(--bg-surface));
     --gradient-3: linear-gradient(135deg, var(--bg-surface), var(--bg-elevated));
@@ -249,7 +249,7 @@ body::before {
 }
 
 .brand-title {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -424,7 +424,7 @@ body::before {
     }
 
     .mobile-brand .brand-title {
-        font-family: var(--font-serif);
+        font-family: var(--font-display);
         font-size: 1.05rem;
         font-weight: 600;
         color: var(--text-primary);
@@ -476,7 +476,7 @@ body::before {
 }
 
 .hero-title {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
     font-size: 4.5rem;
     color: var(--text-primary);
     line-height: 1.1;
@@ -545,7 +545,7 @@ body::before {
 }
 
 .stat-number {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
     font-size: 3rem;
     font-weight: 600;
     color: var(--primary);
@@ -2471,3 +2471,37 @@ input:focus, textarea:focus, select:focus {
 }
 
 .nav-links a:hover span, .nav-links a.active span { transform: translateX(3px); }
+
+
+/* ==========================================================================
+   DRIFTIME-INSPIRED EDITORIAL TYPOGRAPHY REFINEMENT
+   ========================================================================== */
+
+/* Display Headings */
+.hero-title, .section-title, h1, h2, h3, .stat-number, .brand-title {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+    font-weight: 700;
+}
+
+.hero-title {
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+}
+
+.section-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+/* Small Labels & Metadata */
+.badge, .service-card h3, .credential-item h3 {
+    letter-spacing: -0.01em;
+}
+
+/* Refined Body & Buttons */
+body, p, .btn, .cta-button, .nav-links a {
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+}
