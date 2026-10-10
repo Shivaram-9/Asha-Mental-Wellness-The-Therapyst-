@@ -994,10 +994,25 @@ function initGalleryHandlers() {
     // Keyboard navigation (ONLY ONCE)
     document.addEventListener('keydown', (e) => {
         if (!modalContainer.classList.contains('active')) return;
+        
+        if (e.key === 'Escape') {
+            closeModal();
+            return;
+        }
 
-        if (e.key === 'ArrowLeft') galleryPrev();
-        if (e.key === 'ArrowRight') galleryNext();
-        if (e.key === 'Escape') closeModal();
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        const isEditable = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || (document.activeElement && document.activeElement.isContentEditable);
+        
+        if (currentGalleryIndex >= 0 && !isEditable) {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                galleryPrev();
+            }
+            if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                galleryNext();
+            }
+        }
     });
 }
 
@@ -1167,8 +1182,6 @@ window.openServiceModal = openServiceModal;
 window.openExperienceModal = openExperienceModal;
 window.openTherapyModal = openTherapyModal;
 window.openWorkshopModal = openWorkshopModal;
-window.galleryPrev = galleryPrev;
-window.galleryNext = galleryNext;
 
 
 // Testimonials Carousel Logic
