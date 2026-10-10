@@ -129,6 +129,7 @@ function openModal(modalType) {
 }
 
 function closeModal() {
+    currentGalleryIndex = -1;
     modalOverlay.classList.remove('active');
     modalContainer.classList.remove('active');
     document.body.style.overflow = 'auto';
@@ -885,19 +886,7 @@ function openMediaModal(src, type, index = -1, caption = '') {
     const isVideo = type === 'video';
     const mediaEl = isVideo
         ? `<video src="${src}" controls autoplay playsinline></video>`
-        : `<img src="${src}" alt="${caption || 'Gallery image'}">`;
-
-    const prevBtn = `<button class="btn btn-outline" aria-label="Previous" onclick="galleryPrev()"><span>&larr; Prev</span></button>`;
-    const nextBtn = `<button class="btn btn-outline" aria-label="Next" onclick="galleryNext()"><span>Next &rarr;</span></button>`;
-    const downloadBtn = `<a class="download-btn" href="${src}" download style="text-decoration:none;"><button class="btn btn-primary" tabindex="-1"><span>Download</span></button></a>`;
-
-    const controlsMarkup = galleryItems.length > 1
-        ? `<div class="modal-controls">${prevBtn}<div style="flex:1"></div>${nextBtn}</div>`
-        : '';
-
-    const downloadMarkup = `<div style="margin-top:.5rem; text-align:right">${downloadBtn}</div>`;
-
-    const captionMarkup = caption ? `<div class="modal-caption">${caption}</div>` : '';
+        : `<img src="${src}" alt="">`;
 
     const mediaMarkup = `
         <div class="modal-header">
@@ -905,9 +894,6 @@ function openMediaModal(src, type, index = -1, caption = '') {
         </div>
         <div class="modal-body">
             ${mediaEl}
-            ${captionMarkup}
-            ${controlsMarkup}
-            ${downloadMarkup}
         </div>
     `;
 
