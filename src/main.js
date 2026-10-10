@@ -83,7 +83,7 @@ const heroObserver = new IntersectionObserver((entries) => {
             heroObserver.unobserve(entry.target);
         }
     });
-}, { threshold: 0.5 });
+}, { threshold: 0.1 });
 
 const heroSection = document.querySelector('.hero');
 if (heroSection) {
@@ -469,7 +469,7 @@ function openExperienceModal(orgType) {
             role: 'Independent Psychotherapist',
             period: 'Since 2006',
             location: 'Global Clientele',
-            description: 'Building a trusted practice over 19+ years, serving individuals, families, and organizations worldwide.',
+            description: 'Building a trusted practice over 20+ years, serving individuals, families, and organizations worldwide.',
             responsibilities: [
                 'Individual and family therapy across diverse age groups',
                 'Specialized trauma counseling and PTSD treatment',
