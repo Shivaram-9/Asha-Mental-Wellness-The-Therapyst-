@@ -58,17 +58,19 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // Counter Animation
 function animateCounter(element) {
     const target = parseInt(element.getAttribute('data-target'));
-    const duration = 2000;
-    const step = target / (duration / 16);
+    if (isNaN(target)) return;
+    const suffix = element.getAttribute('data-suffix') || '';
+    const duration = 1500;
+    const step = Math.max(1, target / (duration / 16));
     let current = 0;
 
     const timer = setInterval(() => {
         current += step;
         if (current >= target) {
-            element.textContent = target;
+            element.textContent = target + suffix;
             clearInterval(timer);
         } else {
-            element.textContent = Math.floor(current);
+            element.textContent = Math.floor(current) + suffix;
         }
     }, 16);
 }
@@ -145,45 +147,61 @@ function getModalContent(modalType) {
     const modals = {
         educationModal: `
             <div class="modal-header">
-                <h2> Education</h2>
+                <h2> Education & Qualifications</h2>
                 <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
-                <h3>Master's in Clinical Psychology</h3>
-                <p><strong>Institution:</strong> SNDT University, Mumbai</p>
-                <p><strong>Specialization:</strong> Clinical Psychology with focus on therapeutic interventions and mental health assessment</p>
-                
-                <h3>Professional Training</h3>
+                <h3>Post-Graduation Diploma in Family and Marital Therapy</h3>
+                <p><strong>Period:</strong> 2003 &ndash; 2005</p>
+                <p><strong>Institution:</strong> S.N.D.T. Women's University / Bandra Family Court, Mumbai</p>
+                <p>Clinical internship and Assistant Psychotherapist clinical work at Bandra Family Court, preparing psychological evaluations for divorce, custody, and reconciliation cases.</p>
+
+                <h3>Master's in Clinical Psychology (M.A.)</h3>
+                <p><strong>Year:</strong> 2003</p>
+                <p><strong>Institution:</strong> S.N.D.T. Women's University, Mumbai</p>
+                <p>Specialization in Clinical Psychology, psychological assessments, personality disorders, and evidence-based psychotherapy.</p>
+
+                <h3>Bachelor's in Psychology (B.A.)</h3>
+                <p><strong>Year:</strong> 2000</p>
+                <p><strong>Institution:</strong> S.N.D.T. Women's University, Mumbai</p>
+                <p>Specialization in Child Psychology, developmental stages, learning behaviors, and childhood emotional health.</p>
+
+                <h3>Clinical Therapeutic Expertise</h3>
                 <ul>
-                    <li>Advanced training in Cognitive Behavioural Therapy (CBT)</li>
-                    <li>Certification in Rational Emotive Behaviour Therapy (REBT)</li>
-                    <li>Dialectical Behaviour Therapy (DBT) specialization</li>
-                    <li>Family and Marital Therapy training</li>
-                    <li>Critical Incident Stress Debriefing (CISD) certification</li>
+                    <li>Cognitive Behavioural Therapy (CBT) & Rational Emotive Behaviour Therapy (REBT/RET)</li>
+                    <li>Gestalt Therapy & Solution-Focused Brief Therapy (SFBT)</li>
+                    <li>Family & Marital Therapy (FMT)</li>
+                    <li>EMDR (Eye Movement Desensitization and Reprocessing) &ndash; Level One (2002)</li>
+                    <li>Critical Incident Stress Debriefing (CISD) Facilitation</li>
+                    <li>School Counselling & Special Educational Needs (LD / ASD early intervention)</li>
                 </ul>
             </div>
         `,
         certificationModal: `
             <div class="modal-header">
-                <h2> Certifications & Registration</h2>
+                <h2> Professional Registrations & Certifications</h2>
                 <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
             </div>
             <div class="modal-body">
-                <h3>Professional Registration</h3>
-                <p><strong>Counsellors Council of India</strong></p>
-                <p>Registration Number: CRN9047214</p>
-                <p>This registration validates the professional credentials and ethical standards maintained in practice.</p>
+                <h3>Professional Registrations</h3>
+                <p><strong>Counsellors Council of India (CCI)</strong></p>
+                <p>Registration Number: <strong>CRN9047214</strong></p>
+                <p>Validates certified professional counselling credentials, ethical standards, and clinical practice compliance.</p>
+
+                <p><strong>International Association of Holistic Psychology</strong></p>
+                <p>Registered Member</p>
                 
-                <h3>Specialized Certifications</h3>
+                <h3>Specialized Certifications & Training</h3>
                 <ul>
-                    <li>Life Skills Coach Certification</li>
-                    <li>Trauma Counselling Specialist</li>
-                    <li>Critical Incident Stress Debriefing (CISD) Facilitator</li>
-                    <li>Corporate Wellness Consultant Certification</li>
+                    <li><strong>EMDR Level One (2002):</strong> Eye Movement Desensitization and Reprocessing for trauma processing.</li>
+                    <li><strong>CISD Facilitator:</strong> Critical Incident Stress Debriefing for acute crisis intervention in MNCs and corporate environments.</li>
+                    <li><strong>HIV/AIDS Counselling (2002&ndash;2003):</strong> MSACS / NACO PMTCT pilot study project protocol.</li>
+                    <li><strong>Life Skills & Leadership Coach:</strong> Customized youth, student, and corporate leadership programs.</li>
+                    <li><strong>Responsible Gaming (RG) Risk Management:</strong> Suicide threat neutralization and crisis escalation intervention.</li>
                 </ul>
                 
-                <h3>Continuing Education</h3>
-                <p>Regularly participates in workshops, seminars, and training programs to stay updated with the latest developments in mental health and psychotherapy.</p>
+                <h3>Languages Known</h3>
+                <p>Fluent clinical and professional proficiency in <strong>English, Hindi, Marathi, and Telugu</strong>.</p>
             </div>
         `,
         specializationModal: `
@@ -445,80 +463,217 @@ function openExperienceModal(orgType) {
             description: 'Providing comprehensive psychological support to university students and faculty members.',
             responsibilities: [
                 'Individual counseling for students dealing with academic stress and personal challenges',
-                'Conducting mental health awareness workshops',
-                'Crisis intervention and support services',
+                'Conducting mental health awareness workshops and psychoeducation seminars',
+                'Crisis intervention, emotional regulation, and psychological first aid',
                 'Collaborating with faculty to create a supportive campus environment',
                 'Developing mental wellness programs for the university community'
             ]
         },
         modern: {
             title: 'Modern Health',
-            role: 'Psychological Consultant & Psychotherapist',
-            period: 'Current',
-            location: 'Arizona, USA (Remote)',
-            description: 'Delivering evidence-based mental health care to a global clientele through a leading digital mental health platform.',
+            role: '(Affiliate) Mental Wellness Consultant & Psychotherapist for India',
+            period: 'Oct 2021 - Present',
+            location: 'Arizona, USA / Remote',
+            description: 'Delivering evidence-based teletherapy and corporate mental wellness consulting for multinational companies in Hyderabad and international clientele.',
             responsibilities: [
-                'Providing teletherapy to diverse international clients',
-                'Utilizing digital tools for effective remote counseling',
-                'Maintaining highest standards of care in virtual settings',
-                'Adapting therapeutic approaches for online delivery',
-                'Contributing to global mental health accessibility'
+                'Counseling individuals and adults with emotional challenges, mood regulation, and life transitions',
+                'Corporate wellness consultant for multinational corporations (MNCs) in Hyderabad',
+                'Providing evidence-based teletherapy to diverse international clients through a leading digital mental health platform',
+                'Maintaining highest clinical standards of care, confidentiality, and ethics in virtual settings',
+                'Adapting therapeutic approaches for online delivery with global accessibility'
             ]
         },
         private: {
             title: 'Private Practice',
-            role: 'Independent Psychotherapist',
-            period: 'Since 2006',
-            location: 'Global Clientele',
-            description: 'Building a trusted practice over 20+ years, serving individuals, families, and organizations worldwide.',
+            role: 'Psychological Wellness Consultant & Psychotherapist',
+            period: 'April 2014 - Present',
+            location: 'Hyderabad / Online Sessions',
+            description: 'Independent private practice providing evidence-based psychotherapy, child & adolescent guidance, and family counseling globally.',
             responsibilities: [
-                'Individual and family therapy across diverse age groups',
-                'Specialized trauma counseling and PTSD treatment',
-                'Life skills coaching and personal development',
-                'Corporate wellness consulting',
-                'Building long-term therapeutic relationships based on trust'
+                'Practicing through virtual platforms and clinical consultations for individual and family mental health needs',
+                'Counseling individuals with mental and emotional health challenges, marital discord, and parenting issues',
+                'Identifying younger age groups with Autism Spectrum Disorder (ASD), Learning Difficulties (LD), and developmental delays, guiding families toward early intervention',
+                'Counseling adolescents and young adults with anxiety, performance fear, and exam stress',
+                'Restructuring and regulating emotional patterns with evidence-based therapies (CBT, SFBT, Gestalt, REBT, Family Therapy)'
+            ]
+        },
+        hdw: {
+            title: 'Head Digital Works (A23 Gaming)',
+            role: 'Senior Psychological Consultant & Psychotherapist (RG Escalations)',
+            period: 'March 2023 - September 2023',
+            location: 'Hyderabad (Full-time)',
+            description: 'Full-time Senior Psychological Consultant for Responsible Gaming (RG) escalation calls and clinical risk management.',
+            responsibilities: [
+                'Guiding the Responsible Gaming care team in managing suicide threats and acute crisis escalation calls',
+                'Leading the team in handling calls related to gaming addictions, distress, and financial vulnerabilities',
+                'Successfully neutralizing players suicide threat calls and establishing crisis de-escalation protocols',
+                'Created RG website page content, employee presentations, and training modules to build empathy-oriented communication',
+                'Contributed to call audit sheet revisions, coaching executives to handle unexpected hostility and temper lash-outs calmly'
+            ]
+        },
+        mbr: {
+            title: 'Mind Body Resolve',
+            role: 'Chief Psychotherapist for Counselling & Therapeutic Strategies',
+            period: 'May 2022 - January 2023',
+            location: 'Hyderabad',
+            description: 'Executive clinical leadership, senior trauma consultant for VIP clients, and single point of contact for corporate wellness webinars.',
+            responsibilities: [
+                'Senior consultant for trauma counselling for VIP and executive clients',
+                'Single point of contact (POC) for MNCs for finalizing and conducting corporate mental wellness webinars',
+                'Led and supervised a multidisciplinary team of 10 psychologists and therapists on board',
+                'Chief content editor for mental health communications, social platforms, client follow-ups, and email promotions',
+                'Developed and executed evidence-based therapeutic programs across corporate and private sectors'
+            ]
+        },
+        nift: {
+            title: 'NIFT Hyderabad',
+            role: 'Guest Faculty & Leadership Coach',
+            period: 'September 2021 - May 2022',
+            location: 'Hyderabad',
+            description: 'Guest faculty leading specially designed leadership and emotional intelligence programs for students.',
+            responsibilities: [
+                'Leadership coach for specially designed student leadership programs',
+                'Conducted interactive modules on emotional intelligence, transition management, and decision-making',
+                'Provided mentorship to help students navigate creative performance anxiety and professional transitions',
+                'Fostered self-confidence, interpersonal communication, and constructive conflict resolution',
+                'Received consistent positive feedback from students and academic administration'
+            ]
+        },
+        morneau: {
+            title: 'Morneau Shepell',
+            role: '(Affiliate) Specialist in CISD Services & Trauma Counselling',
+            period: 'May 2021 - May 2022',
+            location: 'Canada / India (Remote)',
+            description: 'Specialist trauma counsellor and Critical Incident Stress Debriefing (CISD) facilitator for multinational corporations in India.',
+            responsibilities: [
+                'Provided acute trauma counselling and grief support during the pandemic',
+                'Facilitated Critical Incident Stress Debriefing (CISD) for corporate teams facing critical incidents',
+                'Emergency psychological response and acute crisis intervention for MNCs across India',
+                'Trained corporate personnel on stress management techniques and psychological first aid',
+                'Received exceptional reviews and commendations from multinational corporate partners'
             ]
         },
         manah: {
             title: 'Manah Wellness',
             role: 'Senior Mental Wellness Consultant',
-            period: 'Previous',
+            period: 'Prior Engagement',
             location: 'Remote',
-            description: 'Affiliated as a senior consultant, offering guidance and therapy to clients globally.',
+            description: 'Affiliated as a senior consultant delivering teletherapy and corporate mental wellness programs.',
             responsibilities: [
-                'Remote counseling and psychotherapy',
-                'Mental wellness program development',
-                'Client assessment and treatment planning',
-                'Collaborative care with multidisciplinary teams',
-                'Supporting diverse populations across different time zones'
+                'Remote counseling and psychotherapy for diverse employee populations',
+                'Mental wellness program development and client mental health assessments',
+                'Collaborative care with multidisciplinary corporate health teams',
+                'Supporting individuals across different time zones with structured therapeutic interventions'
             ]
         },
-        morneau: {
-            title: 'Morneau Shepell',
-            role: 'Trauma Counseling Specialist & CISD Facilitator',
-            period: 'Previous',
-            location: 'Canada (Remote)',
-            description: 'Specialized in trauma counseling and Critical Incident Stress Debriefing during challenging times.',
+        jain: {
+            title: 'Jain Heritage International Cambridge School',
+            role: 'Student Counsellor (Part Time)',
+            period: 'June 2018 - March 2020 & Dec 2014 - Aug 2016',
+            location: 'Kondapur, Hyderabad',
+            description: 'Student counsellor delivering holistic emotional, behavioural, and educational guidance across two distinct tenures.',
             responsibilities: [
-                'Providing grief and trauma counseling',
-                'Facilitating Critical Incident Stress Debriefing (CISD)',
-                'Supporting organizations during the pandemic',
-                'Emergency response and crisis intervention',
-                'Training staff on stress management techniques'
+                'Counselling students facing emotional, behavioural, and educational challenges',
+                'Identifying children with special educational needs (SEN) and guiding families toward early intervention and therapy',
+                'Conducting workshops for teaching and non-teaching staff on child development and emotional learning',
+                'Delivered regular motivating talks, building trust and bridging communication gaps between teachers, students, and parents',
+                'Assured delivery of quality support through constant feedback surveys with Principal, teachers, and students'
+            ]
+        },
+        hcsipl: {
+            title: 'HCSIPL',
+            role: 'Corporate Trainer & Communication Coach (Part Time)',
+            period: 'May 2019 - October 2019',
+            location: 'Hi-Tech City, Hyderabad',
+            description: 'Corporate trainer and communication coach helping individuals optimize their workplace potential and communication effectiveness.',
+            responsibilities: [
+                'Coaching corporate professionals to realize their peak personal and professional potential',
+                'Conducting targeted communication workshops and interpersonal skills training',
+                'Fostering workplace emotional resilience, assertive communication, and professional confidence',
+                'Received consistent positive feedback from participants and corporate management'
             ]
         },
         hyundai: {
             title: 'Hyundai Mobis',
-            role: 'Corporate Mental Wellness Consultant',
-            period: 'Previous',
-            location: 'Hi-Tech City, Hyderabad',
-            description: 'Leading mental wellness initiatives for corporate employees in a high-tech environment.',
+            role: 'Affiliate Psychological Consultant (Part Time)',
+            period: 'June 2018 - October 2018',
+            location: 'Mindspace, Hyderabad',
+            description: 'Corporate psychological consultant delivering employee counselling, transition workshops, and suicide awareness programs.',
             responsibilities: [
-                'Employee counseling and support services',
-                'Developing workplace wellness programs',
-                'Conducting stress management workshops',
-                'Leadership coaching for executives',
-                'Creating a mentally healthy workplace culture'
+                'Counselled adults on workplace stress, performance anxiety, depression, decision-making, and marital challenges',
+                'Conducted transition anxiety and performance enhancement workshops for new and young joiners',
+                'Conducted focused suicide sensitization workshops, equipping employees with practical stress control techniques',
+                'Applied scientifically proven modalities including SFBT, Gestalt, RET, and CBT to resolve complex personal and workplace concerns',
+                'Received widespread positive feedback, with clients consistently referring colleagues for support'
+            ]
+        },
+        birbal: {
+            title: 'Birbal Life Solutions',
+            role: 'Senior Consulting Psychologist & Psychotherapist (Part Time)',
+            period: 'March 2017 - December 2018',
+            location: 'Hitech City, Hyderabad',
+            description: 'Senior consulting psychologist delivering psychotherapy, marital discord counselling, and customized corporate/school workshops.',
+            responsibilities: [
+                'Counselling individuals and families facing mental health challenges, marital discord, parenting issues, and teen challenges',
+                'Designing and conducting customized psychological packages and workshops for schools and colleges',
+                'Facilitating teen life-skills programs, career guidance packages, and public mental health seminars',
+                'Delivering corporate counselling and stress management workshops across high-demand sectors',
+                'Received consistent positive feedback from clients, families, and educational institutions'
+            ]
+        },
+        hal: {
+            title: 'HAL Secondary School',
+            role: 'Student Counsellor (Contract)',
+            period: 'June 2010 - November 2014',
+            location: 'HAL Campus, Balanagar, Secunderabad',
+            description: 'Appointed as the first school counsellor in HAL School history, providing comprehensive emotional and developmental support.',
+            responsibilities: [
+                'Counselled students across pre-school, primary, middle, and secondary school levels',
+                'Identified learning difficulties (LD) and developmental delays, guiding families toward appropriate clinical intervention',
+                'Officially implemented and endorsed CBSE concession guidelines for special children in collaboration with the Principal',
+                'Designed and conducted 3-day life skills workshops for teens on transition stages, peer pressure, anger management, and college readiness',
+                'Conducted teacher training workshops on learning disabilities and emotional disturbances, equipping educators with screening tools'
+            ]
+        },
+        children: {
+            title: 'Children Hospital',
+            role: 'Psychological Consultant & Psychotherapist',
+            period: 'November 2005 - June 2010',
+            location: 'KPHB, Kukatpally, Hyderabad',
+            description: 'Clinical psychological consultant affiliated with pediatricians, undertaking referred child and adult cases.',
+            responsibilities: [
+                'Clinical psychological assessment and psychotherapy for referred pediatric and adult cases',
+                'Diagnostic evaluations for developmental, behavioral, and emotional challenges in children',
+                'Parental counseling and family guidance for managing childhood emotional and learning difficulties',
+                'Established collaborative care pathways with medical pediatric specialists',
+                'Maintained consistent positive feedback from parents and healthcare professionals'
+            ]
+        },
+        manoshakthi: {
+            title: 'Manoshakthi Psychological Services (Bandra Family Court)',
+            role: 'Intern Clinical Psychologist & Assistant Psychotherapist',
+            period: 'September 2003 - January 2005',
+            location: 'Bandra Family Court, Mumbai',
+            description: 'Clinical psychologist intern and assistant psychotherapist providing clinical assessments and court-assisting reports under Dr. Lakshmipriya.',
+            responsibilities: [
+                'Counselling couples and families undergoing divorce and reconciliation proceedings',
+                'Providing specialized counselling for children and parents regarding child access and custody',
+                'Conducting clinical psychological assessments and preparing unbiased mental health status reports to assist judges',
+                'Applied effective therapeutic techniques and strategies yielding positive reconciliation and resolution outcomes',
+                'Commended for outstanding clinical performance and handling complex high-conflict domestic cases'
+            ]
+        },
+        mgm: {
+            title: 'MGM Hospital',
+            role: 'HIV/AIDS Counsellor (MSACS / PMTCT Pilot Project)',
+            period: 'June 2002 - March 2003',
+            location: 'Kalamboli, New Mumbai',
+            description: 'Appointed counsellor on behalf of Maharashtra State AIDS Control Society (MSACS) in their landmark PMTCT pilot study under NACO guidelines.',
+            responsibilities: [
+                'Provided pre-test and post-test counselling to HIV-positive patients and couples, alleviating acute emotional distress',
+                'Evaluated the administration of single-dose Nevirapine in reducing viral transmission during labour under NACO PMTCT protocol',
+                'Delivered compassionate psycho-social support to pregnant mothers and vulnerable families',
+                'Maintained strict clinical ethics, confidentiality, and medical coordination during high-stress obstetrical care'
             ]
         }
     };
