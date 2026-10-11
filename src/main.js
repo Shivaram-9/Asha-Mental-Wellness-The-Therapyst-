@@ -963,6 +963,9 @@ window.addEventListener('scroll', () => {
 
 // Theme Toggle (Light / Dark)
 
+// Global API URL for Backend Services
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : 'https://asha-mental-wellness-the-therapyst.onrender.com';
+
 // Contact Form Handling
 const contactForm = document.getElementById('contactForm');
 const contactFormMessage = document.getElementById('contactFormMessage');
@@ -972,12 +975,14 @@ function validateEmail(value) {
 }
 
 if (contactForm && contactFormMessage) {
-    contactForm.addEventListener('submit', (event) => {
+    contactForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const formData = new FormData(contactForm);
         const name = (formData.get('name') || '').toString().trim();
         const email = (formData.get('email') || '').toString().trim();
+        const supportType = (formData.get('supportType') || '').toString().trim();
+        const mode = (formData.get('mode') || '').toString().trim();
         const message = (formData.get('message') || '').toString().trim();
 
         contactFormMessage.classList.remove('success', 'error');
@@ -994,9 +999,44 @@ if (contactForm && contactFormMessage) {
             return;
         }
 
-        contactForm.reset();
-        contactFormMessage.textContent = 'Thank you for reaching out. Your inquiry has been noted and you will receive a response via email.';
-        contactFormMessage.classList.add('success');
+        const submitBtn = contactForm.querySelector('button[type="submit"]');
+        const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Submitting Inquiry...</span>';
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/api/contact`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, supportType, mode, message })
+            });
+
+            const data = await response.json().catch(() => null);
+
+            if (response.ok && data && data.success && data.emailSent) {
+                contactForm.reset();
+                contactFormMessage.textContent = 'Thank you for reaching out. Your inquiry has been noted and you will receive a response via email.';
+                contactFormMessage.classList.add('success');
+            } else if (data && data.saved && !data.emailSent) {
+                contactFormMessage.textContent = 'Your inquiry was recorded, but the email notification could not be delivered at this moment. You may also contact us directly at asha.suhasinim@gmail.com.';
+                contactFormMessage.classList.add('error');
+            } else {
+                const errMsg = (data && (data.error || data.message)) ? (data.error || data.message) : 'Unable to submit your inquiry at this moment. Please check your connection and try again.';
+                contactFormMessage.textContent = errMsg;
+                contactFormMessage.classList.add('error');
+            }
+        } catch (fetchErr) {
+            console.error('Contact form submission network error:', fetchErr);
+            contactFormMessage.textContent = 'Unable to submit your inquiry at this moment. Please check your connection and try again.';
+            contactFormMessage.classList.add('error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+            }
+        }
     });
 }
 
@@ -1212,7 +1252,6 @@ initGalleryHandlers();
 
 
 // Booking System Logic
-const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : 'https://asha-mental-wellness-the-therapyst.onrender.com';
 
 async function renderTimeSlots() {
     const dateInput = document.getElementById('bookingDate').value;

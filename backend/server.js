@@ -52,6 +52,293 @@ BookingSchema.index({ date: 1, slot: 1 }, {
 BookingSchema.index({ status: 1, createdAt: -1 });
 const Booking = mongoose.model('Booking', BookingSchema);
 
+// --- Contact / Inquiry System ---
+const InquirySchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    supportType: { type: String, default: '' },
+    mode: { type: String, default: 'online' },
+    message: { type: String, required: true },
+    emailSent: { type: Boolean, default: false },
+    emailError: { type: String, default: null },
+    providerUsed: { type: String, default: null },
+    recipients: [{ type: String }],
+    createdAt: { type: Date, default: Date.now }
+});
+InquirySchema.index({ email: 1, createdAt: -1 });
+const Inquiry = mongoose.model('Inquiry', InquirySchema);
+
+const DEFAULT_ADMIN_EMAILS = 'asha.suhasinim@gmail.com,ymvshiva1784@gmail.com';
+
+async function sendInquiryNotification({ name, email, supportType, mode, message }) {
+    const rawRecipients = process.env.CONTACT_RECIPIENT_EMAILS || process.env.ADMIN_EMAILS || DEFAULT_ADMIN_EMAILS;
+    const recipientList = rawRecipients.split(',').map(e => e.trim()).filter(Boolean);
+    const recipientsCsv = recipientList.join(',');
+
+    const supportLabels = {
+        'individual': 'Individual therapy',
+        'family': 'Family / marital therapy',
+        'student': 'Student / academic concerns',
+        'corporate': 'Corporate wellness',
+        'other': 'Not sure / other'
+    };
+    const supportLabel = supportLabels[supportType] || supportType || 'Not specified';
+    const modeLabel = mode === 'online' ? 'Online Session' : (mode || 'Online Session');
+
+    const escapeHtml = (str) => {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    };
+
+    const subject = `New Website Inquiry from ${name} - Asha Suhasini Mental Wellness`;
+    const htmlBody = `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
+            <div style="border-bottom: 2px solid #82a89d; padding-bottom: 16px; margin-bottom: 20px;">
+                <h2 style="color: #2c4a3e; margin: 0; font-size: 22px;">New Contact / Inquiry Received</h2>
+                <p style="color: #666; margin: 4px 0 0 0; font-size: 14px;">A visitor submitted the contact form on ashasuhasini.com</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr>
+                    <td style="padding: 8px 0; color: #555; width: 140px; font-weight: 600;">Full Name:</td>
+                    <td style="padding: 8px 0; color: #111;">${escapeHtml(name)}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #555; font-weight: 600;">Email:</td>
+                    <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(email)}" style="color: #2c4a3e; text-decoration: underline;">${escapeHtml(email)}</a></td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #555; font-weight: 600;">Support Needed:</td>
+                    <td style="padding: 8px 0; color: #111;">${escapeHtml(supportLabel)}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #555; font-weight: 600;">Session Format:</td>
+                    <td style="padding: 8px 0; color: #111;">${escapeHtml(modeLabel)}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #555; font-weight: 600;">Submitted At:</td>
+                    <td style="padding: 8px 0; color: #111;">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)</td>
+                </tr>
+            </table>
+            
+            <div style="margin-top: 16px; margin-bottom: 24px;">
+                <p style="color: #555; font-weight: 600; margin: 0 0 8px 0;">Message:</p>
+                <blockquote style="margin: 0; padding: 16px; background-color: #f7faf9; border-left: 4px solid #82a89d; border-radius: 4px; color: #222; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(message)}</blockquote>
+            </div>
+            
+            <div style="border-top: 1px solid #e0e0e0; padding-top: 16px; text-align: center;">
+                <a href="mailto:${escapeHtml(email)}?subject=Re: Your Inquiry - Asha Suhasini Mental Wellness" style="display: inline-block; padding: 12px 24px; background-color: #82a89d; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">Reply to ${escapeHtml(name)}</a>
+            </div>
+        </div>
+    `;
+
+    let emailDelivered = false;
+    let deliveryError = null;
+    let providerUsed = null;
+
+    // 1. Primary provider: Google Apps Script Relay
+    const relayUrl = process.env.GOOGLE_REVIEW_RELAY_URL;
+    const relaySecret = process.env.GOOGLE_RELAY_SECRET;
+
+    if (relayUrl && relaySecret) {
+        try {
+            let relayResponse = await fetch(relayUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    secret: relaySecret,
+                    to: recipientsCsv,
+                    subject: subject,
+                    htmlBody: htmlBody
+                }),
+                redirect: 'manual'
+            });
+
+            if (relayResponse.status === 302 || relayResponse.status === 303) {
+                const location = relayResponse.headers.get('location');
+                if (location) {
+                    relayResponse = await fetch(location, { method: 'GET' });
+                }
+            }
+
+            if (relayResponse.ok) {
+                const relayData = await relayResponse.json();
+                if (relayData.success && relayData.emailSent !== false) {
+                    emailDelivered = true;
+                    providerUsed = 'gas-relay';
+                    deliveryError = null;
+                } else {
+                    deliveryError = relayData.error || relayData.emailError || 'Relay reported email failure';
+                }
+            } else {
+                deliveryError = `Google Relay HTTP ${relayResponse.status}`;
+            }
+        } catch (gasErr) {
+            deliveryError = `Google Relay network error: ${gasErr.message}`;
+        }
+    } else {
+        deliveryError = 'Google Relay URL or Secret is not configured in environment.';
+    }
+
+    // 2. Secondary fallback: Resend (if configured)
+    if (!emailDelivered && process.env.RESEND_API_KEY) {
+        try {
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            const resendResult = await resend.emails.send({
+                from: process.env.RESEND_FROM || 'inquiries@ashasuhasini.com',
+                to: recipientList,
+                subject: subject,
+                html: htmlBody
+            });
+            if (resendResult && !resendResult.error) {
+                emailDelivered = true;
+                providerUsed = 'resend';
+                deliveryError = null;
+            } else {
+                deliveryError = resendResult.error ? JSON.stringify(resendResult.error) : 'Resend error';
+            }
+        } catch (resendErr) {
+            deliveryError = `Resend exception: ${resendErr.message}`;
+        }
+    }
+
+    // 3. Tertiary fallback: Nodemailer SMTP (if configured)
+    if (!emailDelivered && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        try {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS
+                }
+            });
+            await transporter.sendMail({
+                from: process.env.SMTP_USER,
+                to: recipientsCsv,
+                replyTo: email,
+                subject: subject,
+                html: htmlBody
+            });
+            emailDelivered = true;
+            providerUsed = 'smtp';
+            deliveryError = null;
+        } catch (smtpErr) {
+            deliveryError = `SMTP exception: ${smtpErr.message}`;
+        }
+    }
+
+    return {
+        emailDelivered,
+        providerUsed,
+        deliveryError,
+        recipients: recipientList
+    };
+}
+
+const handleContactInquiry = async (req, res) => {
+    const { name, email, supportType, mode, message } = req.body;
+
+    if (!name || !email || !message) {
+        return res.status(400).json({ error: 'Name, email, and message are required.' });
+    }
+
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        return res.status(400).json({ error: 'Invalid email address.' });
+    }
+
+    if (message.length > 5000) {
+        return res.status(400).json({ error: 'Message is too long (maximum 5000 characters).' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+    const cleanMessage = message.trim();
+    const cleanSupportType = (supportType || '').trim();
+    const cleanMode = (mode || 'online').trim();
+
+    try {
+        let inquiry = null;
+        if (mongoose.connection.readyState === 1) {
+            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+            const existing = await Inquiry.findOne({
+                email: normalizedEmail,
+                message: cleanMessage,
+                createdAt: { $gte: fiveMinutesAgo }
+            }).sort({ createdAt: -1 });
+
+            if (existing) {
+                if (existing.emailSent) {
+                    return res.status(200).json({
+                        success: true,
+                        emailSent: true,
+                        message: 'Thank you for reaching out. Your inquiry has been noted and you will receive a response via email.',
+                        duplicate: true
+                    });
+                }
+                inquiry = existing;
+            } else {
+                inquiry = new Inquiry({
+                    name: cleanName,
+                    email: normalizedEmail,
+                    supportType: cleanSupportType,
+                    mode: cleanMode,
+                    message: cleanMessage,
+                    emailSent: false,
+                    recipients: []
+                });
+                await inquiry.save();
+            }
+        }
+
+        const sendResult = await sendInquiryNotification({
+            name: cleanName,
+            email: normalizedEmail,
+            supportType: cleanSupportType,
+            mode: cleanMode,
+            message: cleanMessage
+        });
+
+        if (inquiry) {
+            inquiry.emailSent = sendResult.emailDelivered;
+            inquiry.emailError = sendResult.deliveryError;
+            inquiry.providerUsed = sendResult.providerUsed;
+            inquiry.recipients = sendResult.recipients;
+            await inquiry.save();
+        }
+
+        if (sendResult.emailDelivered) {
+            return res.status(200).json({
+                success: true,
+                emailSent: true,
+                provider: sendResult.providerUsed,
+                message: 'Thank you for reaching out. Your inquiry has been noted and you will receive a response via email.'
+            });
+        } else {
+            console.error('Contact inquiry email notification failed:', sendResult.deliveryError);
+            return res.status(200).json({
+                success: false,
+                saved: !!inquiry,
+                emailSent: false,
+                error: 'Email delivery could not be completed at this time.',
+                message: 'Your inquiry has been received, but the email notification could not be delivered at this moment.'
+            });
+        }
+    } catch (err) {
+        console.error('Error handling contact inquiry:', err);
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to process inquiry. Please try again later.'
+        });
+    }
+};
+
+app.post('/api/contact', handleContactInquiry);
+app.post('/api/inquiry', handleContactInquiry);
 
 // --- Review System ---
 const ReviewSchema = new mongoose.Schema({
