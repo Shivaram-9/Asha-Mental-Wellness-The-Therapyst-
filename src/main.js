@@ -132,9 +132,16 @@ function openModal(modalType) {
 
 function closeModal() {
     currentGalleryIndex = -1;
+    const video = modalContainer.querySelector('video');
+    if (video) {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+    }
     modalOverlay.classList.remove('active');
     modalContainer.classList.remove('active');
     document.body.style.overflow = 'auto';
+    if (modalClearTimeout) clearTimeout(modalClearTimeout);
     modalClearTimeout = setTimeout(() => {
         if (!modalContainer.classList.contains('active')) {
             modalContainer.innerHTML = '';
@@ -1036,11 +1043,42 @@ function applyImagePathFallback(img, preferredPath) {
     });
 }
 
+function applyVideoPathFallback(video, preferredPath) {
+    const basePath = preferredPath || video.getAttribute('src') || '';
+    const candidates = getMediaPathCandidates(basePath);
+    if (candidates.length === 0) return;
+
+    let candidateIndex = 0;
+    video.src = candidates[candidateIndex];
+    video.dataset.pathTriedIndex = String(candidateIndex);
+
+    video.addEventListener('error', () => {
+        const lastTried = Number(video.dataset.pathTriedIndex || candidateIndex);
+        const nextIndex = lastTried + 1;
+        if (nextIndex < candidates.length) {
+            video.dataset.pathTriedIndex = String(nextIndex);
+            video.src = candidates[nextIndex];
+            video.load();
+        } else {
+            video.outerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);"><p>Unable to load video. Please check your network connection.</p></div>';
+        }
+    });
+}
+
 function openMediaModal(src, type, index = -1, caption = '') {
     currentGalleryIndex = index;
     const isVideo = type === 'video';
+
+    // Pause and clear any previous video playback
+    const existingVideo = modalContainer.querySelector('video');
+    if (existingVideo) {
+        existingVideo.pause();
+        existingVideo.removeAttribute('src');
+        existingVideo.load();
+    }
+
     const mediaEl = isVideo
-        ? `<video src="${src}" controls autoplay playsinline></video>`
+        ? `<video src="${src}" controls playsinline preload="metadata" style="max-height:70vh; width:100%; border-radius:12px; display:block;"></video>`
         : `<img src="${src}" alt="">`;
 
     const mediaMarkup = `
@@ -1056,6 +1094,13 @@ function openMediaModal(src, type, index = -1, caption = '') {
     modalOverlay.classList.add('active');
     modalContainer.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    if (isVideo) {
+        const videoElement = modalContainer.querySelector('video');
+        if (videoElement) {
+            applyVideoPathFallback(videoElement, src);
+        }
+    }
 
     // Set min date if bookingDate exists
     const dateInput = document.getElementById('bookingDate');
