@@ -1065,7 +1065,7 @@ function applyVideoPathFallback(video, preferredPath) {
     });
 }
 
-function openMediaModal(src, type, index = -1, caption = '') {
+function openMediaModal(src, type, index = -1, caption = '', poster = '') {
     currentGalleryIndex = index;
     const isVideo = type === 'video';
 
@@ -1077,8 +1077,9 @@ function openMediaModal(src, type, index = -1, caption = '') {
         existingVideo.load();
     }
 
+    const posterAttr = (isVideo && poster) ? ` poster="${poster}"` : (isVideo ? ` poster="./assets/images/poster-13.jpeg"` : '');
     const mediaEl = isVideo
-        ? `<video src="${src}" controls playsinline preload="metadata" style="max-height:70vh; width:100%; border-radius:12px; display:block;"></video>`
+        ? `<video src="${src}"${posterAttr} controls playsinline preload="metadata" style="max-height:70vh; width:100%; border-radius:12px; display:block;"></video>`
         : `<img src="${src}" alt="">`;
 
     const mediaMarkup = `
@@ -1114,14 +1115,14 @@ function galleryPrev() {
     if (galleryItems.length === 0) return;
     const nextIndex = (currentGalleryIndex - 1 + galleryItems.length) % galleryItems.length;
     const item = galleryItems[nextIndex];
-    openMediaModal(item.src, item.type, nextIndex, item.caption);
+    openMediaModal(item.src, item.type, nextIndex, item.caption, item.poster);
 }
 
 function galleryNext() {
     if (galleryItems.length === 0) return;
     const nextIndex = (currentGalleryIndex + 1) % galleryItems.length;
     const item = galleryItems[nextIndex];
-    openMediaModal(item.src, item.type, nextIndex, item.caption);
+    openMediaModal(item.src, item.type, nextIndex, item.caption, item.poster);
 }
 
 // Attach handlers to gallery items (handles images and video thumbnails)
@@ -1153,10 +1154,11 @@ function initGalleryHandlers() {
 
     thumbs.forEach((thumb) => {
         const src = thumb.dataset.src;
+        const poster = thumb.dataset.poster || (thumb.querySelector('img') ? thumb.querySelector('img').getAttribute('src') : './assets/images/poster-13.jpeg');
         const caption = thumb.dataset.caption || thumb.getAttribute('aria-label') || '';
         const index = galleryItems.length;
 
-        galleryItems.push({ src, type: 'video', caption });
+        galleryItems.push({ src, type: 'video', caption, poster });
 
         const thumbImage = thumb.querySelector('img');
         if (thumbImage) {
@@ -1166,13 +1168,13 @@ function initGalleryHandlers() {
         thumb.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            openMediaModal(src, 'video', index, caption);
+            openMediaModal(src, 'video', index, caption, poster);
         });
 
         thumb.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                openMediaModal(src, 'video', index, caption);
+                openMediaModal(src, 'video', index, caption, poster);
             }
         });
     });
