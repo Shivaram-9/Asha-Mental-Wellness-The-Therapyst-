@@ -242,9 +242,9 @@ function getModalContent(modalType) {
                 <h3>Clinical Specializations</h3>
                 <ul>
                     <li><strong>Individual Therapy:</strong> Depression, anxiety, stress management, self-esteem issues</li>
-                    <li><strong>Relationship Counseling:</strong> Marital therapy, family conflicts, communication issues</li>
-                    <li><strong>Trauma Recovery:</strong> PTSD, grief counseling, critical incident stress</li>
-                    <li><strong>Academic Counseling:</strong> Exam stress, career guidance, study skills</li>
+                    <li><strong>Relationship Counselling:</strong> Marital therapy, family conflicts, communication issues</li>
+                    <li><strong>Trauma Recovery:</strong> PTSD, grief counselling, critical incident stress</li>
+                    <li><strong>Academic Counselling:</strong> Exam stress, career guidance, study skills</li>
                 </ul>
                 
                 <h3>Professional Expertise</h3>
@@ -273,7 +273,7 @@ function getModalContent(modalType) {
                 <h3>Session Types</h3>
                 <ul>
                     <li><strong>Individual Therapy:</strong> 50-minute sessions for personal mental health support</li>
-                    <li><strong>Couples/Family Therapy:</strong> 60-minute sessions for relationship counseling</li>
+                    <li><strong>Couples/Family Therapy:</strong> 60-minute sessions for relationship counselling</li>
                     <li><strong>Corporate Consultation:</strong> Customized programs for organizations</li>
                     <li><strong>Life Coaching:</strong> Goal-oriented sessions for personal development</li>
                 </ul>
@@ -371,7 +371,7 @@ function openServiceModal(serviceType) {
         },
         family: {
             title: ' Family & Marital Therapy',
-            description: 'Strengthen relationships and resolve conflicts through compassionate family and couples counseling.',
+            description: 'Strengthen relationships and resolve conflicts through compassionate family and couples counselling.',
             details: [
                 'Improve communication and understanding between family members',
                 'Address marital conflicts and relationship challenges',
@@ -386,7 +386,7 @@ function openServiceModal(serviceType) {
             title: ' Corporate Wellness',
             description: 'Comprehensive mental health programs designed to enhance workplace well-being and productivity.',
             details: [
-                'Employee counseling and support services',
+                'Employee counselling and support services',
                 'Stress management workshops',
                 'Leadership coaching programs',
                 'Team building and communication training',
@@ -411,11 +411,11 @@ function openServiceModal(serviceType) {
             format: 'Individual and group coaching available'
         },
         trauma: {
-            title: ' Trauma Counseling',
+            title: ' Trauma Counselling',
             description: 'Specialized support for healing from traumatic experiences and critical incidents.',
             details: [
                 'PTSD treatment and management',
-                'Grief and loss counseling',
+                'Grief and loss counselling',
                 'Critical Incident Stress Debriefing (CISD)',
                 'Trauma-informed therapeutic approaches',
                 'Building post-traumatic resilience',
@@ -425,7 +425,7 @@ function openServiceModal(serviceType) {
             format: 'Sensitive, confidential support'
         },
         student: {
-            title: ' Student Counseling',
+            title: ' Student Counselling',
             description: 'Academic support and personal development guidance for students of all ages.',
             details: [
                 'Exam stress and academic pressure management',
@@ -436,7 +436,7 @@ function openServiceModal(serviceType) {
                 'Building confidence and self-esteem'
             ],
             duration: '45-50 minute sessions',
-            format: 'Age-appropriate counseling methods'
+            format: 'Age-appropriate counselling methods'
         }
     };
     
@@ -491,7 +491,7 @@ function openExperienceModal(orgType) {
             location: 'Hyderabad',
             description: 'Providing comprehensive psychological support to university students and faculty members.',
             responsibilities: [
-                'Individual counseling for students dealing with academic stress and personal challenges',
+                'Individual counselling for students dealing with academic stress and personal challenges',
                 'Conducting mental health awareness workshops and psychoeducation seminars',
                 'Crisis intervention, emotional regulation, and psychological first aid',
                 'Collaborating with faculty to create a supportive campus environment',
@@ -505,7 +505,7 @@ function openExperienceModal(orgType) {
             location: 'Arizona, USA / Remote',
             description: 'Delivering evidence-based teletherapy and corporate mental wellness consulting for multinational companies in Hyderabad and international clientele.',
             responsibilities: [
-                'Counseling individuals and adults with emotional challenges, mood regulation, and life transitions',
+                'Counselling individuals and adults with emotional challenges, mood regulation, and life transitions',
                 'Corporate wellness consultant for multinational corporations (MNCs) in Hyderabad',
                 'Providing evidence-based teletherapy to diverse international clients through a leading digital mental health platform',
                 'Maintaining highest clinical standards of care, confidentiality, and ethics in virtual settings',
@@ -517,12 +517,12 @@ function openExperienceModal(orgType) {
             role: 'Psychological Wellness Consultant & Psychotherapist',
             period: 'April 2014 - Present',
             location: 'Hyderabad / Online Sessions',
-            description: 'Independent private practice providing evidence-based psychotherapy, child & adolescent guidance, and family counseling globally.',
+            description: 'Independent private practice providing evidence-based psychotherapy, child & adolescent guidance, and family counselling globally.',
             responsibilities: [
                 'Practicing through virtual platforms and clinical consultations for individual and family mental health needs',
-                'Counseling individuals with mental and emotional health challenges, marital discord, and parenting issues',
+                'Counselling individuals with mental and emotional health challenges, marital discord, and parenting issues',
                 'Identifying younger age groups with Autism Spectrum Disorder (ASD), Learning Difficulties (LD), and developmental delays, guiding families toward early intervention',
-                'Counseling adolescents and young adults with anxiety, performance fear, and exam stress',
+                'Counselling adolescents and young adults with anxiety, performance fear, and exam stress',
                 'Restructuring and regulating emotional patterns with evidence-based therapies (CBT, SFBT, Gestalt, REBT, Family Therapy)'
             ]
         },
@@ -589,7 +589,7 @@ function openExperienceModal(orgType) {
             location: 'Remote',
             description: 'Affiliated as a senior consultant delivering teletherapy and corporate mental wellness programs.',
             responsibilities: [
-                'Remote counseling and psychotherapy for diverse employee populations',
+                'Remote counselling and psychotherapy for diverse employee populations',
                 'Mental wellness program development and client mental health assessments',
                 'Collaborative care with multidisciplinary corporate health teams',
                 'Supporting individuals across different time zones with structured therapeutic interventions'
@@ -673,7 +673,7 @@ function openExperienceModal(orgType) {
             responsibilities: [
                 'Clinical psychological assessment and psychotherapy for referred pediatric and adult cases',
                 'Diagnostic evaluations for developmental, behavioral, and emotional challenges in children',
-                'Parental counseling and family guidance for managing childhood emotional and learning difficulties',
+                'Parental counselling and family guidance for managing childhood emotional and learning difficulties',
                 'Established collaborative care pathways with medical pediatric specialists',
                 'Maintained consistent positive feedback from parents and healthcare professionals'
             ]
