@@ -363,13 +363,19 @@ body::before {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
     height: 100vh;
-    background: rgba(0,0,0,0.4);
-    z-index: 999;
+    height: 100dvh;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1050;
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity var(--transition-smooth);
+    transition: opacity var(--transition-smooth), visibility var(--transition-smooth);
 }
 
 @media (max-width: 1024px) {
@@ -381,10 +387,27 @@ body::before {
     }
     
     .sidebar {
-        transform: translateX(-100%);
-        width: 320px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: min(85vw, 320px);
         max-width: 85vw;
-        box-shadow: var(--shadow-lg);
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
+        background: #FDFCF9 !important;
+        background-color: var(--bg-base, #FDFCF9) !important;
+        background-image: none !important;
+        border-right: 1px solid var(--border-light);
+        transform: translateX(-100%);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+        z-index: 1100;
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem 1.25rem 1.25rem 1.25rem;
+        overflow: hidden;
+        transition: transform var(--transition-smooth);
     }
     
     .sidebar.open {
@@ -393,11 +416,90 @@ body::before {
     
     .sidebar-overlay.active {
         opacity: 1;
+        visibility: visible;
         pointer-events: auto;
     }
     
+    .sidebar-header {
+        flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .sidebar-header .brand {
+        flex: 1;
+        margin-right: 0.5rem;
+    }
+
+    .sidebar-header .brand-title {
+        font-size: 1.15rem;
+        line-height: 1.25;
+    }
+    
+    .sidebar-nav {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+        margin-bottom: 0.75rem;
+        padding-right: 0.25rem;
+    }
+
+    .sidebar-nav .nav-links {
+        position: static !important;
+        transform: none !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        gap: 0.25rem !important;
+    }
+
+    .sidebar-nav .nav-links a {
+        padding: 0.7rem 0.85rem;
+        font-size: 0.95rem;
+    }
+    
+    .sidebar-footer {
+        flex-shrink: 0;
+        margin-top: auto;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-light);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .sidebar-location {
+        padding-top: 0.5rem;
+    }
+    
     .menu-close {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1px solid var(--border-light);
+        background: var(--bg-elevated, rgba(15, 23, 42, 0.05));
+        color: var(--text-primary);
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background var(--transition-fast), color var(--transition-fast);
+    }
+
+    .menu-close:hover {
+        background: var(--border-medium, rgba(15, 23, 42, 0.1));
     }
 
     .mobile-header {
@@ -406,8 +508,8 @@ body::before {
         align-items: center;
         padding: 1rem 5%;
         background: radial-gradient(circle at center, rgba(253, 252, 249, 0.95) 0%, rgba(253, 252, 249, 0.7) 40%, rgba(253, 252, 249, 0.1) 100%), url('/bg-champagne.jpg') center/cover fixed no-repeat;
-    background-color: var(--bg-base);
-    background-attachment: fixed;
+        background-color: var(--bg-base);
+        background-attachment: fixed;
         border-bottom: 1px solid var(--border-light);
         position: sticky;
         top: 0;
@@ -427,6 +529,9 @@ body::before {
         color: var(--text-primary);
         cursor: pointer;
         padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 }
 
@@ -1881,28 +1986,6 @@ footer {
 @media (max-width: 768px) {
     .menu-toggle {
         display: flex;
-    }
-    
-    .nav-links {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        background: var(--card-bg);
-        flex-direction: column;
-        padding: 2rem;
-        gap: 1rem;
-        box-shadow: var(--shadow-md);
-        transform: translateY(-100%);
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-    }
-    
-    .nav-links.active {
-        transform: translateY(0);
-        opacity: 1;
-        visibility: visible;
     }
 
     

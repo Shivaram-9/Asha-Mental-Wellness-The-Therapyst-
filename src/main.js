@@ -28,10 +28,29 @@ if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
 // Close mobile menu when clicking a link
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', () => {
-        if (sidebar.classList.contains('open')) {
+        if (sidebar && sidebar.classList.contains('open')) {
             toggleSidebar();
         }
     });
+});
+
+// Close mobile drawer if resized to desktop breakpoint
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 1024 && sidebar && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('active');
+        if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+});
+
+// Close mobile drawer on Escape key press
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (sidebar && sidebar.classList.contains('open')) {
+            toggleSidebar();
+        }
+    }
 });
 
 // Smooth Scrolling
@@ -115,6 +134,9 @@ let modalClearTimeout;
 function openModal(modalType) {
     if (modalClearTimeout) {
         clearTimeout(modalClearTimeout);
+    }
+    if (typeof sidebar !== 'undefined' && sidebar && sidebar.classList.contains('open')) {
+        toggleSidebar();
     }
     const modalContent = getModalContent(modalType);
     modalContainer.innerHTML = modalContent;
