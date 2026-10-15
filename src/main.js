@@ -1498,12 +1498,12 @@ async function fetchAndRenderStats() {
         
         const avgRatingEl = document.getElementById('averageRating');
         const avgStarsEl = document.getElementById('averageStars');
-        const reviewCountEl = document.getElementById('reviewCount');
+        const reviewCountEls = document.querySelectorAll('.review-total-count, #reviewCount, #reviewsHeaderCount');
         
-        if (stats.totalRatings === 0) {
+        if (!stats || typeof stats.totalRatings === 'undefined' || stats.totalRatings === 0) {
             if (avgRatingEl) avgRatingEl.textContent = '0.0';
             if (avgStarsEl) avgStarsEl.innerHTML = '&#9734;&#9734;&#9734;&#9734;&#9734;';
-            if (reviewCountEl) reviewCountEl.textContent = '0';
+            reviewCountEls.forEach(el => el.textContent = '0');
             for (let i = 1; i <= 5; i++) {
                 const countEl = document.getElementById('ratingCount' + i);
                 if (countEl) countEl.textContent = '0';
@@ -1518,13 +1518,13 @@ async function fetchAndRenderStats() {
         
         if (avgRatingEl) avgRatingEl.textContent = avg;
         if (avgStarsEl) avgStarsEl.innerHTML = '&#9733;'.repeat(Math.round(stats.averageRating)) + '&#9734;'.repeat(5 - Math.round(stats.averageRating));
-        if (reviewCountEl) reviewCountEl.textContent = stats.totalRatings;
+        reviewCountEls.forEach(el => el.textContent = stats.totalRatings);
         
         for (let i = 1; i <= 5; i++) {
-            const count = stats.distribution[i] || 0;
+            const count = (stats.distribution && (stats.distribution[i] ?? stats.distribution[String(i)])) || 0;
             const countEl = document.getElementById('ratingCount' + i);
             if (countEl) countEl.textContent = count;
-            const pct = (count / stats.totalRatings) * 100;
+            const pct = stats.totalRatings > 0 ? (count / stats.totalRatings) * 100 : 0;
             const barEl = document.getElementById('ratingBar' + i);
             if (barEl) barEl.style.width = pct + '%';
         }

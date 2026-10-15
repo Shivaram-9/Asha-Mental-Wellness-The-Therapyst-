@@ -15,8 +15,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/main-CIRruUxx.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/main-2goOq7w8.css">
+  <script type="module" crossorigin src="./assets/main-C82ljpST.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/main-D5ahwwxe.css">
 </head>
 <body>
     <!-- Loading screen removed for performance and reliability -->
@@ -918,38 +918,38 @@
             <h2 class="section-title reveal">Ratings</h2>
             <p class="section-subtitle reveal">Overall client rating and score distribution</p>
 
-            <div class="ratings-grid reveal">
+            <div class="ratings-container reveal">
                 <div class="ratings-panel">
                     <div class="rating-badge">
-                        <span class="rating-score" id="averageRating">0.0</span>
-                        <span class="rating-stars" id="averageStars" aria-label="Average rating"></span>
-                        <span class="rating-count"><span id="reviewCount">0</span> ratings</span>
+                        <span class="rating-score" id="averageRating">5.0</span>
+                        <span class="rating-stars" id="averageStars" aria-label="Average rating">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                        <span class="rating-count"><span id="reviewCount" class="review-total-count">13</span> ratings</span>
                     </div>
 
                     <div class="rating-breakdown" aria-label="Rating distribution">
                         <div class="rating-row">
                             <span class="rating-label">5 stars</span>
-                            <div class="rating-bar"><span id="ratingBar5"></span></div>
-                            <span class="rating-value" id="ratingCount5">0</span>
+                            <div class="rating-bar"><span id="ratingBar5" style="width: 100%;"></span></div>
+                            <span class="rating-value" id="ratingCount5">13</span>
                         </div>
                         <div class="rating-row">
                             <span class="rating-label">4 stars</span>
-                            <div class="rating-bar"><span id="ratingBar4"></span></div>
+                            <div class="rating-bar"><span id="ratingBar4" style="width: 0%;"></span></div>
                             <span class="rating-value" id="ratingCount4">0</span>
                         </div>
                         <div class="rating-row">
                             <span class="rating-label">3 stars</span>
-                            <div class="rating-bar"><span id="ratingBar3"></span></div>
+                            <div class="rating-bar"><span id="ratingBar3" style="width: 0%;"></span></div>
                             <span class="rating-value" id="ratingCount3">0</span>
                         </div>
                         <div class="rating-row">
                             <span class="rating-label">2 stars</span>
-                            <div class="rating-bar"><span id="ratingBar2"></span></div>
+                            <div class="rating-bar"><span id="ratingBar2" style="width: 0%;"></span></div>
                             <span class="rating-value" id="ratingCount2">0</span>
                         </div>
                         <div class="rating-row">
                             <span class="rating-label">1 star</span>
-                            <div class="rating-bar"><span id="ratingBar1"></span></div>
+                            <div class="rating-bar"><span id="ratingBar1" style="width: 0%;"></span></div>
                             <span class="rating-value" id="ratingCount1">0</span>
                         </div>
                     </div>
@@ -970,7 +970,7 @@
             <div class="reviews-header-summary reveal">
                 <div class="rating-summary-pill">
                     <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-                    <span><strong>5.0</strong> &bull; <span id="reviewCount">13</span> Verified Ratings</span>
+                    <span><strong>5.0</strong> &bull; <span id="reviewsHeaderCount" class="review-total-count">13</span> Verified Ratings</span>
                 </div>
                 <a href="#submit-review-card" class="write-review-btn">
                     <span>&#9998; Write a Review</span>

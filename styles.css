@@ -1525,6 +1525,146 @@ body[data-theme="light"] .sun-icon { display: none; }
 }
 
 /* ==========================================================================
+   RATINGS SECTION UI
+   ========================================================================== */
+.ratings-grid,
+.ratings-container {
+    max-width: 760px;
+    margin: 2.5rem auto 0 auto;
+    padding: 0 1.5rem;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.ratings-panel {
+    background: #FDFCF9;
+    border-radius: 20px;
+    border: 1px solid rgba(130, 168, 157, 0.22);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+    padding: 2.5rem 2.75rem;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 2.75rem;
+    align-items: center;
+}
+
+/* Left Column: Summary Badge */
+.rating-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-right: 2.25rem;
+    border-right: 1px solid rgba(130, 168, 157, 0.18);
+}
+
+.rating-score {
+    font-family: var(--font-display);
+    font-size: 3.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 0.35rem;
+}
+
+.rating-stars {
+    font-size: 1.35rem;
+    color: #c5a66a;
+    letter-spacing: 2px;
+    margin-bottom: 0.4rem;
+    display: inline-block;
+}
+
+.rating-count {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Right Column: Rating Distribution Bars */
+.rating-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.rating-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.rating-label {
+    width: 55px;
+    flex-shrink: 0;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-align: left;
+}
+
+.rating-bar {
+    flex: 1;
+    height: 10px;
+    background: rgba(130, 168, 157, 0.14);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+}
+
+.rating-bar span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #c5a66a 0%, #d8be87 100%);
+    border-radius: 999px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rating-value {
+    width: 28px;
+    flex-shrink: 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: right;
+}
+
+/* Mobile Responsiveness for Ratings */
+@media (max-width: 680px) {
+    .ratings-grid,
+    .ratings-container {
+        padding: 0 1rem;
+    }
+
+    .ratings-panel {
+        grid-template-columns: 1fr;
+        gap: 1.75rem;
+        padding: 2rem 1.25rem;
+        border-radius: 16px;
+    }
+
+    .rating-badge {
+        padding-right: 0;
+        border-right: none;
+        border-bottom: 1px solid rgba(130, 168, 157, 0.18);
+        padding-bottom: 1.5rem;
+    }
+
+    .rating-score {
+        font-size: 3rem;
+    }
+
+    .rating-breakdown {
+        gap: 0.65rem;
+    }
+}
+
+/* ==========================================================================
    REDESIGNED CLIENT REVIEWS SECTION
    ========================================================================== */
 .reviews-section-container {
