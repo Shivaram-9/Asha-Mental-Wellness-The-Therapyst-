@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Moderation & Management | Asha Suhasini Mental Wellness</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #82a89d;
+            --primary-dark: #62887d;
+            --primary-light: rgba(130, 168, 157, 0.12);
+            --gold: #c5a66a;
+            --gold-light: rgba(197, 166, 106, 0.12);
+            --bg-base: #FDFCF9;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: rgba(130, 168, 157, 0.22);
+            --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.06);
+            --success: #16a34a;
+            --danger: #dc2626;
+            --font-display: 'Playfair Display', serif;
+            --font-body: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .portal-header {
+            max-width: 760px;
+            width: 100%;
+            margin: 20px auto 30px auto;
+            text-align: center;
+        }
+
+        .portal-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .portal-logo {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        .portal-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            letter-spacing: -0.02em;
+        }
+
+        .portal-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .moderation-container {
+            max-width: 720px;
+            width: 100%;
+            margin: 0 auto 40px auto;
+            flex: 1;
+        }
+
+        .moderation-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            padding: 36px 32px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            .moderation-card {
+                padding: 24px 20px;
+                border-radius: 16px;
+            }
+            .portal-title {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 20px;
+        }
+
+        .badge-pending {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-already {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .badge-error {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* Review Details Box */
+        .review-details-box {
+            background: var(--bg-base);
+            border-radius: 14px;
+            border: 1px solid rgba(130, 168, 157, 0.2);
+            padding: 22px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .review-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(130, 168, 157, 0.15);
+            padding-bottom: 12px;
+        }
+
+        .reviewer-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .reviewer-stars {
+            color: var(--gold);
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+
+        .reviewer-meta {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .reviewer-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .review-message-quote {
+            font-size: 1.05rem;
+            font-style: italic;
+            color: var(--text-primary);
+            line-height: 1.6;
+            background: #ffffff;
+            padding: 16px 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+            margin: 12px 0;
+        }
+
+        /* Action Buttons */
+        .actions-group {
+            display: flex;
+            gap: 16px;
+            margin-top: 28px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s ease;
+            flex: 1;
+            min-width: 180px;
+            min-height: 48px;
+        }
+
+        .btn-approve {
+            background-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(130, 168, 157, 0.3);
+        }
+
+        .btn-approve:hover:not(:disabled) {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-reject {
+            background-color: transparent;
+            color: var(--danger);
+            border: 1.5px solid rgba(220, 38, 38, 0.35);
+        }
+
+        .btn-reject:hover:not(:disabled) {
+            background-color: rgba(220, 38, 38, 0.08);
+            border-color: var(--danger);
+        }
+
+        .btn-secondary {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(130, 168, 157, 0.2);
+        }
+
+        .btn-gold {
+            background-color: var(--gold);
+            color: #ffffff;
+        }
+
+        .btn-gold:hover:not(:disabled) {
+            background-color: #b59556;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3.5px solid rgba(130, 168, 157, 0.25);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 0.8s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .loading-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 15px;
+        }
+
+        .loading-sub {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* State message container */
+        .state-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .state-icon {
+            font-size: 3.5rem;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .state-title {
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .state-desc {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            max-width: 540px;
+            margin: 0 auto 24px auto;
+            line-height: 1.6;
+        }
+
+        .security-note {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 24px;
+            border-top: 1px solid rgba(130, 168, 157, 0.15);
+            padding-top: 16px;
+            text-align: center;
+        }
+
+        /* Stats dashboard */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .stat-card {
+            background: var(--bg-base);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .portal-footer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: auto;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="portal-header">
+        <a href="/" class="portal-brand">
+            <img src="/assets/logo.png" alt="Asha Suhasini Logo" class="portal-logo" onerror="this.style.display='none'">
+            <div>
+                <h1 class="portal-title">Asha Suhasini Mental Wellness</h1>
+                <p class="portal-subtitle">Review Management & Moderation Portal</p>
+            </div>
+        </a>
+    </header>
+
+    <main class="moderation-container">
+        <div id="statusCard" class="moderation-card">
+            <div id="loadingView" class="loading-container">
+                <div class="spinner"></div>
+                <h2 class="loading-title">Connecting to server…</h2>
+                <p class="loading-sub">Verifying review authorization and status.</p>
+            </div>
+            
+            <div id="dynamicView" style="display: none;"></div>
+        </div>
+    </main>
+
+    <footer class="portal-footer">
+        <p>&copy; 2003 Asha Suhasini Mental Wellness - The Therapyst. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // API Configuration
+        const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'http://localhost:3000'
+            : 'https://asha-mental-wellness-the-therapyst.onrender.com';
+
+        // URL Parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const reviewId = urlParams.get('id');
+        const token = urlParams.get('token');
+        const requestedAction = urlParams.get('action') || 'approve';
+        const urlStatus = urlParams.get('status');
+
+        const dynamicView = document.getElementById('dynamicView');
+        const loadingView = document.getElementById('loadingView');
+
+        function showLoading(title, subtitle) {
+            loadingView.style.display = 'block';
+            dynamicView.style.display = 'none';
+            if (title) loadingView.querySelector('.loading-title').textContent = title;
+            if (subtitle) loadingView.querySelector('.loading-sub').textContent = subtitle;
+        }
+
+        function showDynamic(html) {
+            loadingView.style.display = 'none';
+            dynamicView.innerHTML = html;
+            dynamicView.style.display = 'block';
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function formatStars(rating) {
+            const count = Math.max(1, Math.min(5, parseInt(rating, 10) || 5));
+            return '★'.repeat(count) + '☆'.repeat(5 - count);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            } catch(e) {
+                return dateStr;
+            }
+        }
+
+        // Fetch Review Verification Info
+        async function loadReviewModeration() {
+            // Case 1: Accessed without parameters — display administrative dashboard overview
+            if (!reviewId || !token) {
+                renderDashboard();
+                return;
+            }
+
+            // Case 2: Fetch moderation details securely from backend
+            showLoading('Connecting to server…', 'Verifying review moderation details. If the service is warming up, this takes a few seconds.');
+
+            let timeoutHandle;
+            const controller = new AbortController();
+            timeoutHandle = setTimeout(() => {
+                showLoading('Connecting to server…', 'Warming up Render instance (this may take up to 30 seconds)…');
+            }, 3000);
+
+            try {
+                const response = await fetch(`${API_URL}/api/reviews/action?id=${encodeURIComponent(reviewId)}&token=${encodeURIComponent(token)}&format=json`, {
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutHandle);
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    renderError(errData.error || `Server responded with status ${response.status}`);
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'already_approved') {
+                    renderAlreadyHandled('approved', data.review);
+                } else if (data.status === 'already_rejected') {
+                    renderAlreadyHandled('rejected', data.review);
+                } else if (data.status === 'pending') {
+                    renderPendingModeration(data.review);
+                } else {
+                    renderError('Unknown review moderation state.');
+                }
+
+            } catch (err) {
+                clearTimeout(timeoutHandle);
+                console.error('Failed to load review moderation info:', err);
+                renderNetworkError();
+            }
+        }
+
+        // Render Pending Moderation State
+        function renderPendingModeration(review) {
+            const isApprove = requestedAction === 'approve';
+            const locParts = [review.city, review.state, review.country].filter(Boolean);
+            const locText = locParts.length > 0 ? escapeHTML(locParts.join(', ')) : 'Not provided';
+            const dateText = formatDate(review.createdAt);
+
+            const html = `
+                <div class="state-container">
+                    <span class="status-badge badge-pending">Action Required</span>
+                    <h2 class="state-title">Moderate Review Submission</h2>
+                    <p class="state-desc">A new client review is awaiting your moderation. Please review the details below before publishing.</p>
+
+                    <div class="review-details-box">
+                        <div class="review-header-row">
+                            <span class="reviewer-name">${escapeHTML(review.name)}</span>
+                            <span class="reviewer-stars" title="${review.rating} Stars">${formatStars(review.rating)}</span>
+                        </div>
+                        <div class="reviewer-meta">
+                            <span><strong>Email:</strong> ${escapeHTML(review.email || 'Confidential')}</span>
+                            <span><strong>Location:</strong> ${locText}</span>
+                            ${dateText ? `<span><strong>Submitted:</strong> ${escapeHTML(dateText)}</span>` : ''}
+                        </div>
+                        <div class="review-message-quote">
+                            "${escapeHTML(review.message)}"
+                        </div>
+                    </div>
+
+                    <div class="actions-group">
+                        <button id="btnApprove" class="btn btn-approve" onclick="performModeration('approve')">
+                            <span>&#10003; Confirm &amp; Approve Review</span>
+                        </button>
+                        <button id="btnReject" class="btn btn-reject" onclick="performModeration('reject')">
+                            <span>&#10005; Reject Review</span>
+                        </button>
+                    </div>
+
+                    <p class="security-note">
+                        <strong>Security Safeguard:</strong> This review will be published to the website only upon clicking confirmation. Simply visiting this link does not alter review status.
+                    </p>
+                </div>
+            `;
+            showDynamic(html);
+        }
+
+        // Submit the Moderation Action (POST)
+        async function performModeration(action) {
+            const btnApprove = document.getElementById('btnApprove');
+            const btnReject = document.getElementById('btnReject');
+
+            if (btnApprove) btnApprove.disabled = true;
+            if (btnReject) btnReject.disabled = true;
+
+            const actionLabel = action === 'approve' ? 'Approving review…' : 'Rejecting review…';
+            showLoading(actionLabel, 'Updating database and publishing changes securely.');
+
+            try {
+                const response = await fetch(`${API_URL}/api/reviews/action`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: reviewId,
+                        token: token,
+                        action: action
+                    })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (response.ok && data.success) {
+                    renderSuccess(action, data.alreadyHandled);
+                } else {
+                    renderError(data.error || 'Failed to complete review moderation. Please retry.');
+                }
+            } catch (err) {
+                console.error('Moderation POST error:', err);
+                renderActionError(action);
+            }
+        }
+
+        // Render Success State
+        function renderSuccess(action, alreadyHandled) {
+            const isApproved = action === 'approve';
+            const icon = isApproved ? '🎉' : '🛡️';
+            const badgeClass = isApproved ? 'badge-success' : 'badge-already';
+            const title = isApproved
+                ? (alreadyHandled ? 'Review Already Approved' : 'Review Approved Successfully!')
+                : 'Review Rejected and Hidden';
+            const desc = isApproved
+                ? 'The review has been verified and published to the live website. Visitors on https://ashasuhasini.com can now read it in the Reviews section.'
+                : 'The review has been marked as rejected and will not be displayed on the website.';
+
+            const html = `
+                <div class="state-container">
+                    <span class="status-badge ${badgeClass}">${isApproved ? 'Approved &amp; Live' : 'Rejected'}</span>
+                    <div class="state-icon">${icon}</div>
+                    <h2 class="state-title">${title}</h2>
+                    <p class="state-desc">${desc}</p>
+
+                    <div class="actions-group" style="justify-content: center; max-width: 480px; margin: 28px auto 0 auto;">
+                        <a href="/#reviews" class="btn btn-gold">
+                            <span>View Live Reviews</span>
+                        </a>
+                        <a href="/" class="btn btn-secondary">
+                            <span>Return to Website</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+            showDynamic(html);
+        }
+
+        // Render Already Handled State
+        function renderAlreadyHandled(status, review) {
+            const isApproved = status === 'approved';
+            const badgeClass = isApproved ? 'badge-success' : 'badge-already';
+            const title = isApproved ? 'Review Already Approved' : 'Review Already Rejected';
+            const desc = isApproved
+                ? 'This review was already approved and is currently live on https://ashasuhasini.com.'
+                : 'This review was previously rejected and is hidden from public view.';
+
+            let reviewSnippet = '';
+            if (review) {
+                reviewSnippet = `
+                    <div class="review-details-box" style="margin: 20px auto; max-width: 580px;">
+                        <div class="review-header-row">
+                            <span class="reviewer-name">${escapeHTML(review.name)}</span>
+                            <span class="reviewer-stars">${formatStars(review.rating)}</span>
+                        </div>
+                        <div class="review-message-quote">
+                            "${escapeHTML(review.message)}"
+                        </div>
+                    </div>
+                `;
+            }
+
+            const html = `
+                <div class="state-container">
+                    <span class="status-badge ${badgeClass}">${isApproved ? 'Already Live' : 'Already Rejected'}</span>
+                    <div class="state-icon">${isApproved ? '✅' : '🔒'}</div>
+                    <h2 class="state-title">${title}</h2>
+                    <p class="state-desc">${desc}</p>
+                    ${reviewSnippet}
+
+                    <div class="actions-group" style="justify-content: center; max-width: 480px; margin: 20px auto 0 auto;">
+                        <a href="/#reviews" class="btn btn-gold">
+                            <span>View Live Reviews</span>
+                        </a>
+                        <a href="/" class="btn btn-secondary">
+                            <span>Return to Website</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+            showDynamic(html);
+        }
+
+        // Render Error State
+        function renderError(errorMessage) {
+            const html = `
+                <div class="state-container">
+                    <span class="status-badge badge-error">Notice</span>
+                    <div class="state-icon">⚠️</div>
+                    <h2 class="state-title">Unable to Complete Request</h2>
+                    <p class="state-desc">${escapeHTML(errorMessage)}</p>
+
+                    <div class="actions-group" style="justify-content: center; max-width: 480px; margin: 20px auto 0 auto;">
+                        <button class="btn btn-approve" onclick="loadReviewModeration()">
+                            <span>&#8635; Retry Verification</span>
+                        </button>
+                        <a href="/" class="btn btn-secondary">
+                            <span>Return to Website</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+            showDynamic(html);
+        }
+
+        // Render Network / Cold Boot Error with Retry
+        function renderNetworkError() {
+            const html = `
+                <div class="state-container">
+                    <span class="status-badge badge-error">Connection Issue</span>
+                    <div class="state-icon">⏳</div>
+                    <h2 class="state-title">Server Connection Delayed</h2>
+                    <p class="state-desc">The backend service may be spinning up from standby. Please click Retry below to connect again.</p>
+
+                    <div class="actions-group" style="justify-content: center; max-width: 480px; margin: 20px auto 0 auto;">
+                        <button class="btn btn-approve" onclick="loadReviewModeration()">
+                            <span>&#8635; Retry Now</span>
+                        </button>
+                        <a href="/" class="btn btn-secondary">
+                            <span>Return to Website</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+            showDynamic(html);
+        }
+
+        // Render Action Error with Retry
+        function renderActionError(action) {
+            const html = `
+                <div class="state-container">
+                    <span class="status-badge badge-error">Action Interrupted</span>
+                    <div class="state-icon">⚠️</div>
+                    <h2 class="state-title">Approval Request Timed Out</h2>
+                    <p class="state-desc">The server took too long to complete the action. Your review data is safe and has not been altered.</p>
+
+                    <div class="actions-group" style="justify-content: center; max-width: 480px; margin: 20px auto 0 auto;">
+                        <button class="btn btn-approve" onclick="performModeration('${action}')">
+                            <span>&#8635; Retry Approval</span>
+                        </button>
+                        <a href="/" class="btn btn-secondary">
+                            <span>Cancel</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+            showDynamic(html);
+        }
+
+        // Render Overview Dashboard if no token is passed
+        async function renderDashboard() {
+            let statsHtml = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-val" id="dashTotalRatings">-</div>
+                        <div class="stat-label">Total Verified Reviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-val" id="dashAvgRating">-</div>
+                        <div class="stat-label">Average Star Rating</div>
+                    </div>
+                </div>
+            `;
+
+            const html = `
+                <div class="state-container">
+                    <span class="status-badge badge-already">Review Management Portal</span>
+                    <h2 class="state-title">Asha Suhasini Mental Wellness</h2>
+                    <p class="state-desc">
+                        This administrative interface verifies and manages client reviews. When a visitor submits a review, a secure, single-use moderation link is sent directly to your administrative email.
+                    </p>
+
+                    ${statsHtml}
+
+                    <div style="background: var(--bg-base); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); text-align: left; margin: 20px auto; max-width: 580px;">
+                        <h3 style="color: var(--primary-dark); font-size: 1.05rem; margin-bottom: 8px;">How Review Moderation Works:</h3>
+                        <ol style="padding-left: 20px; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7;">
+                            <li>A client submits feedback through the website review form.</li>
+                            <li>The review enters a <strong>Pending</strong> state and is not shown publicly.</li>
+                            <li>You receive an email notification containing one-click moderation links.</li>
+                            <li>Clicking the link opens this portal, allowing you to preview and confirm approval or rejection.</li>
+                        </ol>
+                    </div>
+
+                    <div class="actions-group" style="justify-content: center; max-width: 480px; margin: 24px auto 0 auto;">
+                        <a href="/#reviews" class="btn btn-gold">
+                            <span>View Live Reviews on Website</span>
+                        </a>
+                        <a href="/" class="btn btn-secondary">
+                            <span>Return to Homepage</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+            showDynamic(html);
+
+            // Fetch live stats in background
+            try {
+                const res = await fetch(`${API_URL}/api/reviews/stats`, { cache: 'no-store' });
+                if (res.ok) {
+                    const stats = await res.json();
+                    const totalEl = document.getElementById('dashTotalRatings');
+                    const avgEl = document.getElementById('dashAvgRating');
+                    if (totalEl) totalEl.textContent = stats.totalRatings || '0';
+                    if (avgEl) avgEl.textContent = (stats.averageRating ? stats.averageRating.toFixed(1) : '5.0') + ' ★';
+                }
+            } catch(e) {
+                console.warn('Could not load dashboard stats:', e);
+            }
+        }
+
+        // Start loading
+        loadReviewModeration();
+    </script>
+</body>
+</html>

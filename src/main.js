@@ -1535,7 +1535,7 @@ async function fetchAndRenderStats() {
 
 async function fetchAndRenderReviews(page = 1, append = false) {
     try {
-        const response = await fetch(`${API_URL}/api/reviews?page=${page}&limit=10`, { cache: "no-store" });
+        const response = await fetch(`${API_URL}/api/reviews?page=${page}&limit=6`, { cache: "no-store" });
         if (!response.ok) throw new Error('Failed to fetch reviews');
         
         const data = await response.json();
@@ -1546,7 +1546,7 @@ async function fetchAndRenderReviews(page = 1, append = false) {
         const loadMoreBtn = document.getElementById('loadMoreReviewsBtn');
         
         if (!append && reviews.length === 0) {
-            if (reviewsContainer) reviewsContainer.innerHTML = '<p style="text-align:center; color:var(--text-secondary); font-style:italic; margin-top:20px; width: 100%;">No reviews yet.</p>';
+            if (reviewsContainer) reviewsContainer.innerHTML = '<p style="text-align:center; color:var(--text-secondary); font-style:italic; margin-top:20px; grid-column: 1 / -1; width: 100%;">No reviews yet. Be the first to share your experience!</p>';
             if (loadMoreBtn) loadMoreBtn.style.display = 'none';
             return;
         }
@@ -1555,19 +1555,21 @@ async function fetchAndRenderReviews(page = 1, append = false) {
         reviews.forEach(rev => {
             const stars = '&#9733;'.repeat(rev.rating) + '&#9734;'.repeat(5 - rev.rating);
             let locArr = [];
-            if (rev.country) locArr.push(escapeHTML(rev.country));
-            if (rev.state) locArr.push(escapeHTML(rev.state));
             if (rev.city) locArr.push(escapeHTML(rev.city));
+            if (rev.state) locArr.push(escapeHTML(rev.state));
+            if (rev.country) locArr.push(escapeHTML(rev.country));
             const locText = locArr.join(', ');
             
             cardsHtml += `
-                <div style="background:var(--bg-base); padding:25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(130, 168, 157, 0.15); text-align: left; width: 100%;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h4 style="color:var(--primary); margin:0; font-size:1.1rem; font-weight:700;">${escapeHTML(rev.name)}</h4>
-                        <div style="color:#c5a66a; font-size:1.1rem; letter-spacing: 2px;">${stars}</div>
+                <div class="review-display-card">
+                    <div class="review-card-top">
+                        <h4 class="review-card-name">${escapeHTML(rev.name)}</h4>
+                        <div class="review-card-stars" aria-label="${rev.rating} out of 5 stars">${stars}</div>
                     </div>
-                    <p style="margin:0 0 15px 0; color:var(--text-secondary); font-style:italic; line-height: 1.5;">"${escapeHTML(rev.message)}"</p>
-                    <p style="margin:0; color:var(--text-muted); font-size:0.85rem;">${locText}</p>
+                    <p class="review-card-body">"${escapeHTML(rev.message)}"</p>
+                    <div class="review-card-footer">
+                        <span class="review-card-location">${locText ? '📍 ' + locText : 'Verified Client'}</span>
+                    </div>
                 </div>
             `;
         });
@@ -1582,9 +1584,9 @@ async function fetchAndRenderReviews(page = 1, append = false) {
 
         if (loadMoreBtn) {
             if (pagination && pagination.hasNextPage) {
-                loadMoreBtn.style.display = 'block';
+                loadMoreBtn.style.display = 'inline-flex';
                 loadMoreBtn.onclick = () => {
-                    loadMoreBtn.textContent = 'Loading...';
+                    loadMoreBtn.textContent = 'Loading reviews...';
                     loadMoreBtn.disabled = true;
                     currentReviewPage++;
                     fetchAndRenderReviews(currentReviewPage, true).then(() => {
@@ -1677,7 +1679,7 @@ function initReviewForm() {
             const data = await res.json();
             
             if (res.ok) {
-                msg.textContent = 'Review submitted and pending approval.';
+                msg.textContent = 'Thank you! Your review has been submitted and is pending administrator moderation.';
                 msg.classList.add('success');
                 form.reset();
                 

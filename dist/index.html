@@ -15,8 +15,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-CEgPka7A.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-8_a4zj9Q.css">
+  <script type="module" crossorigin src="./assets/main-CIRruUxx.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/main-2goOq7w8.css">
 </head>
 <body>
     <!-- Loading screen removed for performance and reliability -->
@@ -962,71 +962,83 @@
 
         <!-- Reviews Section -->
         <section id="reviews" class="section-padding bg-light">
-        <div class="container">
+        <div class="container reviews-section-container">
             <h2 class="section-title reveal">Reviews</h2>
             <p class="section-subtitle reveal">What our clients say about their experience</p>
 
-            <div class="reveal reviews-layout-container" style="display: flex; flex-direction: row; gap: 40px; margin-top: 40px; align-items: flex-start; flex-wrap: wrap; justify-content: center;">
+            <!-- Rating summary header & write review link -->
+            <div class="reviews-header-summary reveal">
+                <div class="rating-summary-pill">
+                    <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                    <span><strong>5.0</strong> &bull; <span id="reviewCount">13</span> Verified Ratings</span>
+                </div>
+                <a href="#submit-review-card" class="write-review-btn">
+                    <span>&#9998; Write a Review</span>
+                </a>
+            </div>
+
+            <!-- Two-Column Approved Reviews Showcase -->
+            <div class="reviews-showcase-wrapper reveal">
+                <div id="publicReviewsContainer" class="reviews-cards-grid">
+                    <!-- Dynamic review cards injected here (2 columns desktop, 1 column mobile) -->
+                </div>
                 
-                <!-- LEFT COLUMN: Submit Review -->
-                <div class="reviews-left-col" style="flex: 1; min-width: 250px; max-width: 450px; width: 100%;">
-                    <div class="review-form-card" id="reviews-form" style="background: #FDFCF9; padding: 30px; border-radius: 12px; box-shadow: var(--shadow-sm); border: 1px solid rgba(130, 168, 157, 0.15);">
-                        <h3 style="text-align: center; margin-bottom: 10px; color: var(--primary); font-size: 1.5rem; font-weight: 700;">Submit a Review</h3>
-                        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 25px; font-size: 0.95rem;">Share your experience with Asha</p>
-                        <form id="reviewForm" novalidate>
-                            <div class="form-field">
-                                <label for="reviewerName">Your Name</label>
-                                <input type="text" id="reviewerName" name="reviewerName" placeholder="Enter your name" required>
-                            </div>
-                            <div class="form-field">
-                                <label for="reviewerEmail">Your Email (Not shown publicly)</label>
-                                <input type="email" id="reviewerEmail" name="reviewerEmail" placeholder="Enter your email" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Rating</label>
-                                <div class="star-rating-input" id="starRatingInput" role="radiogroup" aria-required="true" style="display: flex; gap: 5px; margin-top: 5px;">
-                                    <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.3); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="1" aria-label="1 star"><span>&#9734;</span></button>
-                                    <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.3); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="2" aria-label="2 stars"><span>&#9734;</span></button>
-                                    <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.3); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="3" aria-label="3 stars"><span>&#9734;</span></button>
-                                    <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.3); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="4" aria-label="4 stars"><span>&#9734;</span></button>
-                                    <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.3); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0;" data-value="5" aria-label="5 stars"><span>&#9734;</span></button>
-                                </div>
-                                <input type="hidden" id="reviewRating" name="reviewRating" required>
-                            </div>
-                            <div class="form-field" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                <div style="flex: 1; min-width: 120px;">
-                                    <label for="reviewerCountry">Country</label>
-                                    <input type="text" id="reviewerCountry" name="reviewerCountry" placeholder="e.g. India" required>
-                                </div>
-                                <div style="flex: 1; min-width: 120px;">
-                                    <label for="reviewerState">State</label>
-                                    <input type="text" id="reviewerState" name="reviewerState" placeholder="e.g. Telangana" required>
-                                </div>
-                                <div style="flex: 1; min-width: 120px;">
-                                    <label for="reviewerCity">City</label>
-                                    <input type="text" id="reviewerCity" name="reviewerCity" placeholder="e.g. Hyderabad" required>
-                                </div>
-                            </div>
-                            <div class="form-field">
-                                <label for="reviewText">Review</label>
-                                <textarea id="reviewText" name="reviewText" rows="4" placeholder="Write a short review..." required style="resize: vertical;"></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary contact-button" style="width: 100%; margin-top: 10px; border-radius: 8px;"><span>Submit Review</span></button>
-                            <p id="reviewFormMessage" class="contact-form-message" role="status" aria-live="polite" style="margin-top: 15px; text-align: center;"></p>
-                        </form>
-                    </div>
+                <div class="reviews-load-more-row">
+                    <button id="loadMoreReviewsBtn" class="reviews-load-more-btn" style="display: none;"><span>Load More Reviews</span></button>
                 </div>
+            </div>
 
-                <!-- RIGHT COLUMN: Approved Reviews -->
-                <div class="reviews-right-col" style="flex: 1.5; min-width: 250px; width: 100%;">
+            <!-- Visually Separate Review Submission Form -->
+            <div class="review-submission-wrapper reveal" id="submit-review-card">
+                <h3 class="review-form-title">Share Your Experience</h3>
+                <p class="review-form-subtitle">Have you attended a therapy session, workshop, or consultation? We would love to hear your feedback.</p>
+                <form id="reviewForm" novalidate>
+                    <div class="review-form-grid-2">
+                        <div class="form-field">
+                            <label for="reviewerName">Your Name</label>
+                            <input type="text" id="reviewerName" name="reviewerName" placeholder="Enter your name" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="reviewerEmail">Your Email (Confidential &bull; Not published)</label>
+                            <input type="email" id="reviewerEmail" name="reviewerEmail" placeholder="Enter your email" required>
+                        </div>
+                    </div>
                     
-                    <div id="publicReviewsContainer" style="display: flex; flex-direction: column; gap: 20px;">
-                        <!-- Reviews injected here -->
+                    <div class="form-field" style="margin-bottom: 1.25rem;">
+                        <label>Your Rating</label>
+                        <div class="star-rating-input" id="starRatingInput" role="radiogroup" aria-required="true" style="display: flex; gap: 6px; margin-top: 6px;">
+                            <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.35); font-size: 1.6rem; background: none; border: none; cursor: pointer; padding: 0; line-height: 1;" data-value="1" aria-label="1 star"><span>&#9734;</span></button>
+                            <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.35); font-size: 1.6rem; background: none; border: none; cursor: pointer; padding: 0; line-height: 1;" data-value="2" aria-label="2 stars"><span>&#9734;</span></button>
+                            <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.35); font-size: 1.6rem; background: none; border: none; cursor: pointer; padding: 0; line-height: 1;" data-value="3" aria-label="3 stars"><span>&#9734;</span></button>
+                            <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.35); font-size: 1.6rem; background: none; border: none; cursor: pointer; padding: 0; line-height: 1;" data-value="4" aria-label="4 stars"><span>&#9734;</span></button>
+                            <button type="button" class="btn-icon star-btn" style="color: rgba(130, 168, 157, 0.35); font-size: 1.6rem; background: none; border: none; cursor: pointer; padding: 0; line-height: 1;" data-value="5" aria-label="5 stars"><span>&#9734;</span></button>
+                        </div>
+                        <input type="hidden" id="reviewRating" name="reviewRating" required>
                     </div>
-                    <button id="loadMoreReviewsBtn" class="btn btn-secondary" style="display: none; width: 100%; margin-top: 20px; border-radius: 8px; padding: 12px; background: rgba(130, 168, 157, 0.08); color: var(--primary); border: 1px solid rgba(130, 168, 157, 0.2); font-weight: 600; cursor: pointer; transition: all 0.3s ease;">Load More Reviews</button>
 
-                </div>
+                    <div class="review-form-grid-3">
+                        <div class="form-field">
+                            <label for="reviewerCountry">Country</label>
+                            <input type="text" id="reviewerCountry" name="reviewerCountry" placeholder="e.g. India" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="reviewerState">State</label>
+                            <input type="text" id="reviewerState" name="reviewerState" placeholder="e.g. Telangana" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="reviewerCity">City</label>
+                            <input type="text" id="reviewerCity" name="reviewerCity" placeholder="e.g. Hyderabad" required>
+                        </div>
+                    </div>
 
+                    <div class="form-field" style="margin-bottom: 1.5rem;">
+                        <label for="reviewText">Your Review</label>
+                        <textarea id="reviewText" name="reviewText" rows="4" placeholder="Write a short review describing your experience..." required style="resize: vertical; width: 100%;"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary contact-button" style="width: 100%; border-radius: 10px; padding: 14px;"><span>Submit Review for Moderation</span></button>
+                    <p id="reviewFormMessage" class="contact-form-message" role="status" aria-live="polite" style="margin-top: 15px; text-align: center;"></p>
+                </form>
             </div>
         </div>
         </section>

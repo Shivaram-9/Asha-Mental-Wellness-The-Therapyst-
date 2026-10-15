@@ -414,11 +414,12 @@ app.post('/api/reviews', async (req, res) => {
             return res.status(500).json({ error: 'Server email configuration (Google Relay) is missing.' });
         }
         
-        // Define Base URL for approval links
-        const baseUrl = req.protocol + '://' + req.get('host');
+        // Define Base URL for approval links pointing to the frontend review-management portal
+        const frontendBase = process.env.FRONTEND_URL || 
+            (req.headers.origin && req.headers.origin.includes('ashasuhasini.com') ? req.headers.origin : 'https://ashasuhasini.com');
         
-        const approveLink = `${baseUrl}/api/reviews/action?id=${savedReview._id}&token=${approvalToken}&action=approve`;
-        const rejectLink = `${baseUrl}/api/reviews/action?id=${savedReview._id}&token=${approvalToken}&action=reject`;
+        const approveLink = `${frontendBase}/review-management.html?id=${savedReview._id}&token=${approvalToken}&action=approve`;
+        const rejectLink = `${frontendBase}/review-management.html?id=${savedReview._id}&token=${approvalToken}&action=reject`;
         
         const htmlBody = `
                 <h2>New Review Pending Approval</h2>
@@ -427,6 +428,7 @@ app.post('/api/reviews', async (req, res) => {
                 <p><strong>Reviewer Name:</strong> ${name}</p>
                 <p><strong>Reviewer Email:</strong> ${email}</p>
                 <p><strong>Rating:</strong> ${numRating} Stars</p>
+                <p><strong>Location:</strong> ${[city, state, country].filter(Boolean).join(', ')}</p>
                 <p><strong>Message:</strong></p>
                 <blockquote style="background:#f9f9f9; padding:10px; border-left:4px solid #ccc;">
                     ${message}
@@ -435,10 +437,10 @@ app.post('/api/reviews', async (req, res) => {
                 <p><strong>Review ID:</strong> ${savedReview._id}</p>
                 <hr>
                 <h3>Actions</h3>
-                <p>Click one of the secure links below to moderate this review. <em>Warning: Do not share these links.</em></p>
-                <p><a href="${approveLink}" style="padding:10px 20px; background-color:green; color:white; text-decoration:none; border-radius:5px;">APPROVE REVIEW</a></p>
+                <p>Click one of the secure links below to review and moderate this submission on the website portal. <em>Warning: Do not share these links.</em></p>
+                <p><a href="${approveLink}" style="padding:10px 20px; background-color:green; color:white; text-decoration:none; border-radius:5px; display:inline-block;">APPROVE REVIEW</a></p>
                 <br>
-                <p><a href="${rejectLink}" style="padding:10px 20px; background-color:red; color:white; text-decoration:none; border-radius:5px;">REJECT REVIEW</a></p>
+                <p><a href="${rejectLink}" style="padding:10px 20px; background-color:red; color:white; text-decoration:none; border-radius:5px; display:inline-block;">REJECT REVIEW</a></p>
             `;
 
         try {
@@ -485,123 +487,187 @@ app.post('/api/reviews', async (req, res) => {
     }
 });
 
-// Step 1: Render a confirmation page to prevent email-scanner auto-clicks
+// Step 1: Verification / inspection endpoint (supports JSON for frontend SPA and redirect for direct browser clicks)
 app.get('/api/reviews/action', async (req, res) => {
-    const { id, token } = req.query;
+    const { id, token, action, format } = req.query;
+    const isJson = (req.headers.accept && req.headers.accept.includes('application/json')) || format === 'json';
+    const frontendBase = process.env.FRONTEND_URL || 'https://ashasuhasini.com';
     
     if (!id || !token) {
-        return res.status(400).send('Missing required parameters.');
+        if (isJson) {
+            return res.status(400).json({ error: 'Missing required parameters: id and token.' });
+        }
+        return res.status(400).send('Missing required parameters: id and token.');
     }
     
     try {
         const review = await Review.findById(id);
-        if (!review) return res.status(404).send('Review not found.');
+        if (!review) {
+            if (isJson) return res.status(404).json({ error: 'Review not found.' });
+            return res.status(404).send('Review not found.');
+        }
         
+        // If this is a direct browser navigation, redirect to the frontend review-management portal
+        if (!isJson) {
+            const redirectUrl = `${frontendBase}/review-management.html?id=${encodeURIComponent(id)}&token=${encodeURIComponent(token)}${action ? `&action=${encodeURIComponent(action)}` : ''}`;
+            return res.redirect(302, redirectUrl);
+        }
+        
+        // JSON responses for the frontend page:
         if (review.status === 'approved') {
-            return res.send(`
-                <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-                    <h2 style="color: green;">This review has already been approved.</h2>
-                    <p>No further action is required.</p>
-                </div>
-            `);
+            return res.json({
+                status: 'already_approved',
+                message: 'This review has already been approved and published.',
+                review: {
+                    id: review._id,
+                    name: review.name,
+                    rating: review.rating,
+                    message: review.message,
+                    country: review.country,
+                    state: review.state,
+                    city: review.city,
+                    createdAt: review.createdAt
+                }
+            });
         }
         
         if (review.status === 'rejected') {
-            return res.send(`
-                <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-                    <h2 style="color: red;">This review has already been rejected.</h2>
-                    <p>No further action is required.</p>
-                </div>
-            `);
+            return res.json({
+                status: 'already_rejected',
+                message: 'This review has already been rejected.',
+                review: {
+                    id: review._id,
+                    name: review.name,
+                    rating: review.rating,
+                    message: review.message,
+                    country: review.country,
+                    state: review.state,
+                    city: review.city,
+                    createdAt: review.createdAt
+                }
+            });
         }
         
         if (!review.approvalToken || review.approvalToken !== token) {
-            return res.status(403).send('Invalid or secure token mismatch.');
+            return res.status(403).json({ error: 'Invalid or expired secure token.' });
         }
         
         if (review.tokenExpiry && review.tokenExpiry < new Date()) {
-            return res.status(403).send('This approval link has expired (7 days).');
+            return res.status(403).json({ error: 'This approval link has expired (7 days).' });
         }
         
-        res.send(`
-            <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-                <h2>Review Moderation</h2>
-                <p>Review by <strong>${review.name}</strong> (${review.rating} Stars):</p>
-                <blockquote style="background:#f9f9f9; padding:10px; border-left:4px solid #ccc; display:inline-block; text-align:left; max-width: 600px;">
-                    ${review.message}
-                </blockquote>
-                <br><br>
-                <div style="display: flex; justify-content: center; gap: 20px;">
-                    <form method="POST" action="/api/reviews/action">
-                        <input type="hidden" name="id" value="${id}">
-                        <input type="hidden" name="token" value="${token}">
-                        <input type="hidden" name="action" value="approve">
-                        <button type="submit" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
-                            APPROVE REVIEW
-                        </button>
-                    </form>
-                    <form method="POST" action="/api/reviews/action">
-                        <input type="hidden" name="id" value="${id}">
-                        <input type="hidden" name="token" value="${token}">
-                        <input type="hidden" name="action" value="reject">
-                        <button type="submit" style="padding: 10px 20px; background-color: red; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
-                            REJECT REVIEW
-                        </button>
-                    </form>
-                </div>
-            </div>
-        `);
+        // Review is pending and token is valid
+        return res.json({
+            status: 'pending',
+            review: {
+                id: review._id,
+                name: review.name,
+                email: review.email,
+                rating: review.rating,
+                message: review.message,
+                country: review.country,
+                state: review.state,
+                city: review.city,
+                createdAt: review.createdAt
+            }
+        });
     } catch (error) {
-        console.error('Moderation error:', error);
+        console.error('Moderation info error:', error);
+        if (isJson) {
+            return res.status(500).json({ error: 'Server error processing review moderation request.' });
+        }
         res.status(500).send('Server error processing moderation.');
     }
 });
 
 // Step 2: Actually process the state mutation securely via POST
 app.post('/api/reviews/action', async (req, res) => {
-    // allow parsing URL-encoded bodies for the form submission
     const { id, token, action } = req.body;
+    const isJson = req.is('application/json') || (req.headers.accept && req.headers.accept.includes('application/json'));
+    const frontendBase = process.env.FRONTEND_URL || 'https://ashasuhasini.com';
     
     if (!id || !token || !action) {
+        if (isJson) return res.status(400).json({ error: 'Missing required parameters: id, token, and action.' });
         return res.status(400).send('Missing required parameters.');
+    }
+    
+    if (action !== 'approve' && action !== 'reject') {
+        if (isJson) return res.status(400).json({ error: 'Invalid action. Must be approve or reject.' });
+        return res.status(400).send('Invalid action.');
     }
     
     try {
         const review = await Review.findById(id);
-        if (!review) return res.status(404).send('Review not found.');
+        if (!review) {
+            if (isJson) return res.status(404).json({ error: 'Review not found.' });
+            return res.status(404).send('Review not found.');
+        }
+        
+        // Handle duplicate / already-handled reviews gracefully
+        if (review.status === 'approved') {
+            if (action === 'approve') {
+                if (isJson) {
+                    return res.json({
+                        success: true,
+                        alreadyHandled: true,
+                        status: 'approved',
+                        message: 'This review has already been approved and published.'
+                    });
+                }
+                return res.redirect(302, `${frontendBase}/review-management.html?id=${id}&status=already_approved`);
+            } else {
+                if (isJson) return res.status(400).json({ error: 'This review has already been approved.' });
+                return res.status(400).send('This review has already been approved.');
+            }
+        }
+        
+        if (review.status === 'rejected') {
+            if (action === 'reject') {
+                if (isJson) {
+                    return res.json({
+                        success: true,
+                        alreadyHandled: true,
+                        status: 'rejected',
+                        message: 'This review has already been rejected.'
+                    });
+                }
+                return res.redirect(302, `${frontendBase}/review-management.html?id=${id}&status=already_rejected`);
+            } else {
+                if (isJson) return res.status(400).json({ error: 'This review has already been rejected.' });
+                return res.status(400).send('This review has already been rejected.');
+            }
+        }
         
         if (!review.approvalToken || review.approvalToken !== token) {
+            if (isJson) return res.status(403).json({ error: 'Invalid, reused, or expired secure token.' });
             return res.status(403).send('Invalid, reused, or expired secure token.');
         }
         
         if (review.tokenExpiry && review.tokenExpiry < new Date()) {
+            if (isJson) return res.status(403).json({ error: 'This approval link has expired (7 days).' });
             return res.status(403).send('This approval link has expired (7 days).');
         }
         
-        if (action === 'approve') {
-            review.status = 'approved';
-        } else if (action === 'reject') {
-            review.status = 'rejected';
-        } else {
-            return res.status(400).send('Invalid action.');
-        }
-        
-        // Nullify the token so this link can never be reused
+        // Mutate status only upon authorized confirmation
+        review.status = action === 'approve' ? 'approved' : 'rejected';
         review.approvalToken = null;
         review.tokenExpiry = null;
         await review.save();
         
-        const color = action === 'approve' ? 'green' : 'red';
-        const msg = action === 'approve' ? 'Approved and published!' : 'Rejected and hidden.';
+        const successMsg = action === 'approve' ? 'Review approved and published successfully.' : 'Review rejected successfully.';
         
-        res.send(`
-            <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
-                <h1 style="color: ${color};">Review ${msg}</h1>
-                <p>You can close this window safely.</p>
-            </div>
-        `);
+        if (isJson) {
+            return res.json({
+                success: true,
+                status: review.status,
+                message: successMsg
+            });
+        }
+        
+        return res.redirect(302, `${frontendBase}/review-management.html?id=${id}&status=success&action=${action}`);
     } catch (error) {
         console.error('Moderation POST error:', error);
+        if (isJson) return res.status(500).json({ error: 'Server error processing review moderation.' });
         res.status(500).send('Server error processing moderation.');
     }
 });
