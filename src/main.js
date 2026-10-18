@@ -154,12 +154,6 @@ function openModal(modalType) {
 
 function closeModal() {
     currentGalleryIndex = -1;
-    const video = modalContainer.querySelector('video');
-    if (video) {
-        video.pause();
-        video.removeAttribute('src');
-        video.load();
-    }
     modalOverlay.classList.remove('active');
     modalContainer.classList.remove('active');
     document.body.style.overflow = 'auto';
@@ -1105,51 +1099,15 @@ function applyImagePathFallback(img, preferredPath) {
     });
 }
 
-function applyVideoPathFallback(video, preferredPath) {
-    const basePath = preferredPath || video.getAttribute('src') || '';
-    const candidates = getMediaPathCandidates(basePath);
-    if (candidates.length === 0) return;
-
-    let candidateIndex = 0;
-    video.src = candidates[candidateIndex];
-    video.dataset.pathTriedIndex = String(candidateIndex);
-
-    video.addEventListener('error', () => {
-        const lastTried = Number(video.dataset.pathTriedIndex || candidateIndex);
-        const nextIndex = lastTried + 1;
-        if (nextIndex < candidates.length) {
-            video.dataset.pathTriedIndex = String(nextIndex);
-            video.src = candidates[nextIndex];
-            video.load();
-        } else {
-            video.outerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-secondary);"><p>Unable to load video. Please check your network connection.</p></div>';
-        }
-    });
-}
-
-function openMediaModal(src, type, index = -1, caption = '', poster = '') {
+function openMediaModal(src, type = 'image', index = -1, caption = '') {
     currentGalleryIndex = index;
-    const isVideo = type === 'video';
-
-    // Pause and clear any previous video playback
-    const existingVideo = modalContainer.querySelector('video');
-    if (existingVideo) {
-        existingVideo.pause();
-        existingVideo.removeAttribute('src');
-        existingVideo.load();
-    }
-
-    const posterAttr = (isVideo && poster) ? ` poster="${poster}"` : (isVideo ? ` poster="./assets/images/poster-13.jpeg"` : '');
-    const mediaEl = isVideo
-        ? `<video src="${src}"${posterAttr} controls playsinline preload="metadata" style="max-height:70vh; width:100%; border-radius:12px; display:block;"></video>`
-        : `<img src="${src}" alt="">`;
 
     const mediaMarkup = `
         <div class="modal-header">
             <button class="btn-icon modal-close" onclick="closeModal()"><span>&times;</span></button>
         </div>
         <div class="modal-body">
-            ${mediaEl}
+            <img src="${src}" alt="${caption || 'Gallery photograph'}">
         </div>
     `;
 
@@ -1157,13 +1115,6 @@ function openMediaModal(src, type, index = -1, caption = '', poster = '') {
     modalOverlay.classList.add('active');
     modalContainer.classList.add('active');
     document.body.style.overflow = 'hidden';
-
-    if (isVideo) {
-        const videoElement = modalContainer.querySelector('video');
-        if (videoElement) {
-            applyVideoPathFallback(videoElement, src);
-        }
-    }
 
     // Set min date if bookingDate exists
     const dateInput = document.getElementById('bookingDate');
@@ -1177,17 +1128,17 @@ function galleryPrev() {
     if (galleryItems.length === 0) return;
     const nextIndex = (currentGalleryIndex - 1 + galleryItems.length) % galleryItems.length;
     const item = galleryItems[nextIndex];
-    openMediaModal(item.src, item.type, nextIndex, item.caption, item.poster);
+    openMediaModal(item.src, item.type, nextIndex, item.caption);
 }
 
 function galleryNext() {
     if (galleryItems.length === 0) return;
     const nextIndex = (currentGalleryIndex + 1) % galleryItems.length;
     const item = galleryItems[nextIndex];
-    openMediaModal(item.src, item.type, nextIndex, item.caption, item.poster);
+    openMediaModal(item.src, item.type, nextIndex, item.caption);
 }
 
-// Attach handlers to gallery items (handles images and video thumbnails)
+// Attach handlers to gallery items (photographs)
 function initGalleryHandlers() {
     // Build gallery items list
     galleryItems = [];
@@ -1195,8 +1146,8 @@ function initGalleryHandlers() {
     const imgs = Array.from(document.querySelectorAll('.media-item > img'));
 
     imgs.forEach((img, i) => {
-        const src = img.src;   //  FIXED
-        const type = 'image';  //  FIXED
+        const src = img.src;
+        const type = 'image';
         const caption = img.alt || '';
 
         galleryItems.push({ src, type, caption });
@@ -1209,35 +1160,6 @@ function initGalleryHandlers() {
             e.preventDefault();
             e.stopPropagation();
             openMediaModal(src, type, i, caption);
-        });
-    });
-
-    const thumbs = document.querySelectorAll('.video-thumb') || [];
-
-    thumbs.forEach((thumb) => {
-        const src = thumb.dataset.src;
-        const poster = thumb.dataset.poster || (thumb.querySelector('img') ? thumb.querySelector('img').getAttribute('src') : './assets/images/poster-13.jpeg');
-        const caption = thumb.dataset.caption || thumb.getAttribute('aria-label') || '';
-        const index = galleryItems.length;
-
-        galleryItems.push({ src, type: 'video', caption, poster });
-
-        const thumbImage = thumb.querySelector('img');
-        if (thumbImage) {
-            applyImagePathFallback(thumbImage, thumbImage.getAttribute('src') || '');
-        }
-
-        thumb.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            openMediaModal(src, 'video', index, caption, poster);
-        });
-
-        thumb.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openMediaModal(src, 'video', index, caption, poster);
-            }
         });
     });
 
