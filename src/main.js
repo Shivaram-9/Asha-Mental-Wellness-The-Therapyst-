@@ -1,4 +1,5 @@
 // Loading screen removed for reliability
+import phonepeQrUrl from '../assets/images/phonepe-qr.jpg';
 
 // Sidebar Mobile Toggle
 const menuToggle = document.getElementById('menuToggle');
@@ -331,8 +332,92 @@ function getModalContent(modalType) {
                         </div>
                         <button class="btn btn-primary full-width" onclick="confirmBooking()">Confirm Booking</button>
                     </div>
-                    <div id="bookingSuccessMessage" style="display:none; margin-top: 1rem; padding: 1rem; background: rgba(130, 168, 157, 0.15); border: 1px solid rgba(130, 168, 157, 0.3); color: var(--primary); border-radius: 8px;">
-                        Booking confirmed! Your time slot has been successfully reserved.
+                    <div id="bookingSuccessMessage" style="display:none; margin-top: 1rem; padding: 1.25rem; background: rgba(130, 168, 157, 0.12); border: 1px solid rgba(130, 168, 157, 0.35); color: var(--primary); border-radius: 12px;">
+                    </div>
+
+                    <!-- Dedicated Payment Step / Section -->
+                    <div id="bookingPaymentSection" class="booking-payment-section" style="display:none; margin-top: 1.5rem;">
+                        <div class="payment-header">
+                            <h3 class="payment-title">Complete Your Payment</h3>
+                            <p class="payment-subtitle">Scan & Pay Using PhonePe or Any Supported UPI App</p>
+                        </div>
+
+                        <!-- Service & Fee Summary Card -->
+                        <div class="payment-summary-card">
+                            <div class="payment-summary-row">
+                                <span class="payment-label">Selected Service:</span>
+                                <span id="paymentServiceName" class="payment-value">—</span>
+                            </div>
+                            <div class="payment-summary-row">
+                                <span class="payment-label">Session Duration:</span>
+                                <span id="paymentServiceDuration" class="payment-value">—</span>
+                            </div>
+                            <div class="payment-summary-row payment-amount-row">
+                                <span class="payment-label">Exact Amount Payable:</span>
+                                <span id="paymentAmountPayable" class="payment-fee">—</span>
+                            </div>
+                        </div>
+
+                        <!-- PhonePe QR Code Container -->
+                        <div class="payment-qr-container">
+                            <img id="paymentQrImage" src="${phonepeQrUrl || './assets/images/phonepe-qr.jpg'}" alt="PhonePe QR Code - GULLA ASHA SUHASINI RAJA" class="payment-qr-img">
+                        </div>
+
+                        <!-- Account Details Card with Copy UPI ID -->
+                        <div class="payment-account-card">
+                            <div class="account-row">
+                                <span class="account-label">Payment Account Name:</span>
+                                <span class="account-value">GULLA ASHA SUHASINI RAJA</span>
+                            </div>
+                            <div class="account-row upi-row">
+                                <span class="account-label">UPI ID:</span>
+                                <div class="upi-copy-wrap">
+                                    <code class="upi-id-code" id="upiIdText">8019749608@ybl</code>
+                                    <button type="button" class="btn-copy-upi" onclick="copyUpiId()" id="copyUpiBtn" title="Copy UPI ID">
+                                        <span id="copyUpiText">Copy UPI ID</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Instructions & Pending Notice -->
+                        <div class="payment-notice-box">
+                            <p><strong>Instruction:</strong> Please pay the exact amount of <span id="noticeAmount" style="font-weight:700; color:#92400e;">—</span> shown above using PhonePe, Google Pay, Paytm, or any UPI app.</p>
+                            <p class="notice-pending-note"><strong>Please Note:</strong> Your booking is pending until the payment is verified.</p>
+                        </div>
+
+                        <!-- Payment Submission Form -->
+                        <form id="paymentSubmissionForm" onsubmit="event.preventDefault(); submitPaymentDetails();" class="payment-form">
+                            <h4 style="margin-top: 1.25rem; margin-bottom: 0.75rem; color: var(--primary);">Submit Payment Reference</h4>
+                            
+                            <div class="form-field">
+                                <label for="paymentUtr">UTR / Transaction Reference Number <span style="color:#c62828;">*</span></label>
+                                <input type="text" id="paymentUtr" class="form-input" placeholder="e.g. 12-digit UPI / UTR Ref No." required autocomplete="off">
+                                <small class="form-helper">Enter the 12-digit transaction reference (UTR) from your payment app receipt.</small>
+                            </div>
+
+                            <div class="form-field" style="margin-top: 1rem;">
+                                <label for="paymentScreenshot">Payment Screenshot <span class="text-muted">(Optional)</span></label>
+                                <input type="file" id="paymentScreenshot" class="form-input" accept="image/jpeg,image/png,image/webp">
+                                <small class="form-helper">Optional screenshot of receipt (JPG, PNG, max 2MB).</small>
+                            </div>
+
+                            <div class="form-field checkbox-field" style="margin-top: 1rem;">
+                                <label class="checkbox-label" for="paymentConfirmCheck">
+                                    <input type="checkbox" id="paymentConfirmCheck" required>
+                                    <span>I have completed the payment for the amount shown above.</span>
+                                </label>
+                            </div>
+
+                            <div style="margin-top: 1.25rem;">
+                                <button type="submit" id="submitPaymentBtn" class="btn btn-primary full-width">
+                                    Submit Payment Details
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="paymentStatusMessage" class="payment-status-message" style="display: none; margin-top: 1.25rem;">
+                        </div>
                     </div>
                 </div>
                 
@@ -1462,31 +1547,49 @@ async function confirmBooking() {
         if (response.ok) {
             document.getElementById('bookingFormDetails').style.display = 'none';
             
+            // Store current booking details for the payment step
+            window.currentBooking = {
+                id: data.bookingId,
+                name: name,
+                email: email,
+                date: date,
+                slot: slot,
+                service: data.service || serviceData.name,
+                duration: data.duration || serviceData.duration,
+                fee: data.fee || serviceData.feeFormatted,
+                feeAmount: data.feeAmount || serviceData.fee
+            };
+
             // Refresh slots to correctly show it's no longer available
             await renderTimeSlots();
             
-            // Show clear professional confirmation
+            // Show clear professional confirmation with "Proceed to Payment" button
             let successMsg = document.getElementById('bookingSuccessMessage');
 
             if (!successMsg) {
                 successMsg = document.createElement('div');
                 successMsg.id = 'bookingSuccessMessage';
-                successMsg.style.cssText = 'margin-top: 1rem; padding: 1rem; background: rgba(130, 168, 157, 0.15); border: 1px solid rgba(130, 168, 157, 0.3); color: var(--primary); border-radius: 8px;';
+                successMsg.style.cssText = 'margin-top: 1rem; padding: 1.25rem; background: rgba(130, 168, 157, 0.12); border: 1px solid rgba(130, 168, 157, 0.35); color: var(--primary); border-radius: 12px;';
                 document.getElementById('bookingSystem').appendChild(successMsg);
             }
             successMsg.style.display = 'block';
             successMsg.innerHTML = `
-                <h4 style="margin-top:0; color:var(--primary);">Booking Request Submitted</h4>
-                <p>Your online session request has been received and is awaiting confirmation. You will receive a confirmation email once your request is approved.</p>
-                <p><strong>Selected Service:</strong> ${data.service || serviceData.name}</p>
-                <p><strong>Session Duration:</strong> ${data.duration || serviceData.duration}</p>
-                <p><strong>Consultation Fee:</strong> ${data.fee || serviceData.feeFormatted}</p>
-                <p><strong>Name:</strong> ${name}</p>
-                <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Date:</strong> ${date}</p>
-                <p><strong>Time:</strong> ${slot}</p>
-                <p><strong>Session:</strong> Online Session</p>
-                <p style="margin-bottom:0; margin-top:10px; font-weight:bold;">Status: Awaiting Confirmation</p>
+                <h4 style="margin-top:0; color:var(--primary); font-size: 1.2rem;">Booking Request Submitted</h4>
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Your online session request has been received. Please proceed to payment to complete your booking submission.</p>
+                <div style="background:#ffffff; border:1px solid rgba(130, 168, 157, 0.3); border-radius:8px; padding:1rem; margin-bottom:1.25rem; font-size:0.95rem; line-height: 1.6;">
+                    <p style="margin: 0.25rem 0;"><strong>Selected Service:</strong> ${window.currentBooking.service}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Session Duration:</strong> ${window.currentBooking.duration}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Consultation Fee:</strong> <span style="font-weight:700; color:#92400e; font-size:1.1rem;">${window.currentBooking.fee}</span></p>
+                    <p style="margin: 0.25rem 0;"><strong>Name:</strong> ${name}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Email:</strong> ${email}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Date:</strong> ${date}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Time:</strong> ${slot}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Session Format:</strong> Online Session</p>
+                    <p style="margin-bottom:0; margin-top:0.5rem; font-weight:600; color: #b45309;">Status: Awaiting Payment</p>
+                </div>
+                <button type="button" id="proceedToPaymentBtn" class="btn btn-primary full-width" onclick="showPaymentStep()">
+                    Proceed to Payment
+                </button>
             `;
         } else {
             alert('Booking failed: ' + (data.error || 'Please try again.'));
@@ -1502,12 +1605,233 @@ async function confirmBooking() {
     }
 }
 
+function showPaymentStep() {
+    if (!window.currentBooking) {
+        alert('Please complete the booking form first.');
+        return;
+    }
+
+    // Hide booking request confirmation message
+    const successMsg = document.getElementById('bookingSuccessMessage');
+    if (successMsg) successMsg.style.display = 'none';
+
+    // Hide initial form fields to present dedicated payment panel
+    const serviceField = document.querySelector('label[for="bookingService"]')?.closest('.form-field');
+    if (serviceField) serviceField.style.display = 'none';
+    const serviceDetailsBox = document.getElementById('serviceDetailsBox');
+    if (serviceDetailsBox) serviceDetailsBox.style.display = 'none';
+    const dateField = document.querySelector('label[for="bookingDate"]')?.closest('.form-field');
+    if (dateField) dateField.style.display = 'none';
+    const slotField = document.getElementById('slotLabel')?.closest('.form-field');
+    if (slotField) slotField.style.display = 'none';
+
+    // Populate payment details
+    const nameEl = document.getElementById('paymentServiceName');
+    const durEl = document.getElementById('paymentServiceDuration');
+    const feeEl = document.getElementById('paymentAmountPayable');
+    const noticeAmountEl = document.getElementById('noticeAmount');
+
+    if (nameEl) nameEl.textContent = window.currentBooking.service;
+    if (durEl) durEl.textContent = window.currentBooking.duration;
+    if (feeEl) feeEl.textContent = window.currentBooking.fee;
+    if (noticeAmountEl) noticeAmountEl.textContent = window.currentBooking.fee;
+
+    // Show payment section
+    const paymentSec = document.getElementById('bookingPaymentSection');
+    if (paymentSec) {
+        paymentSec.style.display = 'block';
+        paymentSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function copyUpiId() {
+    const upiText = '8019749608@ybl';
+    const copyBtn = document.getElementById('copyUpiBtn');
+    const btnText = document.getElementById('copyUpiText');
+
+    const onSuccess = () => {
+        if (btnText) {
+            const originalText = btnText.textContent;
+            btnText.textContent = '✓ Copied!';
+            if (copyBtn) copyBtn.style.background = '#2e7d32';
+            setTimeout(() => {
+                btnText.textContent = originalText;
+                if (copyBtn) copyBtn.style.background = '';
+            }, 2000);
+        }
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(upiText).then(onSuccess).catch(() => {
+            fallbackCopy(upiText, onSuccess);
+        });
+    } else {
+        fallbackCopy(upiText, onSuccess);
+    }
+}
+
+function fallbackCopy(text, callback) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        const successful = document.execCommand('copy');
+        if (successful && callback) callback();
+    } catch (err) {
+        console.error('Fallback copy failed', err);
+    }
+    document.body.removeChild(textArea);
+}
+
+async function submitPaymentDetails() {
+    if (!window.currentBooking || !window.currentBooking.id) {
+        alert('No active booking request found. Please submit a booking request first.');
+        return;
+    }
+
+    const utrInput = document.getElementById('paymentUtr');
+    const checkInput = document.getElementById('paymentConfirmCheck');
+    const screenshotInput = document.getElementById('paymentScreenshot');
+    const submitBtn = document.getElementById('submitPaymentBtn');
+
+    const utr = utrInput ? utrInput.value.trim() : '';
+    if (!utr) {
+        alert('Please enter your UTR / Transaction Reference Number.');
+        if (utrInput) utrInput.focus();
+        return;
+    }
+
+    if (utr.length < 6 || utr.length > 35) {
+        alert('Please enter a valid UTR / Transaction Reference Number (between 6 and 35 characters).');
+        if (utrInput) utrInput.focus();
+        return;
+    }
+
+    if (checkInput && !checkInput.checked) {
+        alert('Please check the confirmation box to confirm that you have completed the payment.');
+        checkInput.focus();
+        return;
+    }
+
+    let screenshotBase64 = null;
+    if (screenshotInput && screenshotInput.files && screenshotInput.files[0]) {
+        const file = screenshotInput.files[0];
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            alert('Invalid file format. Please upload a JPG, PNG, or WEBP payment screenshot.');
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Screenshot file is too large. Maximum size is 2MB.');
+            return;
+        }
+
+        try {
+            screenshotBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        } catch (readErr) {
+            console.error('Error reading screenshot file:', readErr);
+            alert('Failed to read the screenshot file. Please try again or submit without screenshot.');
+            return;
+        }
+    }
+
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Submit Payment Details';
+    if (submitBtn) {
+        submitBtn.innerHTML = 'Submitting Payment Details...';
+        submitBtn.disabled = true;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/api/book/payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                bookingId: window.currentBooking.id,
+                utr: utr,
+                screenshot: screenshotBase64
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Hide the submission form, QR code, account card, and notice
+            const form = document.getElementById('paymentSubmissionForm');
+            if (form) form.style.display = 'none';
+
+            const qrContainer = document.querySelector('.payment-qr-container');
+            if (qrContainer) qrContainer.style.display = 'none';
+
+            const accountCard = document.querySelector('.payment-account-card');
+            if (accountCard) accountCard.style.display = 'none';
+
+            const noticeBox = document.querySelector('.payment-notice-box');
+            if (noticeBox) noticeBox.style.display = 'none';
+
+            const summaryCard = document.querySelector('.payment-summary-card');
+            if (summaryCard) summaryCard.style.display = 'none';
+
+            const header = document.querySelector('.payment-header');
+            if (header) header.style.display = 'none';
+
+            // Display required confirmation message
+            const statusMsg = document.getElementById('paymentStatusMessage');
+            if (statusMsg) {
+                statusMsg.style.display = 'block';
+                statusMsg.innerHTML = `
+                    <div class="payment-submitted-card" style="padding: 1.5rem; background: #ffffff; border: 1px solid rgba(130, 168, 157, 0.4); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <h4 style="margin-top:0; color: #2e7d32; display: flex; align-items: center; gap: 8px; font-size: 1.25rem;">
+                            <span style="display:inline-block; width:26px; height:26px; border-radius:50%; background:#2e7d32; color:#fff; text-align:center; line-height:26px; font-size:15px; font-weight:bold;">✓</span> Payment Details Submitted
+                        </h4>
+                        <p style="color: var(--text-primary); line-height: 1.6; margin: 1rem 0;">
+                            Thank you. Your payment reference has been submitted and is awaiting verification. Your booking will be confirmed once the payment has been verified.
+                        </p>
+                        <hr style="border: none; border-top: 1px dashed rgba(130, 168, 157, 0.35); margin: 1rem 0;">
+                        <div class="payment-final-summary" style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.95rem;">
+                            <div><strong>Selected Service:</strong> ${data.service || window.currentBooking.service}</div>
+                            <div><strong>Consultation Fee:</strong> ${data.fee || window.currentBooking.fee}</div>
+                            <div><strong>Date:</strong> ${data.date || window.currentBooking.date}</div>
+                            <div><strong>Time:</strong> ${data.slot || window.currentBooking.slot}</div>
+                            <div><strong>UTR / Reference No.:</strong> <span style="font-family:monospace; font-weight:bold; color:var(--primary);">${data.utr || utr}</span></div>
+                            <div style="margin-top: 0.5rem; padding: 0.6rem 0.85rem; background: rgba(180, 83, 9, 0.08); border-left: 3px solid #b45309; border-radius: 4px; font-weight: 600; color: #92400e;">
+                                Payment Status: Pending Verification
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            alert('Payment submission failed: ' + (data.error || 'Please try again.'));
+        }
+    } catch (err) {
+        console.error('Payment submit error:', err);
+        alert('Failed to connect to the booking server. Please check your internet connection.');
+    } finally {
+        if (submitBtn) {
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+        }
+    }
+}
+
 window.renderTimeSlots = renderTimeSlots;
 window.selectSlot = selectSlot;
 window.confirmBooking = confirmBooking;
 window.handleServiceChange = handleServiceChange;
 window.getServiceData = getServiceData;
 window.SERVICES_MAP = SERVICES_MAP;
+window.showPaymentStep = showPaymentStep;
+window.copyUpiId = copyUpiId;
+window.submitPaymentDetails = submitPaymentDetails;
 
 
 window.openGoogleCalendarBooking = openGoogleCalendarBooking;

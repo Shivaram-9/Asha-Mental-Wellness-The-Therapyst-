@@ -13,8 +13,8 @@ dotenv.config();
 const app = express();
 // Configure CORS for production GitHub Pages and local testing
 app.use(cors()); // Allow all origins for Render frontend and GitHub Pages
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Persistent Storage Setup (MongoDB)
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -37,6 +37,14 @@ const BookingSchema = new mongoose.Schema({
     fee: Number,
     feeFormatted: String,
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    paymentStatus: { 
+        type: String, 
+        enum: ['pending_payment', 'pending_verification', 'paid', 'rejected'], 
+        default: 'pending_payment' 
+    },
+    utr: { type: String, default: '' },
+    paymentScreenshot: { type: String, default: '' },
+    paymentSubmittedAt: Date,
     approvalToken: String,
     tokenExpiry: Date,
     calendarEventId: String,
@@ -1060,15 +1068,144 @@ app.post('/api/book', async (req, res) => {
         res.status(200).json({ 
             success: true, 
             status: 'pending',
+            bookingId: newBooking._id.toString(),
             message: 'Your booking request has been submitted and is awaiting confirmation.',
             service: serviceData.name,
             duration: serviceData.duration,
-            fee: serviceData.feeFormatted
+            fee: serviceData.feeFormatted,
+            feeAmount: serviceData.fee,
+            date,
+            slot,
+            name,
+            email: normalizedEmail
         });
 
     } catch (error) {
         console.error('Error processing booking:', error);
         res.status(500).json({ error: 'Failed to process booking.' });
+    }
+});
+
+app.post('/api/book/payment', async (req, res) => {
+    const { bookingId, utr, screenshot } = req.body;
+    if (!bookingId || !utr) {
+        return res.status(400).json({ error: 'Booking ID and UTR / Reference number are required.' });
+    }
+
+    const trimmedUtr = String(utr).trim();
+    if (trimmedUtr.length < 6 || trimmedUtr.length > 35) {
+        return res.status(400).json({ error: 'Please enter a valid UTR / Transaction Reference Number (6–35 characters).' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+        return res.status(400).json({ error: 'Invalid booking ID.' });
+    }
+
+    try {
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ error: 'Booking request not found.' });
+        }
+
+        if (booking.status === 'approved') {
+            return res.status(400).json({ error: 'This booking has already been approved.' });
+        }
+
+        if (booking.status === 'rejected') {
+            return res.status(400).json({ error: 'This booking has been rejected.' });
+        }
+
+        // Prevent duplicate UTR usage across other bookings
+        const duplicateBooking = await Booking.findOne({ 
+            utr: trimmedUtr, 
+            _id: { $ne: booking._id },
+            status: { $in: ['pending', 'approved'] }
+        });
+        if (duplicateBooking) {
+            return res.status(409).json({ error: 'This UTR / Transaction Reference has already been submitted for another booking.' });
+        }
+
+        // Validate optional screenshot safely
+        let validScreenshot = '';
+        if (screenshot) {
+            if (typeof screenshot === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(screenshot)) {
+                if (screenshot.length <= 4 * 1024 * 1024) {
+                    validScreenshot = screenshot;
+                } else {
+                    return res.status(400).json({ error: 'Payment screenshot exceeds 2MB limit.' });
+                }
+            } else {
+                return res.status(400).json({ error: 'Invalid screenshot file format. Please upload JPG, PNG, or WEBP.' });
+            }
+        }
+
+        booking.utr = trimmedUtr;
+        booking.paymentStatus = 'pending_verification';
+        booking.paymentSubmittedAt = new Date();
+        if (validScreenshot) {
+            booking.paymentScreenshot = validScreenshot;
+        }
+        await booking.save();
+
+        // Send email via Google Relay to Admins about payment submission
+        const relayUrl = process.env.GOOGLE_REVIEW_RELAY_URL;
+        const relaySecret = process.env.GOOGLE_RELAY_SECRET;
+        if (relayUrl && relaySecret) {
+            const baseUrl = req.protocol + '://' + req.get('host');
+            const approveLink = `${baseUrl}/api/book/action?id=${booking._id}&token=${booking.approvalToken}&action=approve`;
+            const rejectLink = `${baseUrl}/api/book/action?id=${booking._id}&token=${booking.approvalToken}&action=reject`;
+
+            const paymentHtmlBody = `
+                <h2>PAYMENT REFERENCE SUBMITTED</h2>
+                <p>A client has submitted payment details for their booking request. Please verify in PhonePe or your bank account before approving.</p>
+                <hr>
+                <p><strong>Client Name:</strong> ${booking.name}</p>
+                <p><strong>Client Email:</strong> ${booking.email}</p>
+                <p><strong>Selected Service:</strong> ${booking.service}</p>
+                <p><strong>Session Duration:</strong> ${booking.duration}</p>
+                <p><strong>Exact Amount Payable:</strong> ${booking.feeFormatted}</p>
+                <p><strong>Session Date:</strong> ${booking.date}</p>
+                <p><strong>Session Time:</strong> ${booking.slot}</p>
+                <p style="font-size:16px; color:#2e7d32;"><strong>Submitted UTR / Ref Number:</strong> ${trimmedUtr}</p>
+                <p><strong>Payment Status:</strong> Pending Verification</p>
+                <p><strong>Booking ID:</strong> ${booking._id}</p>
+                <hr>
+                <p><strong>Action Required:</strong> Check that payment of <strong>${booking.feeFormatted}</strong> is credited under UTR <strong>${trimmedUtr}</strong> to account GULLA ASHA SUHASINI RAJA (8019749608@ybl), then click:</p>
+                <br>
+                <p><a href="${approveLink}" style="padding:10px 20px; background-color:green; color:white; text-decoration:none; border-radius:5px; display:inline-block; font-weight:bold;">APPROVE BOOKING</a></p>
+                <br><br>
+                <p><a href="${rejectLink}" style="padding:10px 20px; background-color:red; color:white; text-decoration:none; border-radius:5px; display:inline-block; font-weight:bold;">REJECT BOOKING</a></p>
+            `;
+
+            try {
+                await fetch(relayUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        secret: relaySecret,
+                        subject: `ACTION REQUIRED: Payment Submitted (${booking.service}) - ${trimmedUtr}`,
+                        htmlBody: paymentHtmlBody
+                    })
+                });
+            } catch (err) {
+                console.error('Relay error on payment submission:', err);
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Payment reference submitted successfully and is awaiting verification.',
+            paymentStatus: 'Pending Verification',
+            service: booking.service,
+            fee: booking.feeFormatted,
+            date: booking.date,
+            slot: booking.slot,
+            utr: booking.utr
+        });
+
+    } catch (error) {
+        console.error('Payment submission error:', error);
+        return res.status(500).json({ error: 'Failed to record payment reference.' });
     }
 });
 
@@ -1168,17 +1305,43 @@ app.get('/api/book/action', async (req, res) => {
                             <div class="detail-value">${booking.name}<br><span style="font-size: 14px; font-weight: normal; color: #555;">${booking.email}</span></div>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Date</span>
-                            <div class="detail-value">${booking.date}</div>
+                            <span class="detail-label">Selected Service</span>
+                            <div class="detail-value">${booking.service || 'N/A'}</div>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Time</span>
-                            <div class="detail-value">${booking.slot}</div>
+                            <span class="detail-label">Session Duration</span>
+                            <div class="detail-value">${booking.duration || 'N/A'}</div>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Amount Payable</span>
+                            <div class="detail-value" style="font-weight: bold; color: #92400e; font-size: 18px;">${booking.feeFormatted || 'N/A'}</div>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Date & Time</span>
+                            <div class="detail-value">${booking.date} at ${booking.slot}</div>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Session Format</span>
                             <div class="detail-value">Online Session</div>
                         </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Payment Status</span>
+                            <div class="detail-value" style="font-weight: bold; color: ${booking.paymentStatus === 'paid' ? '#2e7d32' : (booking.paymentStatus === 'pending_verification' ? '#b45309' : '#c62828')};">
+                                ${booking.paymentStatus === 'paid' ? 'Paid & Verified' : (booking.paymentStatus === 'pending_verification' ? 'Pending Verification' : 'Pending Payment')}
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Submitted UTR / Ref Number</span>
+                            <div class="detail-value" style="font-family: monospace; font-size: 16px; font-weight: bold; color: #1e293b;">${booking.utr || 'Not submitted yet'}</div>
+                        </div>
+                        ${booking.paymentScreenshot ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Payment Screenshot</span>
+                            <div style="margin-top: 8px;">
+                                <img src="${booking.paymentScreenshot}" style="max-width: 100%; max-height: 350px; border-radius: 8px; border: 1px solid #ddd; display: block;" alt="Payment Screenshot">
+                            </div>
+                        </div>
+                        ` : ''}
                     </div>
                     
                     <div class="actions">
@@ -1227,6 +1390,7 @@ app.post('/api/book/action', async (req, res) => {
     }
 
     const targetStatus = action === 'approve' ? 'approved' : 'rejected';
+    const targetPaymentStatus = action === 'approve' ? 'paid' : 'rejected';
     
     try {
         let booking = await Booking.findOne({ _id: id, approvalToken: token });
@@ -1242,7 +1406,7 @@ app.post('/api/book/action', async (req, res) => {
             // Atomic update to prevent race conditions
             booking = await Booking.findOneAndUpdate(
                 { _id: id, approvalToken: token, status: 'pending' },
-                { $set: { status: targetStatus, actionTimestamp: new Date() } },
+                { $set: { status: targetStatus, paymentStatus: targetPaymentStatus, actionTimestamp: new Date() } },
                 { new: true }
             );
             
@@ -1271,7 +1435,7 @@ app.post('/api/book/action', async (req, res) => {
                         { actionTimestamp: { $lt: lockCutoff } }
                     ]
                 },
-                { $set: { actionTimestamp: new Date() } },
+                { $set: { actionTimestamp: new Date(), paymentStatus: targetPaymentStatus } },
                 { new: true }
             );
 
@@ -1301,17 +1465,22 @@ app.post('/api/book/action', async (req, res) => {
             if (action === 'approve') {
                 htmlBody = `<h2>Your Session is Confirmed</h2>
                    <p>Hello ${booking.name},</p>
-                   <p>Your online mental wellness session has been confirmed.</p>
+                   <p>Your online mental wellness session has been confirmed and payment has been verified.</p>
                    <p><strong>Client Name:</strong> ${booking.name}</p>
                    <p><strong>Client Email:</strong> ${booking.email}</p>
+                   <p><strong>Selected Service:</strong> ${booking.service || 'Mental Wellness Session'}</p>
+                   <p><strong>Session Duration:</strong> ${booking.duration || '45–60 min'}</p>
+                   <p><strong>Consultation Fee:</strong> ${booking.feeFormatted || ''}</p>
+                   ${booking.utr ? `<p><strong>Payment Reference (UTR):</strong> ${booking.utr}</p>` : ''}
                    <p><strong>Session Date:</strong> ${booking.date}</p>
                    <p><strong>Session Time:</strong> ${booking.slot}</p>
                    <p><strong>Session Format:</strong> Online Session</p>
+                   <p><strong>Payment Status:</strong> Verified & Confirmed</p>
                    <br>
                    <p><a href="{{MEET_URL}}" style="padding:10px 20px; background-color:#2e7d32; color:white; text-decoration:none; border-radius:5px; display:inline-block; font-weight:bold;">JOIN GOOGLE MEET</a></p>
                    <br><p>We look forward to speaking with you.</p>`;
             } else {
-                htmlBody = `<h2>Booking Status Update</h2>
+                htmlBody = `<h2>Booking Request Update</h2>
                    <p>Dear ${booking.name},</p>
                    <p>Your requested online session could not be confirmed for the selected time.</p>
                    <p>Please visit the website to submit another booking request for a different time slot.</p>`;
@@ -1442,14 +1611,18 @@ app.post('/api/book/action', async (req, res) => {
                 try {
                     const therapistSubject = `NEW SESSION CONFIRMED - Asha Suhasini Mental Wellness`;
                     const therapistHtmlBody = `<h2>New Session Confirmed</h2>
-                        <p>A new online session has been confirmed and scheduled.</p>
+                        <p>A new online session has been confirmed and scheduled with verified payment.</p>
                         <hr>
                         <p><strong>Client Name:</strong> ${booking.name}</p>
                         <p><strong>Client Email:</strong> ${booking.email}</p>
+                        <p><strong>Selected Service:</strong> ${booking.service || 'Mental Wellness Consultation'}</p>
+                        <p><strong>Session Duration:</strong> ${booking.duration || '45–60 min'}</p>
+                        <p><strong>Consultation Fee:</strong> ${booking.feeFormatted || ''}</p>
+                        ${booking.utr ? `<p><strong>Payment Reference (UTR):</strong> ${booking.utr}</p>` : ''}
                         <p><strong>Session Date:</strong> ${booking.date}</p>
                         <p><strong>Session Time:</strong> ${booking.slot}</p>
-                        <p><strong>Session Duration:</strong> 1 hour</p>
                         <p><strong>Session Format:</strong> Online Session</p>
+                        <p><strong>Payment Status:</strong> Verified</p>
                         <hr>
                         <p>&#10003; Google Calendar event created successfully.</p>
                         <p>&#10003; Client email (${booking.email}) added as guest.</p>
