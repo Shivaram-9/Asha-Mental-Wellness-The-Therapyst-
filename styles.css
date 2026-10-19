@@ -2505,6 +2505,102 @@ footer {
     margin-bottom: 1.5rem;
 }
 
+/* Service Selection & Dynamic Fee Display */
+.booking-system .form-select {
+    width: 100%;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-primary);
+    background-color: var(--bg-surface, #ffffff);
+    border: 1px solid rgba(130, 168, 157, 0.45);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    appearance: auto;
+    -webkit-appearance: menulist;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.booking-system .form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(130, 168, 157, 0.25);
+    outline: none;
+}
+
+.service-details-box {
+    margin-top: -0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1.1rem 1.25rem;
+    background: #FAF8F5;
+    border: 1px solid rgba(130, 168, 157, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    transition: all 0.25s ease;
+}
+
+.service-prompt {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    font-style: italic;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.service-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.service-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.95rem;
+}
+
+.service-summary-row .summary-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.service-summary-row .summary-value {
+    color: var(--primary);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+}
+
+.service-summary-row.summary-fee-row {
+    padding-top: 0.6rem;
+    margin-top: 0.3rem;
+    border-top: 1px dashed rgba(130, 168, 157, 0.4);
+}
+
+.service-summary-row .summary-fee {
+    color: #92400e;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+@media (max-width: 480px) {
+    .service-details-box {
+        padding: 0.9rem 1rem;
+    }
+    .service-summary-row {
+        flex-direction: row;
+        align-items: flex-start;
+        font-size: 0.9rem;
+    }
+    .service-summary-row .summary-fee {
+        font-size: 1.15rem;
+    }
+}
+
 /* FIX: Prevent Chrome background-attachment bug on desktop sidebar */
 @media (min-width: 1025px) {
     .sidebar {

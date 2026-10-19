@@ -32,6 +32,10 @@ const BookingSchema = new mongoose.Schema({
     date: String,
     slot: String,
     sessionFormat: String,
+    service: String,
+    duration: String,
+    fee: Number,
+    feeFormatted: String,
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     approvalToken: String,
     tokenExpiry: Date,
@@ -51,6 +55,129 @@ BookingSchema.index({ date: 1, slot: 1 }, {
 });
 BookingSchema.index({ status: 1, createdAt: -1 });
 const Booking = mongoose.model('Booking', BookingSchema);
+
+// Authoritative Services & Fee Catalog
+const SERVICES_MAP = {
+    'Individual Therapy / Counselling': {
+        name: 'Individual Therapy / Counselling',
+        duration: '45–60 min',
+        fee: 3300,
+        feeFormatted: '₹3,300'
+    },
+    'Family Therapy / Counselling': {
+        name: 'Family Therapy / Counselling',
+        duration: '45–60 min',
+        fee: 4499,
+        feeFormatted: '₹4,499'
+    },
+    'Marital Therapy / Counselling': {
+        name: 'Marital Therapy / Counselling',
+        duration: '45–60 min',
+        fee: 4499,
+        feeFormatted: '₹4,499'
+    },
+    'Pre-Marital Counselling': {
+        name: 'Pre-Marital Counselling',
+        duration: '45–60 min',
+        fee: 2400,
+        feeFormatted: '₹2,400'
+    },
+    'Student Counselling / Therapy — 45–60 min (₹599)': {
+        name: 'Student Counselling / Therapy',
+        duration: '45–60 min',
+        fee: 599,
+        feeFormatted: '₹599'
+    },
+    'Student Counselling / Therapy — 30 min (₹299)': {
+        name: 'Student Counselling / Therapy',
+        duration: '30 min',
+        fee: 299,
+        feeFormatted: '₹299'
+    },
+    'Consultation': {
+        name: 'Consultation',
+        duration: '15–20 min',
+        fee: 600,
+        feeFormatted: '₹600'
+    },
+    'individual-therapy': {
+        name: 'Individual Therapy / Counselling',
+        duration: '45–60 min',
+        fee: 3300,
+        feeFormatted: '₹3,300'
+    },
+    'family-therapy': {
+        name: 'Family Therapy / Counselling',
+        duration: '45–60 min',
+        fee: 4499,
+        feeFormatted: '₹4,499'
+    },
+    'marital-therapy': {
+        name: 'Marital Therapy / Counselling',
+        duration: '45–60 min',
+        fee: 4499,
+        feeFormatted: '₹4,499'
+    },
+    'pre-marital': {
+        name: 'Pre-Marital Counselling',
+        duration: '45–60 min',
+        fee: 2400,
+        feeFormatted: '₹2,400'
+    },
+    'student-therapy-60': {
+        name: 'Student Counselling / Therapy',
+        duration: '45–60 min',
+        fee: 599,
+        feeFormatted: '₹599'
+    },
+    'student-therapy-30': {
+        name: 'Student Counselling / Therapy',
+        duration: '30 min',
+        fee: 299,
+        feeFormatted: '₹299'
+    },
+    'consultation': {
+        name: 'Consultation',
+        duration: '15–20 min',
+        fee: 600,
+        feeFormatted: '₹600'
+    },
+    'Student Counselling / Therapy (45–60 min)': {
+        name: 'Student Counselling / Therapy',
+        duration: '45–60 min',
+        fee: 599,
+        feeFormatted: '₹599'
+    },
+    'Student Counselling / Therapy (30 min)': {
+        name: 'Student Counselling / Therapy',
+        duration: '30 min',
+        fee: 299,
+        feeFormatted: '₹299'
+    }
+};
+
+function getBackendServiceData(raw) {
+    if (!raw) return null;
+    if (SERVICES_MAP[raw]) return SERVICES_MAP[raw];
+    const rawLower = String(raw).trim().toLowerCase();
+    for (const key in SERVICES_MAP) {
+        if (key.toLowerCase() === rawLower) {
+            return SERVICES_MAP[key];
+        }
+    }
+    if (rawLower.includes('student') && rawLower.includes('30')) {
+        return SERVICES_MAP['student-therapy-30'];
+    }
+    if (rawLower.includes('student')) {
+        return SERVICES_MAP['student-therapy-60'];
+    }
+    for (const key in SERVICES_MAP) {
+        if (SERVICES_MAP[key].name.toLowerCase() === rawLower) {
+            return SERVICES_MAP[key];
+        }
+    }
+    return null;
+}
 
 // --- Contact / Inquiry System ---
 const InquirySchema = new mongoose.Schema({
@@ -757,9 +884,15 @@ app.get('/api/reviews', async (req, res) => {
 
 app.post('/api/book', async (req, res) => {
     const { name, email, date, slot, sessionFormat } = req.body;
+    const rawService = req.body.serviceKey || req.body.service;
 
     if (!name || !email || !date || !slot) {
         return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    const serviceData = getBackendServiceData(rawService);
+    if (!serviceData) {
+        return res.status(400).json({ error: 'Please select a valid service / therapy.' });
     }
 
     if (sessionFormat !== 'online') {
@@ -836,6 +969,10 @@ app.post('/api/book', async (req, res) => {
             date, 
             slot,
             sessionFormat: 'online',
+            service: serviceData.name,
+            duration: serviceData.duration,
+            fee: serviceData.fee,
+            feeFormatted: serviceData.feeFormatted,
             status: 'pending',
             approvalToken,
             tokenExpiry
@@ -865,6 +1002,9 @@ app.post('/api/book', async (req, res) => {
                 <hr>
                 <p><strong>Client Name:</strong> ${name}</p>
                 <p><strong>Client Email:</strong> ${email}</p>
+                <p><strong>Selected Service:</strong> ${serviceData.name}</p>
+                <p><strong>Session Duration:</strong> ${serviceData.duration}</p>
+                <p><strong>Consultation Fee:</strong> ${serviceData.feeFormatted}</p>
                 <p><strong>Requested Date:</strong> ${date}</p>
                 <p><strong>Requested Time:</strong> ${slot}</p>
                 <p><strong>Session Format:</strong> Online Session</p>
@@ -920,7 +1060,10 @@ app.post('/api/book', async (req, res) => {
         res.status(200).json({ 
             success: true, 
             status: 'pending',
-            message: 'Your booking request has been submitted and is awaiting confirmation.' 
+            message: 'Your booking request has been submitted and is awaiting confirmation.',
+            service: serviceData.name,
+            duration: serviceData.duration,
+            fee: serviceData.feeFormatted
         });
 
     } catch (error) {

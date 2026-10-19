@@ -280,6 +280,38 @@ function getModalContent(modalType) {
                 <h3>Schedule a Session</h3>
                 <div class="booking-system" id="bookingSystem">
                     <div class="form-field">
+                        <label for="bookingService">Select Service / Therapy</label>
+                        <select id="bookingService" class="form-input form-select" onchange="handleServiceChange()" required>
+                            <option value="" disabled selected>Select a service</option>
+                            <option value="individual-therapy">Individual Therapy / Counselling</option>
+                            <option value="family-therapy">Family Therapy / Counselling</option>
+                            <option value="marital-therapy">Marital Therapy / Counselling</option>
+                            <option value="pre-marital">Pre-Marital Counselling</option>
+                            <option value="student-therapy-60">Student Counselling / Therapy — 45–60 min (₹599)</option>
+                            <option value="student-therapy-30">Student Counselling / Therapy — 30 min (₹299)</option>
+                            <option value="consultation">Consultation</option>
+                        </select>
+                    </div>
+                    <div id="serviceDetailsBox" class="service-details-box">
+                        <div id="servicePrompt" class="service-prompt">
+                            Please select a service above to view session duration and fee.
+                        </div>
+                        <div id="serviceSummary" class="service-summary" style="display: none;">
+                            <div class="service-summary-row">
+                                <span class="summary-label">Selected Service:</span>
+                                <span id="selectedServiceName" class="summary-value">—</span>
+                            </div>
+                            <div class="service-summary-row">
+                                <span class="summary-label">Session Duration:</span>
+                                <span id="selectedServiceDuration" class="summary-value">—</span>
+                            </div>
+                            <div class="service-summary-row summary-fee-row">
+                                <span class="summary-label">Consultation Fee:</span>
+                                <span id="selectedServiceFee" class="summary-fee">—</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-field">
                         <label for="bookingDate">Select Date</label>
                         <input type="date" id="bookingDate" class="form-input" min="2026-08-29" onchange="renderTimeSlots()">
                     </div>
@@ -1274,7 +1306,123 @@ function selectSlot(btnElement, slot) {
     if (successMsg) successMsg.style.display = 'none';
 }
 
+// Service Catalog & Fees
+const SERVICES_MAP = {
+    'individual-therapy': {
+        key: 'individual-therapy',
+        name: 'Individual Therapy / Counselling',
+        duration: '45–60 min',
+        fee: 3300,
+        feeFormatted: '₹3,300'
+    },
+    'family-therapy': {
+        key: 'family-therapy',
+        name: 'Family Therapy / Counselling',
+        duration: '45–60 min',
+        fee: 4499,
+        feeFormatted: '₹4,499'
+    },
+    'marital-therapy': {
+        key: 'marital-therapy',
+        name: 'Marital Therapy / Counselling',
+        duration: '45–60 min',
+        fee: 4499,
+        feeFormatted: '₹4,499'
+    },
+    'pre-marital': {
+        key: 'pre-marital',
+        name: 'Pre-Marital Counselling',
+        duration: '45–60 min',
+        fee: 2400,
+        feeFormatted: '₹2,400'
+    },
+    'student-therapy-60': {
+        key: 'student-therapy-60',
+        name: 'Student Counselling / Therapy',
+        duration: '45–60 min',
+        fee: 599,
+        feeFormatted: '₹599'
+    },
+    'student-therapy-30': {
+        key: 'student-therapy-30',
+        name: 'Student Counselling / Therapy',
+        duration: '30 min',
+        fee: 299,
+        feeFormatted: '₹299'
+    },
+    'consultation': {
+        key: 'consultation',
+        name: 'Consultation',
+        duration: '15–20 min',
+        fee: 600,
+        feeFormatted: '₹600'
+    }
+};
+
+// Aliases for matching by name or option strings
+SERVICES_MAP['Individual Therapy / Counselling'] = SERVICES_MAP['individual-therapy'];
+SERVICES_MAP['Family Therapy / Counselling'] = SERVICES_MAP['family-therapy'];
+SERVICES_MAP['Marital Therapy / Counselling'] = SERVICES_MAP['marital-therapy'];
+SERVICES_MAP['Pre-Marital Counselling'] = SERVICES_MAP['pre-marital'];
+SERVICES_MAP['Student Counselling / Therapy — 45–60 min (₹599)'] = SERVICES_MAP['student-therapy-60'];
+SERVICES_MAP['Student Counselling / Therapy — 30 min (₹299)'] = SERVICES_MAP['student-therapy-30'];
+SERVICES_MAP['Student Counselling / Therapy (45–60 min)'] = SERVICES_MAP['student-therapy-60'];
+SERVICES_MAP['Student Counselling / Therapy (30 min)'] = SERVICES_MAP['student-therapy-30'];
+SERVICES_MAP['Consultation'] = SERVICES_MAP['consultation'];
+
+function getServiceData(keyOrValue) {
+    if (!keyOrValue) return null;
+    if (SERVICES_MAP[keyOrValue]) return SERVICES_MAP[keyOrValue];
+    const keyLower = String(keyOrValue).trim().toLowerCase();
+    for (const k in SERVICES_MAP) {
+        if (k.toLowerCase() === keyLower) return SERVICES_MAP[k];
+    }
+    if (keyLower.includes('student') && keyLower.includes('30')) return SERVICES_MAP['student-therapy-30'];
+    if (keyLower.includes('student')) return SERVICES_MAP['student-therapy-60'];
+    for (const k in SERVICES_MAP) {
+        if (SERVICES_MAP[k].name && SERVICES_MAP[k].name.toLowerCase() === keyLower) return SERVICES_MAP[k];
+    }
+    return null;
+}
+
+function handleServiceChange() {
+    const serviceSelect = document.getElementById('bookingService');
+    const promptEl = document.getElementById('servicePrompt');
+    const summaryEl = document.getElementById('serviceSummary');
+    const nameEl = document.getElementById('selectedServiceName');
+    const durationEl = document.getElementById('selectedServiceDuration');
+    const feeEl = document.getElementById('selectedServiceFee');
+
+    if (!serviceSelect) return;
+    const val = serviceSelect.value;
+    const service = getServiceData(val);
+
+    if (service) {
+        if (nameEl) nameEl.textContent = service.name;
+        if (durationEl) durationEl.textContent = service.duration;
+        if (feeEl) feeEl.textContent = service.feeFormatted;
+        if (promptEl) promptEl.style.display = 'none';
+        if (summaryEl) summaryEl.style.display = 'block';
+    } else {
+        if (nameEl) nameEl.textContent = '—';
+        if (durationEl) durationEl.textContent = '—';
+        if (feeEl) feeEl.textContent = '—';
+        if (promptEl) promptEl.style.display = 'block';
+        if (summaryEl) summaryEl.style.display = 'none';
+    }
+}
+
 async function confirmBooking() {
+    const serviceSelect = document.getElementById('bookingService');
+    const serviceVal = serviceSelect ? serviceSelect.value : '';
+    const serviceData = getServiceData(serviceVal);
+
+    if (!serviceData) {
+        alert('Please select a service / therapy to proceed with booking.');
+        if (serviceSelect) serviceSelect.focus();
+        return;
+    }
+
     const date = document.getElementById('bookingDate').value;
     const slot = document.getElementById('selectedSlot').value;
     const name = document.getElementById('bookingName').value;
@@ -1295,19 +1443,30 @@ async function confirmBooking() {
         const response = await fetch(`${API_URL}/api/book`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, date, slot, sessionFormat })
+            body: JSON.stringify({ 
+                name, 
+                email, 
+                date, 
+                slot, 
+                sessionFormat,
+                serviceKey: serviceVal,
+                service: serviceData.name,
+                duration: serviceData.duration,
+                fee: serviceData.fee,
+                feeFormatted: serviceData.feeFormatted
+            })
         });
         
         const data = await response.json();
         
-            if (response.ok) {
-                document.getElementById('bookingFormDetails').style.display = 'none';
-                
-                // Refresh slots to correctly show it's no longer available
-                await renderTimeSlots();
-                
-                // Show clear professional confirmation
-                let successMsg = document.getElementById('bookingSuccessMessage');
+        if (response.ok) {
+            document.getElementById('bookingFormDetails').style.display = 'none';
+            
+            // Refresh slots to correctly show it's no longer available
+            await renderTimeSlots();
+            
+            // Show clear professional confirmation
+            let successMsg = document.getElementById('bookingSuccessMessage');
 
             if (!successMsg) {
                 successMsg = document.createElement('div');
@@ -1319,6 +1478,9 @@ async function confirmBooking() {
             successMsg.innerHTML = `
                 <h4 style="margin-top:0; color:var(--primary);">Booking Request Submitted</h4>
                 <p>Your online session request has been received and is awaiting confirmation. You will receive a confirmation email once your request is approved.</p>
+                <p><strong>Selected Service:</strong> ${data.service || serviceData.name}</p>
+                <p><strong>Session Duration:</strong> ${data.duration || serviceData.duration}</p>
+                <p><strong>Consultation Fee:</strong> ${data.fee || serviceData.feeFormatted}</p>
                 <p><strong>Name:</strong> ${name}</p>
                 <p><strong>Email:</strong> ${email}</p>
                 <p><strong>Date:</strong> ${date}</p>
@@ -1343,6 +1505,9 @@ async function confirmBooking() {
 window.renderTimeSlots = renderTimeSlots;
 window.selectSlot = selectSlot;
 window.confirmBooking = confirmBooking;
+window.handleServiceChange = handleServiceChange;
+window.getServiceData = getServiceData;
+window.SERVICES_MAP = SERVICES_MAP;
 
 
 window.openGoogleCalendarBooking = openGoogleCalendarBooking;
