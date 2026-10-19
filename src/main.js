@@ -325,10 +325,13 @@ function getModalContent(modalType) {
                     <div id="bookingFormDetails" style="display:none; margin-top: 1rem;">
                         <input type="hidden" id="selectedSlot">
                         <div class="form-field">
-                            <input type="text" id="bookingName" placeholder="Your Name" class="form-input" required>
+                            <input type="text" id="bookingName" placeholder="Your Name" class="form-input" required autocomplete="name">
                         </div>
                         <div class="form-field">
-                            <input type="email" id="bookingEmail" placeholder="Your Email" class="form-input" required>
+                            <input type="email" id="bookingEmail" placeholder="Your Email" class="form-input" required autocomplete="email">
+                        </div>
+                        <div class="form-field">
+                            <input type="tel" id="bookingPhone" placeholder="Phone Number (Optional)" class="form-input" autocomplete="tel">
                         </div>
                         <button class="btn btn-primary full-width" onclick="confirmBooking()">Confirm Booking</button>
                     </div>
@@ -1512,6 +1515,8 @@ async function confirmBooking() {
     const slot = document.getElementById('selectedSlot').value;
     const name = document.getElementById('bookingName').value;
     const email = document.getElementById('bookingEmail').value;
+    const phoneInput = document.getElementById('bookingPhone');
+    const phone = phoneInput ? phoneInput.value.trim() : '';
     const sessionFormat = document.getElementById('mode') ? document.getElementById('mode').value : 'online';
     
     if (!date || !slot || !name || !email) {
@@ -1531,6 +1536,7 @@ async function confirmBooking() {
             body: JSON.stringify({ 
                 name, 
                 email, 
+                phone,
                 date, 
                 slot, 
                 sessionFormat,
@@ -1552,6 +1558,7 @@ async function confirmBooking() {
                 id: data.bookingId,
                 name: name,
                 email: email,
+                phone: phone || data.phone || '',
                 date: date,
                 slot: slot,
                 service: data.service || serviceData.name,
@@ -1577,13 +1584,14 @@ async function confirmBooking() {
                 <h4 style="margin-top:0; color:var(--primary); font-size: 1.2rem;">Booking Request Submitted</h4>
                 <p style="color: var(--text-secondary); margin-bottom: 1rem;">Your online session request has been received. Please proceed to payment to complete your booking submission.</p>
                 <div style="background:#ffffff; border:1px solid rgba(130, 168, 157, 0.3); border-radius:8px; padding:1rem; margin-bottom:1.25rem; font-size:0.95rem; line-height: 1.6;">
-                    <p style="margin: 0.25rem 0;"><strong>Selected Service:</strong> ${window.currentBooking.service}</p>
-                    <p style="margin: 0.25rem 0;"><strong>Session Duration:</strong> ${window.currentBooking.duration}</p>
-                    <p style="margin: 0.25rem 0;"><strong>Consultation Fee:</strong> <span style="font-weight:700; color:#92400e; font-size:1.1rem;">${window.currentBooking.fee}</span></p>
-                    <p style="margin: 0.25rem 0;"><strong>Name:</strong> ${name}</p>
-                    <p style="margin: 0.25rem 0;"><strong>Email:</strong> ${email}</p>
-                    <p style="margin: 0.25rem 0;"><strong>Date:</strong> ${date}</p>
-                    <p style="margin: 0.25rem 0;"><strong>Time:</strong> ${slot}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Selected Service:</strong> ${escapeHTML(window.currentBooking.service)}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Session Duration:</strong> ${escapeHTML(window.currentBooking.duration)}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Consultation Fee:</strong> <span style="font-weight:700; color:#92400e; font-size:1.1rem;">${escapeHTML(window.currentBooking.fee)}</span></p>
+                    <p style="margin: 0.25rem 0;"><strong>Name:</strong> ${escapeHTML(name)}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Email:</strong> ${escapeHTML(email)}</p>
+                    ${phone ? `<p style="margin: 0.25rem 0;"><strong>Phone:</strong> ${escapeHTML(phone)}</p>` : ''}
+                    <p style="margin: 0.25rem 0;"><strong>Date:</strong> ${escapeHTML(date)}</p>
+                    <p style="margin: 0.25rem 0;"><strong>Time:</strong> ${escapeHTML(slot)}</p>
                     <p style="margin: 0.25rem 0;"><strong>Session Format:</strong> Online Session</p>
                     <p style="margin-bottom:0; margin-top:0.5rem; font-weight:600; color: #b45309;">Status: Awaiting Payment</p>
                 </div>

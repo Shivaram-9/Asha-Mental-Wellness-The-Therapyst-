@@ -29,6 +29,7 @@ if (MONGODB_URI) {
 const BookingSchema = new mongoose.Schema({
     name: String,
     email: String,
+    phone: { type: String, default: '' },
     date: String,
     slot: String,
     sessionFormat: String,
@@ -54,6 +55,10 @@ const BookingSchema = new mongoose.Schema({
     calendarEventCreated: { type: Boolean, default: false },
     confirmationError: String,
     therapistConfirmationError: String,
+    adminBookingNotificationSent: { type: Boolean, default: false },
+    adminBookingNotificationError: String,
+    adminPaymentNotificationSent: { type: Boolean, default: false },
+    adminPaymentNotificationError: String,
     createdAt: { type: Date, default: Date.now },
     actionTimestamp: Date
 });
@@ -203,12 +208,137 @@ const InquirySchema = new mongoose.Schema({
 InquirySchema.index({ email: 1, createdAt: -1 });
 const Inquiry = mongoose.model('Inquiry', InquirySchema);
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 const DEFAULT_ADMIN_EMAILS = 'asha.suhasinim@gmail.com,ymvshiva1784@gmail.com';
 
-async function sendInquiryNotification({ name, email, supportType, mode, message }) {
-    const rawRecipients = process.env.CONTACT_RECIPIENT_EMAILS || process.env.ADMIN_EMAILS || DEFAULT_ADMIN_EMAILS;
+function getAdminEmailRecipients() {
+    const rawRecipients = process.env.ADMIN_EMAIL || process.env.ADMIN_EMAILS || process.env.CONTACT_RECIPIENT_EMAILS || DEFAULT_ADMIN_EMAILS;
     const recipientList = rawRecipients.split(',').map(e => e.trim()).filter(Boolean);
-    const recipientsCsv = recipientList.join(',');
+    return {
+        recipientList,
+        recipientsCsv: recipientList.join(',')
+    };
+}
+
+async function sendAdminBookingNotification({ subject, htmlBody, replyTo }) {
+    const { recipientsCsv, recipientList } = getAdminEmailRecipients();
+    const relayUrl = process.env.GOOGLE_REVIEW_RELAY_URL;
+    const relaySecret = process.env.GOOGLE_RELAY_SECRET;
+
+    let emailDelivered = false;
+    let deliveryError = null;
+    let providerUsed = null;
+
+    // 1. Primary provider: Google Apps Script Relay
+    if (relayUrl && relaySecret) {
+        try {
+            let relayResponse = await fetch(relayUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    secret: relaySecret,
+                    to: recipientsCsv,
+                    replyTo: replyTo || undefined,
+                    subject: subject,
+                    htmlBody: htmlBody
+                }),
+                redirect: 'manual'
+            });
+
+            if (relayResponse.status === 302 || relayResponse.status === 303) {
+                const location = relayResponse.headers.get('location');
+                if (location) {
+                    relayResponse = await fetch(location, { method: 'GET' });
+                }
+            }
+
+            if (relayResponse.ok) {
+                const relayData = await relayResponse.json().catch(() => ({}));
+                if (relayData.success && relayData.emailSent !== false) {
+                    emailDelivered = true;
+                    providerUsed = 'gas-relay';
+                    deliveryError = null;
+                } else {
+                    deliveryError = relayData.error || relayData.emailError || 'Relay reported email failure';
+                }
+            } else {
+                deliveryError = `Google Relay HTTP ${relayResponse.status}`;
+            }
+        } catch (gasErr) {
+            deliveryError = `Google Relay network error: ${gasErr.message}`;
+        }
+    } else {
+        deliveryError = 'Google Relay URL or Secret is not configured in environment.';
+    }
+
+    // 2. Secondary fallback: Resend
+    if (!emailDelivered && process.env.RESEND_API_KEY) {
+        try {
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            const resendResult = await resend.emails.send({
+                from: process.env.RESEND_FROM || 'inquiries@ashasuhasini.com',
+                to: recipientList,
+                replyTo: replyTo || undefined,
+                subject: subject,
+                html: htmlBody
+            });
+            if (resendResult && !resendResult.error) {
+                emailDelivered = true;
+                providerUsed = 'resend';
+                deliveryError = null;
+            } else {
+                deliveryError = resendResult.error ? JSON.stringify(resendResult.error) : 'Resend error';
+            }
+        } catch (resendErr) {
+            deliveryError = `Resend exception: ${resendErr.message}`;
+        }
+    }
+
+    // 3. Tertiary fallback: Nodemailer SMTP
+    if (!emailDelivered && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        try {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS
+                }
+            });
+            await transporter.sendMail({
+                from: process.env.SMTP_USER,
+                to: recipientsCsv,
+                replyTo: replyTo || undefined,
+                subject: subject,
+                html: htmlBody
+            });
+            emailDelivered = true;
+            providerUsed = 'smtp';
+            deliveryError = null;
+        } catch (smtpErr) {
+            deliveryError = `SMTP exception: ${smtpErr.message}`;
+        }
+    }
+
+    if (!emailDelivered) {
+        console.error(`Admin notification email delivery failed (${subject}):`, deliveryError);
+    } else {
+        console.log(`Admin notification email delivered via ${providerUsed} to ${recipientsCsv}`);
+    }
+
+    return { emailDelivered, deliveryError, providerUsed };
+}
+
+async function sendInquiryNotification({ name, email, supportType, mode, message }) {
+    const { recipientsCsv, recipientList } = getAdminEmailRecipients();
 
     const supportLabels = {
         'individual': 'Individual therapy',
@@ -219,16 +349,6 @@ async function sendInquiryNotification({ name, email, supportType, mode, message
     };
     const supportLabel = supportLabels[supportType] || supportType || 'Not specified';
     const modeLabel = mode === 'online' ? 'Online Session' : (mode || 'Online Session');
-
-    const escapeHtml = (str) => {
-        if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    };
 
     const subject = `New Website Inquiry from ${name} - Asha Suhasini Mental Wellness`;
     const htmlBody = `
@@ -894,6 +1014,8 @@ app.post('/api/book', async (req, res) => {
     const { name, email, date, slot, sessionFormat } = req.body;
     const rawService = req.body.serviceKey || req.body.service;
 
+    const phone = req.body.phone ? String(req.body.phone).trim() : '';
+
     if (!name || !email || !date || !slot) {
         return res.status(400).json({ error: 'All fields are required.' });
     }
@@ -972,16 +1094,18 @@ app.post('/api/book', async (req, res) => {
         }
 
         const newBooking = new Booking({ 
-            name, 
+            name: name.trim(), 
             email: normalizedEmail, 
+            phone: phone,
             date, 
             slot,
             sessionFormat: 'online',
             service: serviceData.name,
             duration: serviceData.duration,
-            fee: serviceData.fee,
-            feeFormatted: serviceData.feeFormatted,
+            fee: serviceData.fee, // authoritatively locked from catalog
+            feeFormatted: serviceData.feeFormatted, // authoritatively locked from catalog
             status: 'pending',
+            paymentStatus: 'pending_payment',
             approvalToken,
             tokenExpiry
         });
@@ -995,79 +1119,117 @@ app.post('/api/book', async (req, res) => {
             throw saveError;
         }
 
-        // Send Email via GAS Relay to ADMINS
-        const relayUrl = process.env.GOOGLE_REVIEW_RELAY_URL;
-        const relaySecret = process.env.GOOGLE_RELAY_SECRET;
-        
-        if (relayUrl && relaySecret) {
-            const baseUrl = req.protocol + '://' + req.get('host');
-            const approveLink = `${baseUrl}/api/book/action?id=${newBooking._id}&token=${approvalToken}&action=approve`;
-            const rejectLink = `${baseUrl}/api/book/action?id=${newBooking._id}&token=${approvalToken}&action=reject`;
-            
-            const htmlBody = `
-                <h2>NEW SESSION BOOKING REQUEST</h2>
-                <p>A new booking request was submitted and is awaiting your approval.</p>
-                <hr>
-                <p><strong>Client Name:</strong> ${name}</p>
-                <p><strong>Client Email:</strong> ${email}</p>
-                <p><strong>Selected Service:</strong> ${serviceData.name}</p>
-                <p><strong>Session Duration:</strong> ${serviceData.duration}</p>
-                <p><strong>Consultation Fee:</strong> ${serviceData.feeFormatted}</p>
-                <p><strong>Requested Date:</strong> ${date}</p>
-                <p><strong>Requested Time:</strong> ${slot}</p>
-                <p><strong>Session Format:</strong> Online Session</p>
-                <p><strong>Request Timestamp:</strong> ${newBooking.createdAt}</p>
-                <p><strong>Booking ID:</strong> ${newBooking._id}</p>
-                <hr>
-                <h3>Actions</h3>
-                <p>Click one of the secure links below to moderate this booking request. ONLY THE FIRST ACTION WILL BE ACCEPTED.</p>
-                <p><strong>Note:</strong> Approving this booking will automatically:</p>
-                <ul>
-                    <li>approve the booking</li>
-                    <li>schedule the Calendar event</li>
-                    <li>generate the Google Meet link</li>
-                    <li>send the confirmation email to the client</li>
-                    <li>lock the selected slot</li>
-                </ul>
-                <br>
-                <p><a href="${approveLink}" style="padding:10px 20px; background-color:green; color:white; text-decoration:none; border-radius:5px; display:inline-block;">APPROVE BOOKING</a></p>
-                <br><br>
-                <p><a href="${rejectLink}" style="padding:10px 20px; background-color:red; color:white; text-decoration:none; border-radius:5px; display:inline-block;">REJECT BOOKING</a></p>
-            `;
+        // Send Email notification to Website Owner / Admin
+        const baseUrl = req.protocol + '://' + req.get('host');
+        const approveLink = `${baseUrl}/api/book/action?id=${newBooking._id}&token=${approvalToken}&action=approve`;
+        const rejectLink = `${baseUrl}/api/book/action?id=${newBooking._id}&token=${approvalToken}&action=reject`;
+        const inspectLink = `${baseUrl}/api/book/action?id=${newBooking._id}&token=${approvalToken}`;
 
-            try {
-                // By not specifying 'to', our modified GAS script will default to both admins
-                let relayResponse = await fetch(relayUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        secret: relaySecret,
-                        subject: 'ACTION REQUIRED: New Session Booking Request',
-                        htmlBody: htmlBody
-                    }),
-                    redirect: 'manual'
-                });
+        const adminBookingSubject = `NEW BOOKING REQUEST: ${serviceData.name} - ${newBooking.name}`;
+        const adminBookingHtml = `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
+                <div style="border-bottom: 2px solid #82a89d; padding-bottom: 16px; margin-bottom: 20px;">
+                    <h2 style="color: #2c4a3e; margin: 0; font-size: 22px;">NEW SESSION BOOKING REQUEST</h2>
+                    <p style="color: #666; margin: 4px 0 0 0; font-size: 14px;">A client has submitted a booking request and is proceeding to payment.</p>
+                </div>
                 
-                if (relayResponse.status === 302 || relayResponse.status === 303) {
-                    const location = relayResponse.headers.get('location');
-                    if (location) {
-                        relayResponse = await fetch(location, { method: 'GET' });
-                    }
-                }
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; line-height: 1.6;">
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; width: 175px; font-weight: 600;">Customer Full Name:</td>
+                        <td style="padding: 8px 0; color: #111; font-weight: 600;">${escapeHtml(newBooking.name)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Customer Email Address:</td>
+                        <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(newBooking.email)}" style="color: #2c4a3e; text-decoration: underline;">${escapeHtml(newBooking.email)}</a></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Customer Phone Number:</td>
+                        <td style="padding: 8px 0; color: #111;">${escapeHtml(newBooking.phone || 'Not provided')}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Selected Service / Therapy:</td>
+                        <td style="padding: 8px 0; color: #111;">${escapeHtml(newBooking.service)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Session Duration:</td>
+                        <td style="padding: 8px 0; color: #111;">${escapeHtml(newBooking.duration)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Exact Consultation Fee:</td>
+                        <td style="padding: 8px 0; color: #92400e; font-weight: bold; font-size: 16px;">${escapeHtml(newBooking.feeFormatted)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Booking Date and Time:</td>
+                        <td style="padding: 8px 0; color: #111; font-weight: 600;">${escapeHtml(newBooking.date)} at ${escapeHtml(newBooking.slot)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Session Format:</td>
+                        <td style="padding: 8px 0; color: #111;">Online Session</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Booking ID / Reference:</td>
+                        <td style="padding: 8px 0; color: #555; font-family: monospace; font-size: 13px;">${newBooking._id}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">UTR / Transaction Ref:</td>
+                        <td style="padding: 8px 0; color: #777; font-style: italic;">Awaiting client payment submission</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Payment Submission Time:</td>
+                        <td style="padding: 8px 0; color: #777; font-style: italic;">N/A (pending)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Current Booking Status:</td>
+                        <td style="padding: 8px 0;"><span style="display:inline-block; padding:3px 8px; background:#fff3cd; color:#856404; border-radius:4px; font-weight:600; font-size:12px;">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Current Payment Status:</td>
+                        <td style="padding: 8px 0;"><span style="display:inline-block; padding:3px 8px; background:#f8d7da; color:#721c24; border-radius:4px; font-weight:600; font-size:12px;">Pending Payment</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Payment Screenshot:</td>
+                        <td style="padding: 8px 0; color: #777; font-style: italic;">N/A (pending)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Request Submitted At:</td>
+                        <td style="padding: 8px 0; color: #111;">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)</td>
+                    </tr>
+                </table>
 
-                if (!relayResponse.ok) {
-                    console.error('Google Relay HTTP Error for booking admin email:', relayResponse.status);
-                }
-            } catch (emailError) {
-                console.error('Email relay failed, but booking was saved:', emailError);
-            }
-        } else {
-            console.warn('Google Relay URL/Secret not configured. Admins will not receive notification.');
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #334155; font-size: 13px; line-height: 1.5;">
+                        <strong>Next Step:</strong> The client is now viewing the PhonePe QR code to pay <strong>${escapeHtml(newBooking.feeFormatted)}</strong>. You will receive a follow-up notification as soon as they submit their payment reference (UTR).
+                    </p>
+                </div>
+
+                <div style="border-top: 1px solid #e0e0e0; padding-top: 16px; text-align: center;">
+                    <p style="margin: 0 0 12px 0; font-size: 13px; color: #666;">Moderation Actions:</p>
+                    <a href="${inspectLink}" style="display: inline-block; padding: 10px 18px; background-color: #82a89d; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 4px;">Review Booking Details</a>
+                    <a href="${approveLink}" style="display: inline-block; padding: 10px 18px; background-color: #2e7d32; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 4px;">Approve Booking</a>
+                    <a href="${rejectLink}" style="display: inline-block; padding: 10px 18px; background-color: #c62828; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 4px;">Reject Booking</a>
+                </div>
+            </div>
+        `;
+
+        try {
+            const notifyResult = await sendAdminBookingNotification({
+                subject: adminBookingSubject,
+                htmlBody: adminBookingHtml,
+                replyTo: newBooking.email
+            });
+            newBooking.adminBookingNotificationSent = notifyResult.emailDelivered;
+            newBooking.adminBookingNotificationError = notifyResult.deliveryError;
+            await newBooking.save();
+        } catch (emailErr) {
+            console.error('Failed to send booking creation admin notification:', emailErr);
+            newBooking.adminBookingNotificationError = emailErr.message;
+            await newBooking.save();
         }
 
         res.status(200).json({ 
             success: true, 
             status: 'pending',
+            paymentStatus: 'pending_payment',
             bookingId: newBooking._id.toString(),
             message: 'Your booking request has been submitted and is awaiting confirmation.',
             service: serviceData.name,
@@ -1076,8 +1238,9 @@ app.post('/api/book', async (req, res) => {
             feeAmount: serviceData.fee,
             date,
             slot,
-            name,
-            email: normalizedEmail
+            name: newBooking.name,
+            email: normalizedEmail,
+            phone: newBooking.phone
         });
 
     } catch (error) {
@@ -1147,49 +1310,117 @@ app.post('/api/book/payment', async (req, res) => {
         }
         await booking.save();
 
-        // Send email via Google Relay to Admins about payment submission
-        const relayUrl = process.env.GOOGLE_REVIEW_RELAY_URL;
-        const relaySecret = process.env.GOOGLE_RELAY_SECRET;
-        if (relayUrl && relaySecret) {
-            const baseUrl = req.protocol + '://' + req.get('host');
-            const approveLink = `${baseUrl}/api/book/action?id=${booking._id}&token=${booking.approvalToken}&action=approve`;
-            const rejectLink = `${baseUrl}/api/book/action?id=${booking._id}&token=${booking.approvalToken}&action=reject`;
+        // Send email notification to Website Owner / Admin with all required details
+        const baseUrl = req.protocol + '://' + req.get('host');
+        const approveLink = `${baseUrl}/api/book/action?id=${booking._id}&token=${booking.approvalToken}&action=approve`;
+        const rejectLink = `${baseUrl}/api/book/action?id=${booking._id}&token=${booking.approvalToken}&action=reject`;
+        const inspectLink = `${baseUrl}/api/book/action?id=${booking._id}&token=${booking.approvalToken}`;
 
-            const paymentHtmlBody = `
-                <h2>PAYMENT REFERENCE SUBMITTED</h2>
-                <p>A client has submitted payment details for their booking request. Please verify in PhonePe or your bank account before approving.</p>
-                <hr>
-                <p><strong>Client Name:</strong> ${booking.name}</p>
-                <p><strong>Client Email:</strong> ${booking.email}</p>
-                <p><strong>Selected Service:</strong> ${booking.service}</p>
-                <p><strong>Session Duration:</strong> ${booking.duration}</p>
-                <p><strong>Exact Amount Payable:</strong> ${booking.feeFormatted}</p>
-                <p><strong>Session Date:</strong> ${booking.date}</p>
-                <p><strong>Session Time:</strong> ${booking.slot}</p>
-                <p style="font-size:16px; color:#2e7d32;"><strong>Submitted UTR / Ref Number:</strong> ${trimmedUtr}</p>
-                <p><strong>Payment Status:</strong> Pending Verification</p>
-                <p><strong>Booking ID:</strong> ${booking._id}</p>
-                <hr>
-                <p><strong>Action Required:</strong> Check that payment of <strong>${booking.feeFormatted}</strong> is credited under UTR <strong>${trimmedUtr}</strong> to account GULLA ASHA SUHASINI RAJA (8019749608@ybl), then click:</p>
-                <br>
-                <p><a href="${approveLink}" style="padding:10px 20px; background-color:green; color:white; text-decoration:none; border-radius:5px; display:inline-block; font-weight:bold;">APPROVE BOOKING</a></p>
-                <br><br>
-                <p><a href="${rejectLink}" style="padding:10px 20px; background-color:red; color:white; text-decoration:none; border-radius:5px; display:inline-block; font-weight:bold;">REJECT BOOKING</a></p>
-            `;
+        const paymentSubject = `ACTION REQUIRED: Payment Submitted (${booking.service}) - ${trimmedUtr}`;
+        const paymentHtml = `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
+                <div style="border-bottom: 2px solid #b45309; padding-bottom: 16px; margin-bottom: 20px;">
+                    <h2 style="color: #92400e; margin: 0; font-size: 22px;">PAYMENT REFERENCE SUBMITTED</h2>
+                    <p style="color: #666; margin: 4px 0 0 0; font-size: 14px;">A client has submitted payment details. Verification is required before approving.</p>
+                </div>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; line-height: 1.6;">
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; width: 175px; font-weight: 600;">Customer Full Name:</td>
+                        <td style="padding: 8px 0; color: #111; font-weight: 600;">${escapeHtml(booking.name)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Customer Email Address:</td>
+                        <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(booking.email)}" style="color: #2c4a3e; text-decoration: underline;">${escapeHtml(booking.email)}</a></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Customer Phone Number:</td>
+                        <td style="padding: 8px 0; color: #111;">${escapeHtml(booking.phone || 'Not provided')}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Selected Service / Therapy:</td>
+                        <td style="padding: 8px 0; color: #111;">${escapeHtml(booking.service)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Session Duration:</td>
+                        <td style="padding: 8px 0; color: #111;">${escapeHtml(booking.duration)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Exact Consultation Fee:</td>
+                        <td style="padding: 8px 0; color: #92400e; font-weight: bold; font-size: 16px;">${escapeHtml(booking.feeFormatted)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Booking Date and Time:</td>
+                        <td style="padding: 8px 0; color: #111; font-weight: 600;">${escapeHtml(booking.date)} at ${escapeHtml(booking.slot)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Session Format:</td>
+                        <td style="padding: 8px 0; color: #111;">Online Session</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Booking ID / Reference:</td>
+                        <td style="padding: 8px 0; color: #555; font-family: monospace; font-size: 13px;">${booking._id}</td>
+                    </tr>
+                    <tr style="background-color: #fef3c7;">
+                        <td style="padding: 10px 8px; color: #92400e; font-weight: 700;">Submitted UTR / Ref:</td>
+                        <td style="padding: 10px 8px; color: #1e293b; font-family: monospace; font-weight: 700; font-size: 16px;">${escapeHtml(trimmedUtr)}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Payment Submission Date/Time:</td>
+                        <td style="padding: 8px 0; color: #111;">${booking.paymentSubmittedAt ? booking.paymentSubmittedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Current Booking Status:</td>
+                        <td style="padding: 8px 0;"><span style="display:inline-block; padding:3px 8px; background:#fff3cd; color:#856404; border-radius:4px; font-weight:600; font-size:12px;">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Current Payment Status:</td>
+                        <td style="padding: 8px 0;"><span style="display:inline-block; padding:3px 8px; background:#fef3c7; color:#92400e; border-radius:4px; font-weight:700; font-size:12px;">Pending Verification</span></td>
+                    </tr>
+                    ${booking.paymentScreenshot ? `
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600; vertical-align: top;">Payment Screenshot:</td>
+                        <td style="padding: 8px 0;">
+                            <a href="${inspectLink}" style="color: #2c4a3e; text-decoration: underline; font-weight: 600;">View Full Screenshot in Portal</a>
+                            <div style="margin-top: 8px;">
+                                <img src="${booking.paymentScreenshot}" style="max-width: 280px; max-height: 350px; border-radius: 6px; border: 1px solid #ddd; display: block;" alt="Payment Screenshot">
+                            </div>
+                        </td>
+                    </tr>
+                    ` : `
+                    <tr>
+                        <td style="padding: 8px 0; color: #555; font-weight: 600;">Payment Screenshot:</td>
+                        <td style="padding: 8px 0; color: #777;">No screenshot uploaded (UTR only)</td>
+                    </tr>
+                    `}
+                </table>
 
-            try {
-                await fetch(relayUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        secret: relaySecret,
-                        subject: `ACTION REQUIRED: Payment Submitted (${booking.service}) - ${trimmedUtr}`,
-                        htmlBody: paymentHtmlBody
-                    })
-                });
-            } catch (err) {
-                console.error('Relay error on payment submission:', err);
-            }
+                <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #065f46; font-size: 13.5px; line-height: 1.5;">
+                        <strong>Verification Action Required:</strong> Verify that <strong>${escapeHtml(booking.feeFormatted)}</strong> has been received under UTR <strong>${escapeHtml(trimmedUtr)}</strong> in PhonePe business account (<strong>GULLA ASHA SUHASINI RAJA - 8019749608@ybl</strong>) or bank statement, then click APPROVE BOOKING below.
+                    </p>
+                </div>
+
+                <div style="border-top: 1px solid #e0e0e0; padding-top: 16px; text-align: center;">
+                    <a href="${approveLink}" style="display: inline-block; padding: 12px 24px; background-color: #2e7d32; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 15px; margin: 4px;">APPROVE BOOKING</a>
+                    <a href="${rejectLink}" style="display: inline-block; padding: 12px 24px; background-color: #c62828; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 15px; margin: 4px;">REJECT BOOKING</a>
+                </div>
+            </div>
+        `;
+
+        try {
+            const notifyResult = await sendAdminBookingNotification({
+                subject: paymentSubject,
+                htmlBody: paymentHtml,
+                replyTo: booking.email
+            });
+            booking.adminPaymentNotificationSent = notifyResult.emailDelivered;
+            booking.adminPaymentNotificationError = notifyResult.deliveryError;
+            await booking.save();
+        } catch (emailErr) {
+            console.error('Failed to send payment submission admin notification:', emailErr);
+            booking.adminPaymentNotificationError = emailErr.message;
+            await booking.save();
         }
 
         return res.status(200).json({
@@ -1302,27 +1533,35 @@ app.get('/api/book/action', async (req, res) => {
                     <div class="details">
                         <div class="detail-row">
                             <span class="detail-label">Client</span>
-                            <div class="detail-value">${booking.name}<br><span style="font-size: 14px; font-weight: normal; color: #555;">${booking.email}</span></div>
+                            <div class="detail-value">${escapeHtml(booking.name)}<br><span style="font-size: 14px; font-weight: normal; color: #555;">${escapeHtml(booking.email)}</span></div>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Client Phone</span>
+                            <div class="detail-value">${escapeHtml(booking.phone || 'Not provided')}</div>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Selected Service</span>
-                            <div class="detail-value">${booking.service || 'N/A'}</div>
+                            <div class="detail-value">${escapeHtml(booking.service || 'N/A')}</div>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Session Duration</span>
-                            <div class="detail-value">${booking.duration || 'N/A'}</div>
+                            <div class="detail-value">${escapeHtml(booking.duration || 'N/A')}</div>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Amount Payable</span>
-                            <div class="detail-value" style="font-weight: bold; color: #92400e; font-size: 18px;">${booking.feeFormatted || 'N/A'}</div>
+                            <div class="detail-value" style="font-weight: bold; color: #92400e; font-size: 18px;">${escapeHtml(booking.feeFormatted || 'N/A')}</div>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Date & Time</span>
-                            <div class="detail-value">${booking.date} at ${booking.slot}</div>
+                            <div class="detail-value">${escapeHtml(booking.date)} at ${escapeHtml(booking.slot)}</div>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Session Format</span>
                             <div class="detail-value">Online Session</div>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Booking ID</span>
+                            <div class="detail-value" style="font-family: monospace; font-size: 13px;">${booking._id}</div>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Payment Status</span>
@@ -1332,7 +1571,11 @@ app.get('/api/book/action', async (req, res) => {
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Submitted UTR / Ref Number</span>
-                            <div class="detail-value" style="font-family: monospace; font-size: 16px; font-weight: bold; color: #1e293b;">${booking.utr || 'Not submitted yet'}</div>
+                            <div class="detail-value" style="font-family: monospace; font-size: 16px; font-weight: bold; color: #1e293b;">${escapeHtml(booking.utr || 'Not submitted yet')}</div>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Payment Submitted At</span>
+                            <div class="detail-value">${booking.paymentSubmittedAt ? booking.paymentSubmittedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' (IST)' : 'N/A (pending)'}</div>
                         </div>
                         ${booking.paymentScreenshot ? `
                         <div class="detail-row">
@@ -1464,16 +1707,17 @@ app.post('/api/book/action', async (req, res) => {
             let htmlBody = '';
             if (action === 'approve') {
                 htmlBody = `<h2>Your Session is Confirmed</h2>
-                   <p>Hello ${booking.name},</p>
+                   <p>Hello ${escapeHtml(booking.name)},</p>
                    <p>Your online mental wellness session has been confirmed and payment has been verified.</p>
-                   <p><strong>Client Name:</strong> ${booking.name}</p>
-                   <p><strong>Client Email:</strong> ${booking.email}</p>
-                   <p><strong>Selected Service:</strong> ${booking.service || 'Mental Wellness Session'}</p>
-                   <p><strong>Session Duration:</strong> ${booking.duration || '45–60 min'}</p>
-                   <p><strong>Consultation Fee:</strong> ${booking.feeFormatted || ''}</p>
-                   ${booking.utr ? `<p><strong>Payment Reference (UTR):</strong> ${booking.utr}</p>` : ''}
-                   <p><strong>Session Date:</strong> ${booking.date}</p>
-                   <p><strong>Session Time:</strong> ${booking.slot}</p>
+                   <p><strong>Client Name:</strong> ${escapeHtml(booking.name)}</p>
+                   <p><strong>Client Email:</strong> ${escapeHtml(booking.email)}</p>
+                   ${booking.phone ? `<p><strong>Client Phone:</strong> ${escapeHtml(booking.phone)}</p>` : ''}
+                   <p><strong>Selected Service:</strong> ${escapeHtml(booking.service || 'Mental Wellness Session')}</p>
+                   <p><strong>Session Duration:</strong> ${escapeHtml(booking.duration || '45–60 min')}</p>
+                   <p><strong>Consultation Fee:</strong> ${escapeHtml(booking.feeFormatted || '')}</p>
+                   ${booking.utr ? `<p><strong>Payment Reference (UTR):</strong> ${escapeHtml(booking.utr)}</p>` : ''}
+                   <p><strong>Session Date:</strong> ${escapeHtml(booking.date)}</p>
+                   <p><strong>Session Time:</strong> ${escapeHtml(booking.slot)}</p>
                    <p><strong>Session Format:</strong> Online Session</p>
                    <p><strong>Payment Status:</strong> Verified & Confirmed</p>
                    <br>
@@ -1481,9 +1725,12 @@ app.post('/api/book/action', async (req, res) => {
                    <br><p>We look forward to speaking with you.</p>`;
             } else {
                 htmlBody = `<h2>Booking Request Update</h2>
-                   <p>Dear ${booking.name},</p>
-                   <p>Your requested online session could not be confirmed for the selected time.</p>
-                   <p>Please visit the website to submit another booking request for a different time slot.</p>`;
+                   <p>Dear ${escapeHtml(booking.name)},</p>
+                   <p>Your requested online session could not be confirmed for the selected time slot.</p>
+                   <p><strong>Selected Service:</strong> ${escapeHtml(booking.service || 'Mental Wellness Session')}</p>
+                   <p><strong>Requested Date:</strong> ${escapeHtml(booking.date)} at ${escapeHtml(booking.slot)}</p>
+                   ${booking.utr ? `<p><strong>Payment Reference (UTR):</strong> ${escapeHtml(booking.utr)}</p>` : ''}
+                   <p>Please visit the website to submit another booking request for an alternative date and time, or reply to this email for assistance.</p>`;
             }
 
             let createCalendarEvent = null;
@@ -1606,26 +1853,28 @@ app.post('/api/book/action', async (req, res) => {
                 }
             }
 
-            // --- 2. PROCESS THERAPIST NOTIFICATION EMAIL ---
+            // --- 2. PROCESS THERAPIST / ADMIN NOTIFICATION EMAIL ---
             if (action === 'approve' && booking.calendarEventCreated && booking.meetingUrl && !booking.therapistConfirmationEmailSent) {
                 try {
                     const therapistSubject = `NEW SESSION CONFIRMED - Asha Suhasini Mental Wellness`;
                     const therapistHtmlBody = `<h2>New Session Confirmed</h2>
                         <p>A new online session has been confirmed and scheduled with verified payment.</p>
                         <hr>
-                        <p><strong>Client Name:</strong> ${booking.name}</p>
-                        <p><strong>Client Email:</strong> ${booking.email}</p>
-                        <p><strong>Selected Service:</strong> ${booking.service || 'Mental Wellness Consultation'}</p>
-                        <p><strong>Session Duration:</strong> ${booking.duration || '45–60 min'}</p>
-                        <p><strong>Consultation Fee:</strong> ${booking.feeFormatted || ''}</p>
-                        ${booking.utr ? `<p><strong>Payment Reference (UTR):</strong> ${booking.utr}</p>` : ''}
-                        <p><strong>Session Date:</strong> ${booking.date}</p>
-                        <p><strong>Session Time:</strong> ${booking.slot}</p>
+                        <p><strong>Client Name:</strong> ${escapeHtml(booking.name)}</p>
+                        <p><strong>Client Email:</strong> ${escapeHtml(booking.email)}</p>
+                        <p><strong>Client Phone:</strong> ${escapeHtml(booking.phone || 'Not provided')}</p>
+                        <p><strong>Selected Service:</strong> ${escapeHtml(booking.service || 'Mental Wellness Consultation')}</p>
+                        <p><strong>Session Duration:</strong> ${escapeHtml(booking.duration || '45–60 min')}</p>
+                        <p><strong>Consultation Fee:</strong> ${escapeHtml(booking.feeFormatted || '')}</p>
+                        ${booking.utr ? `<p><strong>Payment Reference (UTR):</strong> ${escapeHtml(booking.utr)}</p>` : ''}
+                        <p><strong>Session Date:</strong> ${escapeHtml(booking.date)}</p>
+                        <p><strong>Session Time:</strong> ${escapeHtml(booking.slot)}</p>
                         <p><strong>Session Format:</strong> Online Session</p>
-                        <p><strong>Payment Status:</strong> Verified</p>
+                        <p><strong>Booking Status:</strong> Approved</p>
+                        <p><strong>Payment Status:</strong> Verified & Confirmed</p>
                         <hr>
                         <p>&#10003; Google Calendar event created successfully.</p>
-                        <p>&#10003; Client email (${booking.email}) added as guest.</p>
+                        <p>&#10003; Client email (${escapeHtml(booking.email)}) added as guest.</p>
                         <br>
                         <p><a href="{{MEET_URL}}" style="padding:10px 20px; background-color:#1a73e8; color:white; text-decoration:none; border-radius:5px; display:inline-block; font-weight:bold;">JOIN GOOGLE MEET</a></p>
                         <br><p>This is a confirmed upcoming session.</p>`;
@@ -1682,6 +1931,39 @@ app.post('/api/book/action', async (req, res) => {
                     console.error('Therapist email relay failed:', emailError);
                     therapistEmailStatus = '<p style="color: #c62828;">Error: Server failed to execute therapist relay request.</p>';
                     booking.therapistConfirmationError = emailError.toString();
+                }
+            } else if (action === 'reject' && !booking.therapistConfirmationEmailSent) {
+                try {
+                    const therapistRejectSubject = `SESSION BOOKING REJECTED - Asha Suhasini Mental Wellness`;
+                    const therapistRejectHtml = `
+                        <h2>Session Booking Rejected</h2>
+                        <p>The following booking request has been rejected and the slot released.</p>
+                        <hr>
+                        <p><strong>Client Name:</strong> ${escapeHtml(booking.name)}</p>
+                        <p><strong>Client Email:</strong> ${escapeHtml(booking.email)}</p>
+                        <p><strong>Client Phone:</strong> ${escapeHtml(booking.phone || 'Not provided')}</p>
+                        <p><strong>Selected Service:</strong> ${escapeHtml(booking.service || 'Mental Wellness Consultation')}</p>
+                        <p><strong>Session Duration:</strong> ${escapeHtml(booking.duration || '45–60 min')}</p>
+                        <p><strong>Consultation Fee:</strong> ${escapeHtml(booking.feeFormatted || '')}</p>
+                        ${booking.utr ? `<p><strong>Payment Reference (UTR):</strong> ${escapeHtml(booking.utr)}</p>` : ''}
+                        <p><strong>Session Date:</strong> ${escapeHtml(booking.date)}</p>
+                        <p><strong>Session Time:</strong> ${escapeHtml(booking.slot)}</p>
+                        <p><strong>Booking Status:</strong> Rejected</p>
+                        <p><strong>Payment Status:</strong> Rejected</p>
+                        <hr>
+                        <p>Client has been notified via email. The slot is now released for other clients.</p>
+                    `;
+                    const notifyResult = await sendAdminBookingNotification({
+                        subject: therapistRejectSubject,
+                        htmlBody: therapistRejectHtml,
+                        replyTo: booking.email
+                    });
+                    if (notifyResult.emailDelivered) {
+                        booking.therapistConfirmationEmailSent = true;
+                        therapistEmailStatus = '<p>Therapist / Admin has been notified of rejection.</p>';
+                    }
+                } catch (e) {
+                    console.error('Failed to notify admin of rejection:', e);
                 }
             } else if (booking.therapistConfirmationEmailSent) {
                 therapistEmailStatus = '<p>Therapist has already been notified via email.</p>';
