@@ -162,6 +162,7 @@ console.log('  ✓ Validated paymentStatus transition to "paid" upon approval');
 console.log('  ✓ Validated paymentStatus transition to "rejected" upon rejection');
 
 // --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 // TEST 7: Admin Recipient Resolution
 // --------------------------------------------------------------------------
 console.log('\nTEST 7: Verifying Admin Email Recipient Resolution...');
@@ -174,9 +175,50 @@ assert(serverJsContent.includes('process.env.ADMIN_EMAIL || process.env.ADMIN_EM
 console.log('  ✓ Admin recipient fallback properly configured: asha.suhasinim@gmail.com, ymvshiva1784@gmail.com');
 
 // --------------------------------------------------------------------------
-// TEST 8: Puppeteer UI & Mobile Responsiveness Test (375px Viewport)
+// TEST 8: Dedicated Screenshot Portal Route & Decoupled Action Endpoint
 // --------------------------------------------------------------------------
-console.log('\nTEST 8: Launching Puppeteer for Mobile Responsiveness & UI Flow at 375px...');
+console.log('\nTEST 8: Verifying Dedicated Screenshot Portal Route & Link Decoupling...');
+
+// 1. Check dedicated screenshot endpoint exists
+assert(serverJsContent.includes("app.get('/api/book/screenshot', async (req, res) => {"), 
+    'server.js must define dedicated GET /api/book/screenshot endpoint');
+
+// 2. Check screenshotLink is generated correctly
+assert(serverJsContent.includes("const screenshotLink = `${baseUrl}/api/book/screenshot?id=${booking._id}&token=${booking.approvalToken}`;"), 
+    'server.js must generate dedicated screenshotLink');
+
+// 3. Check payment email template uses screenshotLink
+assert(serverJsContent.includes('<a href="${screenshotLink}" style="color: #2c4a3e; text-decoration: underline; font-weight: 600;">View Full Screenshot in Portal</a>'), 
+    'Payment email must link "View Full Screenshot in Portal" to screenshotLink');
+assert(serverJsContent.includes('<a href="${screenshotLink}" style="display: inline-block; padding: 12px 20px; background-color: #2c4a3e; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 14px; margin: 4px;">VIEW SCREENSHOT &amp; VERIFY</a>'), 
+    'Payment email must include VIEW SCREENSHOT & VERIFY action button');
+
+// 4. Check GET /api/book/action makes action optional
+assert(serverJsContent.includes("if (!id || !token)") && serverJsContent.includes("Missing required parameters: id and token are required."), 
+    'GET /api/book/action must not require action parameter (it is purely a review GET view)');
+
+// 5. Check raw=1 image streaming logic
+assert(serverJsContent.includes("if (raw === '1' || raw === 'true') {"), 
+    'GET /api/book/screenshot must support raw=1 streaming');
+assert(serverJsContent.includes("res.setHeader('Content-Type', mimeType);"), 
+    'raw image streaming must set Content-Type header');
+assert(serverJsContent.includes("res.setHeader('Content-Security-Policy', \"default-src 'none'; style-src 'unsafe-inline'\");"), 
+    'raw image streaming must set strict Content-Security-Policy header');
+
+// 6. Check fallback for bookings without screenshot
+assert(serverJsContent.includes('No Payment Screenshot Uploaded'), 
+    'Portal must handle submissions without screenshot gracefully');
+
+console.log('  ✓ Verified dedicated GET /api/book/screenshot route');
+console.log('  ✓ Verified payment email points "View Full Screenshot in Portal" to /api/book/screenshot');
+console.log('  ✓ Verified GET /api/book/action does not require action query parameter');
+console.log('  ✓ Verified raw image streaming with secure CSP and content headers');
+console.log('  ✓ Verified graceful fallback card for screenshot-less UTR submissions');
+
+// --------------------------------------------------------------------------
+// TEST 9: Puppeteer UI & Mobile Responsiveness Test (375px Viewport)
+// --------------------------------------------------------------------------
+console.log('\nTEST 9: Launching Puppeteer for Mobile Responsiveness & UI Flow at 375px...');
 
 import http from 'http';
 

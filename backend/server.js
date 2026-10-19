@@ -1315,6 +1315,7 @@ app.post('/api/book/payment', async (req, res) => {
         const approveLink = `${baseUrl}/api/book/action?id=${booking._id}&token=${booking.approvalToken}&action=approve`;
         const rejectLink = `${baseUrl}/api/book/action?id=${booking._id}&token=${booking.approvalToken}&action=reject`;
         const inspectLink = `${baseUrl}/api/book/action?id=${booking._id}&token=${booking.approvalToken}`;
+        const screenshotLink = `${baseUrl}/api/book/screenshot?id=${booking._id}&token=${booking.approvalToken}`;
 
         const paymentSubject = `ACTION REQUIRED: Payment Submitted (${booking.service}) - ${trimmedUtr}`;
         const paymentHtml = `
@@ -1381,16 +1382,18 @@ app.post('/api/book/payment', async (req, res) => {
                     <tr>
                         <td style="padding: 8px 0; color: #555; font-weight: 600; vertical-align: top;">Payment Screenshot:</td>
                         <td style="padding: 8px 0;">
-                            <a href="${inspectLink}" style="color: #2c4a3e; text-decoration: underline; font-weight: 600;">View Full Screenshot in Portal</a>
+                            <a href="${screenshotLink}" style="color: #2c4a3e; text-decoration: underline; font-weight: 600;">View Full Screenshot in Portal</a>
                             <div style="margin-top: 8px;">
-                                <img src="${booking.paymentScreenshot}" style="max-width: 280px; max-height: 350px; border-radius: 6px; border: 1px solid #ddd; display: block;" alt="Payment Screenshot">
+                                <a href="${screenshotLink}" target="_blank" style="display: block;">
+                                    <img src="${booking.paymentScreenshot}" style="max-width: 280px; max-height: 350px; border-radius: 6px; border: 1px solid #ddd; display: block;" alt="Payment Screenshot">
+                                </a>
                             </div>
                         </td>
                     </tr>
                     ` : `
                     <tr>
                         <td style="padding: 8px 0; color: #555; font-weight: 600;">Payment Screenshot:</td>
-                        <td style="padding: 8px 0; color: #777;">No screenshot uploaded (UTR only)</td>
+                        <td style="padding: 8px 0; color: #777;">No screenshot uploaded (UTR only) — <a href="${screenshotLink}" style="color: #2c4a3e; text-decoration: underline; font-size: 13px;">View Details in Portal</a></td>
                     </tr>
                     `}
                 </table>
@@ -1402,8 +1405,9 @@ app.post('/api/book/payment', async (req, res) => {
                 </div>
 
                 <div style="border-top: 1px solid #e0e0e0; padding-top: 16px; text-align: center;">
-                    <a href="${approveLink}" style="display: inline-block; padding: 12px 24px; background-color: #2e7d32; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 15px; margin: 4px;">APPROVE BOOKING</a>
-                    <a href="${rejectLink}" style="display: inline-block; padding: 12px 24px; background-color: #c62828; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 15px; margin: 4px;">REJECT BOOKING</a>
+                    <a href="${screenshotLink}" style="display: inline-block; padding: 12px 20px; background-color: #2c4a3e; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 14px; margin: 4px;">VIEW SCREENSHOT &amp; VERIFY</a>
+                    <a href="${approveLink}" style="display: inline-block; padding: 12px 20px; background-color: #2e7d32; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 14px; margin: 4px;">APPROVE BOOKING</a>
+                    <a href="${rejectLink}" style="display: inline-block; padding: 12px 20px; background-color: #c62828; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 14px; margin: 4px;">REJECT BOOKING</a>
                 </div>
             </div>
         `;
@@ -1440,11 +1444,470 @@ app.post('/api/book/payment', async (req, res) => {
     }
 });
 
+app.get('/api/book/screenshot', async (req, res) => {
+    const { id, token, raw } = req.query;
+
+    if (!id || !token) {
+        return res.status(400).send(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>Missing Parameters</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f8fafc;margin:0;}.card{background:#fff;padding:32px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);max-width:440px;text-align:center;}h2{color:#dc2626;margin-top:0;}p{color:#475569;}</style></head>
+            <body><div class="card"><h2>Missing Parameters</h2><p>Both booking <code>id</code> and access <code>token</code> are required to view the payment screenshot.</p></div></body></html>
+        `);
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).send(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><title>Invalid ID</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f8fafc;margin:0;}.card{background:#fff;padding:32px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);max-width:440px;text-align:center;}h2{color:#dc2626;margin-top:0;}p{color:#475569;}</style></head>
+            <body><div class="card"><h2>Invalid ID</h2><p>The provided booking identifier format is invalid.</p></div></body></html>
+        `);
+    }
+
+    try {
+        const booking = await Booking.findById(id);
+        if (!booking) {
+            return res.status(404).send(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head><meta charset="UTF-8"><title>Booking Not Found</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f8fafc;margin:0;}.card{background:#fff;padding:32px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);max-width:440px;text-align:center;}h2{color:#dc2626;margin-top:0;}p{color:#475569;}</style></head>
+                <body><div class="card"><h2>Booking Not Found</h2><p>No booking record exists for the provided ID.</p></div></body></html>
+            `);
+        }
+
+        if (!booking.approvalToken || booking.approvalToken !== token) {
+            return res.status(403).send(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head><meta charset="UTF-8"><title>Access Denied</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f8fafc;margin:0;}.card{background:#fff;padding:32px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);max-width:440px;text-align:center;}h2{color:#dc2626;margin-top:0;}p{color:#475569;}</style></head>
+                <body><div class="card"><h2>Access Denied</h2><p>The secure access token is invalid or does not match this booking record.</p></div></body></html>
+            `);
+        }
+
+        if (booking.tokenExpiry && booking.tokenExpiry < new Date()) {
+            return res.status(403).send(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head><meta charset="UTF-8"><title>Link Expired</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f8fafc;margin:0;}.card{background:#fff;padding:32px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08);max-width:440px;text-align:center;}h2{color:#dc2626;margin-top:0;}p{color:#475569;}</style></head>
+                <body><div class="card"><h2>Link Expired</h2><p>This secure screenshot viewing link has expired.</p></div></body></html>
+            `);
+        }
+
+        // Handle raw image streaming (high-resolution full display)
+        if (raw === '1' || raw === 'true') {
+            if (!booking.paymentScreenshot) {
+                return res.status(404).send('No payment screenshot was uploaded for this booking.');
+            }
+
+            const match = booking.paymentScreenshot.match(/^data:([^;]+);base64,(.+)$/);
+            if (!match) {
+                return res.status(400).send('Invalid stored screenshot format.');
+            }
+
+            const mimeType = match[1];
+            const buffer = Buffer.from(match[2], 'base64');
+
+            res.setHeader('Content-Type', mimeType);
+            res.setHeader('Content-Length', buffer.length);
+            res.setHeader('Cache-Control', 'private, max-age=3600');
+            res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'");
+            res.setHeader('X-Content-Type-Options', 'nosniff');
+            return res.send(buffer);
+        }
+
+        // Render responsive portal HTML (Read-only; NEVER mutates booking or payment status)
+        const baseUrl = req.protocol + '://' + req.get('host');
+        const rawImageUrl = `${baseUrl}/api/book/screenshot?id=${id}&token=${token}&raw=1`;
+        const approveActionUrl = `${baseUrl}/api/book/action?id=${id}&token=${token}&action=approve`;
+        const rejectActionUrl = `${baseUrl}/api/book/action?id=${id}&token=${token}&action=reject`;
+
+        const paymentStatusLabel = booking.paymentStatus === 'paid' 
+            ? 'Paid & Verified' 
+            : (booking.paymentStatus === 'pending_verification' ? 'Pending Verification' : (booking.paymentStatus === 'rejected' ? 'Rejected' : 'Pending Payment'));
+        const paymentStatusColor = booking.paymentStatus === 'paid' 
+            ? '#166534' 
+            : (booking.paymentStatus === 'pending_verification' ? '#92400e' : (booking.paymentStatus === 'rejected' ? '#991b1b' : '#64748b'));
+        const paymentStatusBg = booking.paymentStatus === 'paid' 
+            ? '#dcfce7' 
+            : (booking.paymentStatus === 'pending_verification' ? '#fef3c7' : (booking.paymentStatus === 'rejected' ? '#fee2e2' : '#f1f5f9'));
+
+        const bookingStatusLabel = booking.status === 'approved' 
+            ? 'Approved' 
+            : (booking.status === 'rejected' ? 'Rejected' : 'Pending Review');
+        const bookingStatusColor = booking.status === 'approved' ? '#166534' : (booking.status === 'rejected' ? '#991b1b' : '#854d0e');
+        const bookingStatusBg = booking.status === 'approved' ? '#dcfce7' : (booking.status === 'rejected' ? '#fee2e2' : '#fef9c3');
+
+        const submittedDateStr = booking.paymentSubmittedAt 
+            ? new Date(booking.paymentSubmittedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' (IST)'
+            : 'Pending client submission';
+
+        return res.send(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Payment Verification Portal — Asha Suhasini Mental Wellness</title>
+                <style>
+                    * { box-sizing: border-box; }
+                    body {
+                        margin: 0;
+                        padding: 24px 16px;
+                        background: #f1f5f9;
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                        color: #1e293b;
+                        line-height: 1.5;
+                        min-height: 100vh;
+                        display: flex;
+                        justify-content: center;
+                        align-items: flex-start;
+                    }
+                    .portal-container {
+                        max-width: 680px;
+                        width: 100%;
+                        background: #ffffff;
+                        border-radius: 12px;
+                        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+                        overflow: hidden;
+                        border: 1px solid #e2e8f0;
+                    }
+                    .portal-header {
+                        background: #2c4a3e;
+                        color: #ffffff;
+                        padding: 24px 28px;
+                        text-align: center;
+                    }
+                    .portal-header h1 {
+                        margin: 0 0 6px 0;
+                        font-size: 20px;
+                        font-weight: 700;
+                        letter-spacing: -0.01em;
+                    }
+                    .portal-header p {
+                        margin: 0;
+                        font-size: 13px;
+                        color: #cbd5e1;
+                        text-transform: uppercase;
+                        letter-spacing: 0.05em;
+                    }
+                    .portal-body {
+                        padding: 24px 28px;
+                    }
+                    .badge {
+                        display: inline-block;
+                        padding: 4px 10px;
+                        border-radius: 9999px;
+                        font-size: 12px;
+                        font-weight: 700;
+                        letter-spacing: 0.02em;
+                    }
+                    .info-grid {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 24px;
+                        font-size: 14px;
+                    }
+                    .info-grid tr {
+                        border-bottom: 1px solid #f1f5f9;
+                    }
+                    .info-grid tr:last-child {
+                        border-bottom: none;
+                    }
+                    .info-grid td {
+                        padding: 10px 4px;
+                        vertical-align: top;
+                    }
+                    .info-label {
+                        color: #64748b;
+                        width: 40%;
+                        font-weight: 600;
+                    }
+                    .info-val {
+                        color: #0f172a;
+                        font-weight: 500;
+                    }
+                    .utr-highlight {
+                        background: #fef3c7;
+                        border-radius: 6px;
+                        padding: 4px 8px;
+                        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                        font-weight: 700;
+                        font-size: 15px;
+                        color: #92400e;
+                        display: inline-block;
+                    }
+                    .fee-highlight {
+                        font-size: 16px;
+                        font-weight: 700;
+                        color: #2c4a3e;
+                    }
+                    .screenshot-card {
+                        background: #f8fafc;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        padding: 16px;
+                        margin-bottom: 24px;
+                        text-align: center;
+                    }
+                    .screenshot-title {
+                        font-weight: 700;
+                        font-size: 14px;
+                        color: #334155;
+                        margin: 0 0 12px 0;
+                        text-transform: uppercase;
+                        letter-spacing: 0.05em;
+                    }
+                    .screenshot-img-wrapper {
+                        max-width: 100%;
+                        overflow: hidden;
+                        border-radius: 6px;
+                        border: 1px solid #cbd5e1;
+                        background: #ffffff;
+                        display: inline-block;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    }
+                    .screenshot-img-wrapper img {
+                        display: block;
+                        max-width: 100%;
+                        height: auto;
+                        max-height: 480px;
+                        object-fit: contain;
+                        margin: 0 auto;
+                    }
+                    .screenshot-actions {
+                        margin-top: 14px;
+                        display: flex;
+                        justify-content: center;
+                        gap: 12px;
+                        flex-wrap: wrap;
+                    }
+                    .btn-raw {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        padding: 8px 16px;
+                        background: #ffffff;
+                        color: #2c4a3e;
+                        border: 1px solid #2c4a3e;
+                        border-radius: 6px;
+                        text-decoration: none;
+                        font-size: 13px;
+                        font-weight: 600;
+                        transition: all 0.15s;
+                    }
+                    .btn-raw:hover {
+                        background: #2c4a3e;
+                        color: #ffffff;
+                    }
+                    .no-screenshot-card {
+                        background: #fffbeb;
+                        border: 1px solid #fde68a;
+                        border-radius: 8px;
+                        padding: 16px 20px;
+                        margin-bottom: 24px;
+                        text-align: left;
+                    }
+                    .no-screenshot-card h3 {
+                        margin: 0 0 6px 0;
+                        color: #92400e;
+                        font-size: 15px;
+                    }
+                    .no-screenshot-card p {
+                        margin: 0;
+                        font-size: 13.5px;
+                        color: #78350f;
+                        line-height: 1.5;
+                    }
+                    .moderation-section {
+                        border-top: 1px solid #e2e8f0;
+                        padding-top: 20px;
+                    }
+                    .moderation-section h3 {
+                        margin: 0 0 12px 0;
+                        font-size: 15px;
+                        color: #1e293b;
+                        text-align: center;
+                    }
+                    .action-buttons {
+                        display: flex;
+                        gap: 12px;
+                    }
+                    .action-btn {
+                        flex: 1;
+                        padding: 14px;
+                        border: none;
+                        border-radius: 6px;
+                        font-size: 15px;
+                        font-weight: 700;
+                        cursor: pointer;
+                        text-align: center;
+                        text-decoration: none;
+                        color: #ffffff;
+                        transition: opacity 0.15s;
+                        display: block;
+                    }
+                    .action-btn:hover {
+                        opacity: 0.9;
+                    }
+                    .btn-approve {
+                        background: #16a34a;
+                    }
+                    .btn-reject {
+                        background: #dc2626;
+                    }
+                    .status-banner {
+                        padding: 14px;
+                        border-radius: 6px;
+                        text-align: center;
+                        font-weight: 600;
+                        font-size: 14px;
+                    }
+                    .status-approved {
+                        background: #dcfce7;
+                        color: #166534;
+                        border: 1px solid #bbf7d0;
+                    }
+                    .status-rejected {
+                        background: #fee2e2;
+                        color: #991b1b;
+                        border: 1px solid #fecaca;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="portal-container">
+                    <div class="portal-header">
+                        <h1>Asha Suhasini Mental Wellness</h1>
+                        <p>Payment Verification Portal</p>
+                    </div>
+                    <div class="portal-body">
+                        <table class="info-grid">
+                            <tr>
+                                <td class="info-label">Customer Name</td>
+                                <td class="info-val">${escapeHtml(booking.name)}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Customer Email</td>
+                                <td class="info-val"><a href="mailto:${escapeHtml(booking.email)}" style="color: #2c4a3e; text-decoration: underline;">${escapeHtml(booking.email)}</a></td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Customer Phone</td>
+                                <td class="info-val">${escapeHtml(booking.phone || 'Not provided')}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Selected Service</td>
+                                <td class="info-val">${escapeHtml(booking.service || 'N/A')}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Session Duration</td>
+                                <td class="info-val">${escapeHtml(booking.duration || 'N/A')}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Exact Consultation Fee</td>
+                                <td class="info-val"><span class="fee-highlight">${escapeHtml(booking.feeFormatted || 'N/A')}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Submitted UTR / Ref</td>
+                                <td class="info-val">
+                                    ${booking.utr ? `<span class="utr-highlight">${escapeHtml(booking.utr)}</span>` : '<span style="color:#94a3b8; font-style:italic;">Not submitted yet</span>'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Booking Date & Time</td>
+                                <td class="info-val">${escapeHtml(booking.date)} at ${escapeHtml(booking.slot)}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Booking ID</td>
+                                <td class="info-val" style="font-family: ui-monospace, monospace; font-size: 12.5px; color: #64748b;">${booking._id}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Payment Submitted</td>
+                                <td class="info-val">${submittedDateStr}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Current Booking Status</td>
+                                <td class="info-val">
+                                    <span class="badge" style="background: ${bookingStatusBg}; color: ${bookingStatusColor};">${bookingStatusLabel}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">Current Payment Status</td>
+                                <td class="info-val">
+                                    <span class="badge" style="background: ${paymentStatusBg}; color: ${paymentStatusColor};">${paymentStatusLabel}</span>
+                                </td>
+                            </tr>
+                        </table>
+
+                        ${booking.paymentScreenshot ? `
+                        <div class="screenshot-card">
+                            <div class="screenshot-title">Uploaded Payment Screenshot</div>
+                            <div class="screenshot-img-wrapper">
+                                <a href="${rawImageUrl}" target="_blank" title="Click to view full image">
+                                    <img src="${booking.paymentScreenshot}" alt="Payment Screenshot for booking ${booking._id}">
+                                </a>
+                            </div>
+                            <div class="screenshot-actions">
+                                <a href="${rawImageUrl}" target="_blank" class="btn-raw">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    Open Full-Res Image
+                                </a>
+                            </div>
+                        </div>
+                        ` : `
+                        <div class="no-screenshot-card">
+                            <h3>No Payment Screenshot Uploaded</h3>
+                            <p>
+                                The client completed payment submission using UTR reference only (<strong>${escapeHtml(booking.utr || 'N/A')}</strong>) without attaching a screenshot image.<br>
+                                Please verify that <strong>${escapeHtml(booking.feeFormatted || 'the consultation fee')}</strong> was received under UTR <strong>${escapeHtml(booking.utr || 'N/A')}</strong> directly in your PhonePe Business account (<strong>8019749608@ybl</strong>) or bank statement.
+                            </p>
+                        </div>
+                        `}
+
+                        <div class="moderation-section">
+                            ${booking.status === 'pending' ? `
+                                <h3>Moderation Action</h3>
+                                <div class="action-buttons">
+                                    <form method="POST" action="${approveActionUrl}" style="flex: 1; margin: 0;">
+                                        <input type="hidden" name="id" value="${id}">
+                                        <input type="hidden" name="token" value="${token}">
+                                        <input type="hidden" name="action" value="approve">
+                                        <button type="submit" class="action-btn btn-approve">APPROVE BOOKING</button>
+                                    </form>
+                                    <form method="POST" action="${rejectActionUrl}" style="flex: 1; margin: 0;">
+                                        <input type="hidden" name="id" value="${id}">
+                                        <input type="hidden" name="token" value="${token}">
+                                        <input type="hidden" name="action" value="reject">
+                                        <button type="submit" class="action-btn btn-reject">REJECT BOOKING</button>
+                                    </form>
+                                </div>
+                            ` : (booking.status === 'approved' ? `
+                                <div class="status-banner status-approved">✓ This booking has already been approved.</div>
+                            ` : `
+                                <div class="status-banner status-rejected">✗ This booking has already been rejected.</div>
+                            `)}
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
+
+    } catch (error) {
+        console.error('Screenshot portal error:', error);
+        return res.status(500).send('Server error loading screenshot portal.');
+    }
+});
+
 app.get('/api/book/action', async (req, res) => {
     const { id, token, action } = req.query;
     
-    if (!id || !token || !action) {
-        return res.status(400).send('Missing required parameters.');
+    if (!id || !token) {
+        return res.status(400).send('Missing required parameters: id and token are required.');
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).send('Invalid booking ID parameter.');
     }
     
     try {
@@ -1581,7 +2044,12 @@ app.get('/api/book/action', async (req, res) => {
                         <div class="detail-row">
                             <span class="detail-label">Payment Screenshot</span>
                             <div style="margin-top: 8px;">
-                                <img src="${booking.paymentScreenshot}" style="max-width: 100%; max-height: 350px; border-radius: 8px; border: 1px solid #ddd; display: block;" alt="Payment Screenshot">
+                                <a href="/api/book/screenshot?id=${id}&token=${token}" target="_blank">
+                                    <img src="${booking.paymentScreenshot}" style="max-width: 100%; max-height: 350px; border-radius: 8px; border: 1px solid #ddd; display: block;" alt="Payment Screenshot">
+                                </a>
+                                <p style="margin: 6px 0 0 0; font-size: 13px;">
+                                    <a href="/api/book/screenshot?id=${id}&token=${token}" target="_blank" style="color: #2c4a3e; font-weight: 600; text-decoration: underline;">Open Full Screenshot Viewer</a>
+                                </p>
                             </div>
                         </div>
                         ` : ''}
