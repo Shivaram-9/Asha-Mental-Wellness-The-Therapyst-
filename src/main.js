@@ -711,7 +711,7 @@ function openExperienceModal(orgType) {
         },
         jain: {
             title: 'Jain Heritage International Cambridge School',
-            role: 'Student Counsellor (Part Time)',
+            role: 'Student Counsellor',
             period: 'June 2018 - March 2020 & Dec 2014 - Aug 2016',
             location: 'Kondapur, Hyderabad',
             description: 'Student counsellor delivering holistic emotional, behavioural, and educational guidance across two distinct tenures.',
@@ -725,7 +725,7 @@ function openExperienceModal(orgType) {
         },
         hcsipl: {
             title: 'HCSIPL',
-            role: 'Corporate Trainer & Communication Coach (Part Time)',
+            role: 'Corporate Trainer & Communication Coach',
             period: 'May 2019 - October 2019',
             location: 'Hi-Tech City, Hyderabad',
             description: 'Corporate trainer and communication coach helping individuals optimize their workplace potential and communication effectiveness.',
@@ -738,7 +738,7 @@ function openExperienceModal(orgType) {
         },
         hyundai: {
             title: 'Hyundai Mobis',
-            role: 'Affiliate Psychological Consultant (Part Time)',
+            role: 'Affiliate Psychological Consultant',
             period: 'June 2018 - October 2018',
             location: 'Mindspace, Hyderabad',
             description: 'Corporate psychological consultant delivering employee counselling, transition workshops, and suicide awareness programs.',
@@ -752,7 +752,7 @@ function openExperienceModal(orgType) {
         },
         birbal: {
             title: 'Birbal Life Solutions',
-            role: 'Senior Consulting Psychologist & Psychotherapist (Part Time)',
+            role: 'Senior Consulting Psychologist & Psychotherapist',
             period: 'March 2017 - December 2018',
             location: 'Hitech City, Hyderabad',
             description: 'Senior consulting psychologist delivering psychotherapy, marital discord counselling, and customized corporate/school workshops.',
