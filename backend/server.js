@@ -219,18 +219,66 @@ function escapeHtml(str) {
 }
 
 const DEFAULT_ADMIN_EMAILS = 'asha.suhasinim@gmail.com,ymvshiva1784@gmail.com';
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function getAdminEmailRecipients() {
-    const rawRecipients = process.env.ADMIN_EMAIL || process.env.ADMIN_EMAILS || process.env.CONTACT_RECIPIENT_EMAILS || DEFAULT_ADMIN_EMAILS;
-    const recipientList = rawRecipients.split(',').map(e => e.trim()).filter(Boolean);
+function sanitizeAndValidateEmailList(rawInput) {
+    if (!rawInput) return [];
+    const items = String(rawInput).split(/[,;]+/);
+    const validEmails = [];
+    for (let item of items) {
+        if (!item) continue;
+        const trimmed = item.trim();
+        // Specifically filter out known broken, malformed, or obsolete addresses (e.g. over-quota jyothsnabalu.85@gmail.com or variants with spaces)
+        const normalized = trimmed.toLowerCase().replace(/\s+/g, '');
+        if (normalized.includes('jyothsnabalu.85@gmail.com') || (normalized.includes('jyoths') && normalized.includes('nabalu'))) {
+            console.warn(`[RECIPIENT FILTER] Excluding obsolete/over-quota recipient address: "${trimmed}"`);
+            continue;
+        }
+        if (EMAIL_REGEX.test(trimmed)) {
+            if (!validEmails.includes(trimmed)) {
+                validEmails.push(trimmed);
+            }
+        } else {
+            console.warn(`[RECIPIENT FILTER] Excluding malformed email address: "${trimmed}"`);
+        }
+    }
+    return validEmails;
+}
+
+function getAdminEmailRecipients({ purpose = 'general' } = {}) {
+    let rawRecipients = '';
+    if (purpose === 'review') {
+        rawRecipients = process.env.REVIEW_NOTIFICATION_EMAIL || process.env.REVIEW_NOTIFICATION_EMAILS || '';
+    } else if (purpose === 'booking') {
+        rawRecipients = process.env.BOOKING_NOTIFICATION_EMAIL || process.env.BOOKING_NOTIFICATION_EMAILS || '';
+    }
+
+    if (!rawRecipients) {
+        rawRecipients = process.env.ADMIN_EMAIL || process.env.ADMIN_EMAILS || process.env.CONTACT_RECIPIENT_EMAILS || '';
+    }
+
+    let recipientList = sanitizeAndValidateEmailList(rawRecipients);
+
+    if (recipientList.length === 0) {
+        recipientList = sanitizeAndValidateEmailList(DEFAULT_ADMIN_EMAILS);
+    }
+
     return {
         recipientList,
         recipientsCsv: recipientList.join(',')
     };
 }
 
+function checkAndLogMailboxQuotaWarning(errorMsg) {
+    if (!errorMsg) return;
+    const str = String(errorMsg).toLowerCase();
+    if (str.includes('quota') || str.includes('inbox full') || str.includes('mailbox full') || str.includes('552') || str.includes('452') || str.includes('over quota') || str.includes('storage')) {
+        console.warn(`[OPERATIONAL WARNING - MAILBOX OVER QUOTA] A recipient mailbox reported a storage quota or capacity failure: "${errorMsg}". Note: External Google mailbox storage quotas cannot be expanded through application code. The recipient mailbox owner must free up storage or upgrade Google One storage to receive messages.`);
+    }
+}
+
 async function sendAdminBookingNotification({ subject, htmlBody, replyTo }) {
-    const { recipientsCsv, recipientList } = getAdminEmailRecipients();
+    const { recipientsCsv, recipientList } = getAdminEmailRecipients({ purpose: 'booking' });
     const relayUrl = process.env.GOOGLE_REVIEW_RELAY_URL;
     const relaySecret = process.env.GOOGLE_RELAY_SECRET;
 
@@ -338,7 +386,7 @@ async function sendAdminBookingNotification({ subject, htmlBody, replyTo }) {
 }
 
 async function sendInquiryNotification({ name, email, supportType, mode, message }) {
-    const { recipientsCsv, recipientList } = getAdminEmailRecipients();
+    const { recipientsCsv, recipientList } = getAdminEmailRecipients({ purpose: 'inquiry' });
 
     const supportLabels = {
         'individual': 'Individual therapy',
@@ -607,10 +655,236 @@ const ReviewSchema = new mongoose.Schema({
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     approvalToken: { type: String },
     tokenExpiry: { type: Date },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    // Notification & delivery tracking
+    adminNotificationSent: { type: Boolean, default: false },
+    adminNotificationError: { type: String, default: null },
+    notificationProviderUsed: { type: String, default: null },
+    notificationRecipients: [{ type: String }],
+    notificationAttempts: { type: Number, default: 0 },
+    lastNotificationAttemptAt: { type: Date, default: null }
 });
 ReviewSchema.index({ status: 1, createdAt: -1 });
 const Review = mongoose.model('Review', ReviewSchema);
+
+async function sendReviewNotification(review, { isRetry = false } = {}) {
+    if (!review) {
+        return { emailDelivered: false, deliveryError: 'No review provided' };
+    }
+
+    // Idempotency: avoid sending duplicate emails unless explicitly requested via retry
+    if (review.adminNotificationSent && !isRetry) {
+        console.log(`[REVIEW NOTIFICATION] Skipping email dispatch for review ${review._id} - notification was already delivered.`);
+        return {
+            emailDelivered: true,
+            alreadyDelivered: true,
+            providerUsed: review.notificationProviderUsed,
+            recipients: review.notificationRecipients
+        };
+    }
+
+    // Safety limit on automatic retries
+    if (!isRetry && (review.notificationAttempts || 0) >= 5) {
+        console.warn(`[REVIEW NOTIFICATION] Skipping notification for review ${review._id} - reached max automatic attempts (${review.notificationAttempts}).`);
+        return {
+            emailDelivered: false,
+            deliveryError: 'Maximum notification attempts exceeded without success.'
+        };
+    }
+
+    const { recipientsCsv, recipientList } = getAdminEmailRecipients({ purpose: 'review' });
+    if (!recipientsCsv || recipientList.length === 0) {
+        const err = 'No valid admin recipients resolved for review notification.';
+        console.error(`[REVIEW NOTIFICATION] ${err}`);
+        review.notificationAttempts = (review.notificationAttempts || 0) + 1;
+        review.lastNotificationAttemptAt = new Date();
+        review.adminNotificationError = err;
+        await review.save().catch(e => console.error('Error updating review:', e));
+        return { emailDelivered: false, deliveryError: err };
+    }
+
+    const frontendBase = process.env.FRONTEND_URL || 'https://ashasuhasini.com';
+    const approveLink = `${frontendBase}/review-management.html?id=${review._id}&token=${review.approvalToken}&action=approve`;
+    const rejectLink = `${frontendBase}/review-management.html?id=${review._id}&token=${review.approvalToken}&action=reject`;
+
+    const locationStr = [review.city, review.state, review.country].filter(Boolean).join(', ');
+    const formattedDate = review.createdAt ? new Date(review.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+    const subject = `ACTION REQUIRED: New Review Submitted (${review.rating} Stars) - Asha Suhasini Mental Wellness`;
+    const htmlBody = `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #ffffff;">
+            <div style="border-bottom: 2px solid #82a89d; padding-bottom: 16px; margin-bottom: 20px;">
+                <h2 style="color: #2c4a3e; margin: 0; font-size: 22px;">New Review Pending Approval</h2>
+                <p style="color: #666; margin: 4px 0 0 0; font-size: 14px;">A client submitted a review on ashasuhasini.com. Moderation is required before it appears publicly.</p>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr>
+                    <td style="padding: 8px 0; color: #555; width: 140px; font-weight: 600;">Reviewer Name:</td>
+                    <td style="padding: 8px 0; color: #111; font-weight: 600;">${escapeHtml(review.name)}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #555; font-weight: 600;">Reviewer Email:</td>
+                    <td style="padding: 8px 0;"><a href="mailto:${escapeHtml(review.email)}" style="color: #2c4a3e; text-decoration: underline;">${escapeHtml(review.email)}</a></td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #555; font-weight: 600;">Rating:</td>
+                    <td style="padding: 8px 0; color: #f59e0b; font-weight: bold; font-size: 16px;">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)} (${review.rating} / 5 Stars)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #555; font-weight: 600;">Location:</td>
+                    <td style="padding: 8px 0; color: #111;">${escapeHtml(locationStr || 'Not specified')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #555; font-weight: 600;">Submitted At:</td>
+                    <td style="padding: 8px 0; color: #111;">${formattedDate} (IST)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #555; font-weight: 600;">Review ID:</td>
+                    <td style="padding: 8px 0; color: #64748b; font-family: monospace; font-size: 13px;">${review._id}</td>
+                </tr>
+            </table>
+
+            <div style="margin-top: 16px; margin-bottom: 24px;">
+                <p style="color: #555; font-weight: 600; margin: 0 0 8px 0;">Review Message:</p>
+                <blockquote style="margin: 0; padding: 16px; background-color: #f7faf9; border-left: 4px solid #82a89d; border-radius: 4px; color: #222; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">"${escapeHtml(review.message)}"</blockquote>
+            </div>
+
+            <div style="border-top: 1px solid #e0e0e0; padding-top: 20px; text-align: center;">
+                <p style="color: #475569; font-size: 14px; margin: 0 0 16px 0;">Click one of the secure links below to moderate this review on the website portal:</p>
+                <div style="display: inline-block;">
+                    <a href="${approveLink}" style="display: inline-block; padding: 12px 24px; background-color: #15803d; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; margin-right: 12px;">APPROVE REVIEW</a>
+                    <a href="${rejectLink}" style="display: inline-block; padding: 12px 24px; background-color: #b91c1c; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">REJECT REVIEW</a>
+                </div>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 16px;">This secure approval link is valid for 7 days. Do not forward this email.</p>
+            </div>
+        </div>
+    `;
+
+    let emailDelivered = false;
+    let deliveryError = null;
+    let providerUsed = null;
+
+    // 1. Primary provider: Google Apps Script Relay
+    const relayUrl = process.env.GOOGLE_REVIEW_RELAY_URL;
+    const relaySecret = process.env.GOOGLE_RELAY_SECRET;
+
+    if (relayUrl && relaySecret) {
+        try {
+            let relayResponse = await fetch(relayUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    secret: relaySecret,
+                    to: recipientsCsv,
+                    replyTo: review.email,
+                    subject: subject,
+                    htmlBody: htmlBody
+                }),
+                redirect: 'manual'
+            });
+
+            if (relayResponse.status === 302 || relayResponse.status === 303) {
+                const location = relayResponse.headers.get('location');
+                if (location) {
+                    relayResponse = await fetch(location, { method: 'GET' });
+                }
+            }
+
+            if (relayResponse.ok) {
+                const relayData = await relayResponse.json().catch(() => ({}));
+                if (relayData.success && relayData.emailSent !== false) {
+                    emailDelivered = true;
+                    providerUsed = 'gas-relay';
+                    deliveryError = null;
+                } else {
+                    deliveryError = relayData.error || relayData.emailError || 'Relay reported email failure';
+                    checkAndLogMailboxQuotaWarning(deliveryError);
+                }
+            } else {
+                deliveryError = `Google Relay HTTP ${relayResponse.status} ${relayResponse.statusText}`;
+            }
+        } catch (gasErr) {
+            deliveryError = `Google Relay network error: ${gasErr.message}`;
+        }
+    } else {
+        deliveryError = 'Google Relay URL or Secret is not configured in environment.';
+    }
+
+    // 2. Secondary fallback: Resend
+    if (!emailDelivered && process.env.RESEND_API_KEY) {
+        try {
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            const resendResult = await resend.emails.send({
+                from: process.env.RESEND_FROM || 'reviews@ashasuhasini.com',
+                to: recipientList,
+                replyTo: review.email,
+                subject: subject,
+                html: htmlBody
+            });
+            if (resendResult && !resendResult.error) {
+                emailDelivered = true;
+                providerUsed = 'resend';
+                deliveryError = null;
+            } else {
+                deliveryError = resendResult.error ? JSON.stringify(resendResult.error) : 'Resend error';
+                checkAndLogMailboxQuotaWarning(deliveryError);
+            }
+        } catch (resendErr) {
+            deliveryError = `Resend exception: ${resendErr.message}`;
+            checkAndLogMailboxQuotaWarning(deliveryError);
+        }
+    }
+
+    // 3. Tertiary fallback: Nodemailer SMTP
+    if (!emailDelivered && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        try {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS
+                }
+            });
+            await transporter.sendMail({
+                from: process.env.SMTP_USER,
+                to: recipientsCsv,
+                replyTo: review.email,
+                subject: subject,
+                html: htmlBody
+            });
+            emailDelivered = true;
+            providerUsed = 'smtp';
+            deliveryError = null;
+        } catch (smtpErr) {
+            deliveryError = `SMTP exception: ${smtpErr.message}`;
+            checkAndLogMailboxQuotaWarning(deliveryError);
+        }
+    }
+
+    // Update review document with attempt and status
+    review.notificationAttempts = (review.notificationAttempts || 0) + 1;
+    review.lastNotificationAttemptAt = new Date();
+    review.notificationRecipients = recipientList;
+
+    if (emailDelivered) {
+        review.adminNotificationSent = true;
+        review.adminNotificationError = null;
+        review.notificationProviderUsed = providerUsed;
+        console.log(`[REVIEW NOTIFICATION] Successfully sent review notification via ${providerUsed} to ${recipientsCsv}`);
+    } else {
+        review.adminNotificationError = deliveryError ? String(deliveryError).slice(0, 500) : 'Notification delivery failed';
+        console.error(`[REVIEW NOTIFICATION] Notification delivery failed for review ${review._id}: ${deliveryError}`);
+    }
+
+    try {
+        await review.save();
+    } catch (saveErr) {
+        console.error('Failed to save review notification status to database:', saveErr);
+    }
+
+    return { emailDelivered, deliveryError, providerUsed };
+}
 
 app.post('/api/reviews', async (req, res) => {
     const { name, email, rating, message, country, state, city } = req.body;
@@ -660,85 +934,51 @@ app.post('/api/reviews', async (req, res) => {
         });
         
         const savedReview = await newReview.save();
-        
-        // Prepare Email (Google Apps Script Relay)
-        const relayUrl = process.env.GOOGLE_REVIEW_RELAY_URL;
-        const relaySecret = process.env.GOOGLE_RELAY_SECRET;
-        
-        if (!relayUrl || !relaySecret) {
-            return res.status(500).json({ error: 'Server email configuration (Google Relay) is missing.' });
-        }
-        
-        // Define Base URL for approval links pointing to the frontend review-management portal
-        const frontendBase = process.env.FRONTEND_URL || 
-            (req.headers.origin && req.headers.origin.includes('ashasuhasini.com') ? req.headers.origin : 'https://ashasuhasini.com');
-        
-        const approveLink = `${frontendBase}/review-management.html?id=${savedReview._id}&token=${approvalToken}&action=approve`;
-        const rejectLink = `${frontendBase}/review-management.html?id=${savedReview._id}&token=${approvalToken}&action=reject`;
-        
-        const htmlBody = `
-                <h2>New Review Pending Approval</h2>
-                <p>A new review was submitted and is waiting for your approval to appear on the website.</p>
-                <hr>
-                <p><strong>Reviewer Name:</strong> ${name}</p>
-                <p><strong>Reviewer Email:</strong> ${email}</p>
-                <p><strong>Rating:</strong> ${numRating} Stars</p>
-                <p><strong>Location:</strong> ${[city, state, country].filter(Boolean).join(', ')}</p>
-                <p><strong>Message:</strong></p>
-                <blockquote style="background:#f9f9f9; padding:10px; border-left:4px solid #ccc;">
-                    ${message}
-                </blockquote>
-                <p><strong>Date:</strong> ${savedReview.createdAt}</p>
-                <p><strong>Review ID:</strong> ${savedReview._id}</p>
-                <hr>
-                <h3>Actions</h3>
-                <p>Click one of the secure links below to review and moderate this submission on the website portal. <em>Warning: Do not share these links.</em></p>
-                <p><a href="${approveLink}" style="padding:10px 20px; background-color:green; color:white; text-decoration:none; border-radius:5px; display:inline-block;">APPROVE REVIEW</a></p>
-                <br>
-                <p><a href="${rejectLink}" style="padding:10px 20px; background-color:red; color:white; text-decoration:none; border-radius:5px; display:inline-block;">REJECT REVIEW</a></p>
-            `;
 
+        // Dispatch email notification in a non-blocking try-catch
         try {
-            let relayResponse = await fetch(relayUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    secret: relaySecret,
-                    
-                    subject: 'ACTION REQUIRED: New Review Submitted',
-                    htmlBody: htmlBody
-                }),
-                redirect: 'manual'
-            });
-            
-            if (relayResponse.status === 302 || relayResponse.status === 303) {
-                const location = relayResponse.headers.get('location');
-                if (location) {
-                    relayResponse = await fetch(location, { method: 'GET' });
-                }
-            }
-
-            if (!relayResponse.ok) {
-                console.error('Google Relay HTTP Error:', relayResponse.status, relayResponse.statusText);
-                return res.status(500).json({ error: 'Failed to trigger email relay.' });
-            }
-
-            const relayData = await relayResponse.json();
-            if (!relayData.success) {
-                console.error('Google Relay Error:', relayData.error);
-                return res.status(500).json({ error: 'Failed to send review notification email.' });
-            }
-        } catch (relayError) {
-            console.error('Error calling Google Relay:', relayError);
-            return res.status(500).json({ error: 'Failed to connect to email relay.' });
+            await sendReviewNotification(savedReview);
+        } catch (emailErr) {
+            console.error('Non-blocking error dispatching review notification:', emailErr);
         }
-
         
-        res.status(200).json({ success: true, message: 'Review submitted and pending approval.' });
+        // Review is securely stored in database; return success to client
+        return res.status(200).json({ success: true, message: 'Review submitted and pending approval.' });
         
     } catch (error) {
         console.error('Error submitting review:', error);
-        res.status(500).json({ error: 'Failed to submit review.' });
+        return res.status(500).json({ error: 'Failed to submit review.' });
+    }
+});
+
+app.post('/api/reviews/retry-notification', async (req, res) => {
+    const { id, token } = req.body;
+    if (!id) {
+        return res.status(400).json({ error: 'Review id is required.' });
+    }
+
+    try {
+        const review = await Review.findById(id);
+        if (!review) {
+            return res.status(404).json({ error: 'Review not found.' });
+        }
+
+        // Validate token if review is pending and token is configured
+        if (review.approvalToken && token && review.approvalToken !== token) {
+            return res.status(403).json({ error: 'Invalid authentication token.' });
+        }
+
+        const result = await sendReviewNotification(review, { isRetry: true });
+        return res.json({
+            success: result.emailDelivered,
+            emailDelivered: result.emailDelivered,
+            providerUsed: result.providerUsed,
+            error: result.deliveryError,
+            attempts: review.notificationAttempts
+        });
+    } catch (error) {
+        console.error('Error retrying review notification:', error);
+        return res.status(500).json({ error: 'Server error retrying review notification.' });
     }
 });
 
@@ -2524,6 +2764,17 @@ app.get('/api/booked-slots', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`Backend server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Backend server running on port ${PORT}`);
+    });
+}
+
+export {
+    app,
+    getAdminEmailRecipients,
+    sanitizeAndValidateEmailList,
+    sendReviewNotification,
+    Review,
+    checkAndLogMailboxQuotaWarning
+};

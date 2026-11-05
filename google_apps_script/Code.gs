@@ -23,7 +23,12 @@ function doPost(e) {
     
     var subject = postData.subject;
     var htmlBody = postData.htmlBody;
-    var recipient = postData.to || ADMIN_EMAILS;
+    var rawRecipient = postData.to || ADMIN_EMAILS;
+    var recipientList = rawRecipient.split(',').map(function(e) { return e.trim(); }).filter(function(e) {
+      var norm = e.toLowerCase().replace(/\s+/g, '');
+      return norm && norm.indexOf('@') !== -1 && norm.indexOf('jyothsnabalu.85@gmail.com') === -1 && norm.indexOf('jyoths') === -1;
+    });
+    var recipient = recipientList.length > 0 ? recipientList.join(',') : ADMIN_EMAILS;
     
     var calendarEventId = postData.calendarEventId || null;
     var meetingUrl = postData.meetingUrl || null;
@@ -127,11 +132,15 @@ function doPost(e) {
     var emailError = null;
     if (subject && htmlBody) {
       try {
-        MailApp.sendEmail({
+        var mailOptions = {
           to: recipient,
           subject: subject,
           htmlBody: htmlBody
-        });
+        };
+        if (postData.replyTo) {
+          mailOptions.replyTo = postData.replyTo;
+        }
+        MailApp.sendEmail(mailOptions);
         emailSent = true;
       } catch(err) {
         emailError = err.toString();
