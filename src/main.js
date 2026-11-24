@@ -1,3 +1,14 @@
+function initBookingDateMin() {
+    const dateInput = document.getElementById('bookingDate');
+    if (dateInput) {
+        const now = new Date();
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const nowIst = new Date(now.getTime() + istOffset);
+        const todayStr = `${nowIst.getUTCFullYear()}-${String(nowIst.getUTCMonth() + 1).padStart(2, '0')}-${String(nowIst.getUTCDate()).padStart(2, '0')}`;
+        dateInput.min = todayStr;
+    }
+}
+
 // Loading screen removed for reliability
 import phonepeQrUrl from '../assets/images/phonepe-qr.jpg';
 
@@ -1100,7 +1111,14 @@ window.addEventListener('scroll', () => {
 // Theme Toggle (Light / Dark)
 
 // Global API URL for Backend Services
-const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : 'https://asha-mental-wellness-the-therapyst.onrender.com';
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3000'
+    : 'https://asha-mental-wellness-the-therapyst.onrender.com';
+
+// Pre-warm backend instance in background on page load
+try {
+    fetch(`${API_URL}/api/health`, { cache: 'no-store' }).catch(() => {});
+} catch(e) {}
 
 // Contact Form Handling
 const contactForm = document.getElementById('contactForm');
@@ -1317,16 +1335,24 @@ initGalleryHandlers();
 
 // Booking System Logic
 
+let renderSlotsAttempt = 0;
+
 async function renderTimeSlots() {
-    const dateInput = document.getElementById('bookingDate').value;
+    const dateInputEl = document.getElementById('bookingDate');
+    const dateInput = dateInputEl ? dateInputEl.value : '';
     const timeSlotsContainer = document.getElementById('timeSlots');
     const bookingFormDetails = document.getElementById('bookingFormDetails');
     const successMsg = document.getElementById('bookingSuccessMessage');
     const slotLabel = document.getElementById('slotLabel');
+    const serviceSelect = document.getElementById('bookingService');
+    const serviceVal = serviceSelect ? serviceSelect.value : '';
+    const serviceData = getServiceData(serviceVal);
     
-    bookingFormDetails.style.display = 'none';
+    if (bookingFormDetails) bookingFormDetails.style.display = 'none';
     if (successMsg) successMsg.style.display = 'none';
     
+    if (!timeSlotsContainer) return;
+
     if (!dateInput) {
         timeSlotsContainer.innerHTML = '<p class="text-muted">Please select a date first.</p>';
         if (slotLabel) slotLabel.innerText = 'Available Slots';
@@ -1334,53 +1360,110 @@ async function renderTimeSlots() {
     }
 
     // Determine day of week to set correct slots
-    const [year, month, day] = dateInput.split('-');
+    const [year, month, day] = dateInput.split('-').map(Number);
     const selectedDate = new Date(year, month - 1, day);
     const isSunday = selectedDate.getDay() === 0;
+
+    const isShortDuration = serviceData && (serviceData.durationMinutes < 60 || (serviceData.duration && (serviceData.duration.includes('30') || serviceData.duration.includes('15') || serviceData.duration.includes('20'))));
     
-    const availableSlots = isSunday 
-        ? ['12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM']
-        : ['5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
+    const candidateSlots = isSunday 
+        ? (isShortDuration 
+            ? ['12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM']
+            : ['12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM'])
+        : (isShortDuration
+            ? ['5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM']
+            : ['5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM']);
         
     if (slotLabel) {
-        slotLabel.innerText = isSunday
-            ? 'Available Slots (12:00 PM - 4:00 PM)'
-            : 'Available Slots (5:00 PM - 9:00 PM)';
+        const timeRange = isSunday ? '12:00 PM - 4:00 PM' : '5:00 PM - 9:00 PM';
+        const durLabel = serviceData ? ` (${serviceData.duration})` : '';
+        slotLabel.innerText = `Available Slots (${timeRange})${durLabel}`;
     }
 
-    timeSlotsContainer.innerHTML = '<p class="text-muted">Loading available slots...</p>';
+    timeSlotsContainer.innerHTML = '<p class="text-muted">Checking available slots...</p>';
     
+    let availableSlotsList = [];
     let bookedForDate = [];
+
     try {
-        const response = await fetch(`${API_URL}/api/booked-slots?date=${dateInput}`, { cache: 'no-store' });
+        const queryUrl = `${API_URL}/api/booked-slots?date=${encodeURIComponent(dateInput)}&service=${encodeURIComponent(serviceVal || '')}`;
+        const response = await fetch(queryUrl, { 
+            cache: 'no-store',
+            signal: AbortSignal.timeout(12000)
+        });
+
+        if (response.status === 502 || response.status === 503) {
+            renderSlotsAttempt++;
+            if (renderSlotsAttempt <= 3) {
+                timeSlotsContainer.innerHTML = `<p class="text-muted">Connecting to scheduling server (waking up, retry ${renderSlotsAttempt}/3)...</p>`;
+                setTimeout(renderTimeSlots, 3500);
+                return;
+            }
+        }
+
+        renderSlotsAttempt = 0;
+
         if (response.ok) {
             const data = await response.json();
             bookedForDate = data.booked || [];
+            if (data.availableSlots && Array.isArray(data.availableSlots)) {
+                availableSlotsList = data.availableSlots;
+            } else {
+                availableSlotsList = candidateSlots.filter(s => !bookedForDate.includes(s));
+            }
         } else {
-            console.warn('Backend unavailable, using strict local check as fallback for rendering only.');
+            console.warn('Backend unavailable, using local calculation.');
+            availableSlotsList = candidateSlots.filter(s => !bookedForDate.includes(s));
         }
     } catch (e) {
-        console.error('Backend connection failed:', e);
+        console.error('Backend connection error for booked-slots:', e);
+        renderSlotsAttempt++;
+        if (renderSlotsAttempt <= 3) {
+            timeSlotsContainer.innerHTML = `<p class="text-muted">Connecting to scheduling server (waking up, retry ${renderSlotsAttempt}/3)...</p>`;
+            setTimeout(renderTimeSlots, 3500);
+            return;
+        }
+        renderSlotsAttempt = 0;
+        availableSlotsList = candidateSlots;
+    }
+
+    // Filter past slots if today in IST (Asia/Kolkata)
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const nowIst = new Date(now.getTime() + istOffset);
+    const todayIstStr = `${nowIst.getUTCFullYear()}-${String(nowIst.getUTCMonth() + 1).padStart(2, '0')}-${String(nowIst.getUTCDate()).padStart(2, '0')}`;
+    const currentIstMinutes = nowIst.getUTCHours() * 60 + nowIst.getUTCMinutes();
+
+    if (dateInput === todayIstStr) {
+        availableSlotsList = availableSlotsList.filter(s => {
+            const match = String(s).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+            if (!match) return true;
+            let h = parseInt(match[1], 10);
+            const m = parseInt(match[2], 10);
+            const ap = match[3].toUpperCase();
+            if (ap === 'PM' && h !== 12) h += 12;
+            if (ap === 'AM' && h === 12) h = 0;
+            return (h * 60 + m) > currentIstMinutes;
+        });
     }
 
     timeSlotsContainer.innerHTML = '';
     
-    let hasAvailableSlots = false;
-
-    availableSlots.forEach(slot => {
-        if (!bookedForDate.includes(slot)) {
-            hasAvailableSlots = true;
-            const btn = document.createElement('button');
-            btn.className = 'btn btn-outline time-slot-btn';
-            btn.textContent = slot;
-            btn.onclick = () => selectSlot(btn, slot);
-            timeSlotsContainer.appendChild(btn);
-        }
-    });
-    
-    if (!hasAvailableSlots) {
-        timeSlotsContainer.innerHTML = '<p class="text-muted">No slots available for this date. Please select another date.</p>';
+    if (availableSlotsList.length === 0) {
+        timeSlotsContainer.innerHTML = '<p class="text-muted">No slots available for this service on this date. Please select another date or service.</p>';
+        return;
     }
+
+    const selectedSlotVal = document.getElementById('selectedSlot') ? document.getElementById('selectedSlot').value : '';
+
+    availableSlotsList.forEach(slot => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-outline time-slot-btn' + (slot === selectedSlotVal ? ' selected' : '');
+        btn.textContent = slot;
+        btn.onclick = () => selectSlot(btn, slot);
+        timeSlotsContainer.appendChild(btn);
+    });
 }
 
 function selectSlot(btnElement, slot) {
@@ -1394,12 +1477,13 @@ function selectSlot(btnElement, slot) {
     if (successMsg) successMsg.style.display = 'none';
 }
 
-// Service Catalog & Fees
+// Authoritative Service Catalog & Fees
 const SERVICES_MAP = {
     'individual-therapy': {
         key: 'individual-therapy',
         name: 'Individual Therapy / Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 3300,
         feeFormatted: '₹3,300'
     },
@@ -1407,6 +1491,7 @@ const SERVICES_MAP = {
         key: 'family-therapy',
         name: 'Family Therapy / Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 4499,
         feeFormatted: '₹4,499'
     },
@@ -1414,6 +1499,7 @@ const SERVICES_MAP = {
         key: 'marital-therapy',
         name: 'Marital Therapy / Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 4499,
         feeFormatted: '₹4,499'
     },
@@ -1421,6 +1507,7 @@ const SERVICES_MAP = {
         key: 'pre-marital',
         name: 'Pre-Marital Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 2400,
         feeFormatted: '₹2,400'
     },
@@ -1428,6 +1515,7 @@ const SERVICES_MAP = {
         key: 'student-therapy-60',
         name: 'Student Counselling / Therapy',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 599,
         feeFormatted: '₹599'
     },
@@ -1435,6 +1523,7 @@ const SERVICES_MAP = {
         key: 'student-therapy-30',
         name: 'Student Counselling / Therapy',
         duration: '30 min',
+        durationMinutes: 30,
         fee: 299,
         feeFormatted: '₹299'
     },
@@ -1442,6 +1531,7 @@ const SERVICES_MAP = {
         key: 'consultation',
         name: 'Consultation',
         duration: '15–20 min',
+        durationMinutes: 20,
         fee: 600,
         feeFormatted: '₹600'
     }
@@ -1467,6 +1557,7 @@ function getServiceData(keyOrValue) {
     }
     if (keyLower.includes('student') && keyLower.includes('30')) return SERVICES_MAP['student-therapy-30'];
     if (keyLower.includes('student')) return SERVICES_MAP['student-therapy-60'];
+    if (keyLower.includes('consultation')) return SERVICES_MAP['consultation'];
     for (const k in SERVICES_MAP) {
         if (SERVICES_MAP[k].name && SERVICES_MAP[k].name.toLowerCase() === keyLower) return SERVICES_MAP[k];
     }
@@ -1497,6 +1588,12 @@ function handleServiceChange() {
         if (feeEl) feeEl.textContent = '—';
         if (promptEl) promptEl.style.display = 'block';
         if (summaryEl) summaryEl.style.display = 'none';
+    }
+
+    // Immediately update available slots if date is already chosen
+    const dateInput = document.getElementById('bookingDate');
+    if (dateInput && dateInput.value) {
+        renderTimeSlots();
     }
 }
 
@@ -1533,6 +1630,7 @@ async function confirmBooking() {
         const response = await fetch(`${API_URL}/api/book`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(20000),
             body: JSON.stringify({ 
                 name, 
                 email, 
@@ -2125,6 +2223,7 @@ function initReviewForm() {
 
 // Initialize Review System on load
 document.addEventListener('DOMContentLoaded', () => {
+    initBookingDateMin();
     fetchAndRenderStats();
     fetchAndRenderReviews(1, false);
     initReviewForm();

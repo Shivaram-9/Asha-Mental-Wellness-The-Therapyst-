@@ -1,0 +1,344 @@
+{
+  "backedUpAt": "2026-11-24T17:41:39.763Z",
+  "total": 33,
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 33,
+    "totalPages": 2,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "reviews": [
+    {
+      "_id": "6af1bf1a164b3c59e50b6331",
+      "name": "Sravya",
+      "rating": 5,
+      "message": "I’m really grateful to have had Asha Suhasini Ma’am as my therapist. She created a warm, comfortable, and non-judgmental space where I could express myself freely. She listened with genuine empathy and helped me understand my emotions and situations from different perspectives. Her guidance helped me gain clarity, become more self-aware and navigate difficult emotions better. I truly appreciated her patience, kindness, and the positive impact she had on my life.",
+      "country": "India",
+      "state": "Karnataka",
+      "city": "Bengaluru ",
+      "createdAt": "2026-11-09T12:39:54.065Z"
+    },
+    {
+      "_id": "6ae6d7cb05b2665d97fb34a8",
+      "name": "Monica",
+      "rating": 5,
+      "message": "I recently had a chance to talk to her, and I was worried about sharing things with a new person. But the way she made me feel comfortable and open up to her was truly heartwarming. Her guidance has helped me navigate every emotion, and her approach to addressing my concerns is spot on. I feel lucky to have come across such an amazing person who is just a call away when life feels heavy.",
+      "country": "India",
+      "state": "Telangana ",
+      "city": "Hyderabad ",
+      "createdAt": "2026-11-01T06:10:19.652Z"
+    },
+    {
+      "_id": "6ae3827cc7c5c684656cde29",
+      "name": "Pushpa",
+      "rating": 5,
+      "message": "Indeed iam extremely happy by traveling with Asha Suhasini mam past 3 years. \nShe is wonderful  human being  I have ever come a cross. She  has solutions for every problem. In dealing  the problem, we can  see in her a Mother, Sister and Friend.  I  feel blessed by knowing mam. \nI appreciate and congratulate for her future endeavor. \n\n",
+      "country": "India",
+      "state": "ANDHRA PRADESH",
+      "city": "Kadapa",
+      "createdAt": "2026-10-29T17:29:32.645Z"
+    },
+    {
+      "_id": "6ae2d4638f53f7b88f80d797",
+      "name": "Sumalatha Rachapudi ",
+      "rating": 5,
+      "message": "I’m truly grateful to Ma’am for helping my son heal and improve his emotional well-being. Her patience, understanding, and professional guidance have made a positive difference in his life. Thank you, Ma’am, for your care, support, and dedication. Highly recommended!",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad, Telangana, India",
+      "createdAt": "2026-10-29T05:06:43.922Z"
+    },
+    {
+      "_id": "6ad8b7f8460cac5a37215521",
+      "name": "Naveena",
+      "rating": 5,
+      "message": "One of the most amazing people I have ever met! Talking to ma’am brings me an instant sense of calm and comfort, almost like being at home. Especially when I feel perplexed and overwhelmed by everything happening around me at college, her words and presence bring me a sense of peace and reassurance that is truly comforting. ",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad ",
+      "createdAt": "2026-10-21T13:02:48.067Z"
+    },
+    {
+      "_id": "6ad84b352841eecbf88c9e3d",
+      "name": "Vardhan",
+      "rating": 5,
+      "message": "I would like to extend my sincere thanks to Asha Madam for making me feel comfortable and guiding me to clear my confusion. Conversion with her gave me much relief and refreshment, making me to see my path with clarity.  \n\nShe is so cardial, that at the every first instance of talking we could able to sense the positivity emerging from her,starts silently healing our pain. She is more accessible, kind and friendly.\n\nI am so happy that I got to know her and took help from her. ",
+      "country": "India",
+      "state": "Telangana ",
+      "city": "Hyderabad ",
+      "createdAt": "2026-10-21T05:18:45.771Z"
+    },
+    {
+      "_id": "6ad1b55e11ef5047a550e012",
+      "name": "Dilip",
+      "rating": 5,
+      "message": "Asha Ma’am is truly a beautiful person. When I was a teenager in 10th grade, I didn’t fully understand adulthood, the changes I was going through, or the emotions I experienced. Ma’am explained these sensitive topics in a simple and understanding way that helped me understand myself better and clear my self-doubts.\n\nShe is professional, compassionate, and understanding. She creates a safe and comfortable space where I can express my thoughts and emotions without fear of being judged. Her guidance and practical advice have helped me gain clarity, improve my emotional well-being, and develop a more positive outlook on life.\n\nI truly appreciate her patience, kindness, support, and dedication. I’m grateful to have had the opportunity to learn from her, and I would wholeheartedly recommend Asha Ma’am to anyone seeking mental wellness support and guidance.",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-16T05:25:50.484Z"
+    },
+    {
+      "_id": "6ad1ab988658cb614d2e5f84",
+      "name": "Bhargaveepriya",
+      "rating": 5,
+      "message": "She is honestly one of the most amazing people I have ever met, and I have known her since my first year. Whenever I have a problem or feel overwhelmed, she is the first person I go to because I know I can share anything with her without hesitation. She feels like  someone I can vent to, express my feelings, and be completely myself around. She has helped me through so much, and her kindness, understanding, and support mean more to me than words can explain. I am truly grateful to have such an amazing and wonderful person in my college journey.",
+      "country": "India",
+      "state": ",Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-16T04:44:08.931Z"
+    },
+    {
+      "_id": "6ad18908188bdd45e7913463",
+      "name": "Kiran",
+      "rating": 5,
+      "message": "As school students, we didn’t understand adulting, the changes, or the emotions we went through. Thank you, ma’am, for explaining these sensitive topics in a way we could understand when even some teachers hesitated to discuss them.  Hope you continue to educate and empower many more! ",
+      "country": "India ",
+      "state": "Telengana ",
+      "city": "Hyderabad ",
+      "createdAt": "2026-10-16T02:16:40.622Z"
+    },
+    {
+      "_id": "6ad1868b188bdd45e7913451",
+      "name": "Vaishali Nair ",
+      "rating": 5,
+      "message": "I highly recommend her as a psychologist who combines professional expertise with genuine empathy and compassion. She is an excellent listener who makes people feel understood, respected, and comfortable sharing their thoughts and feelings. What makes her truly special is her kindness, patience, and the personal warmth she brings to her work. As a friend, I have also seen these wonderful qualities in her personally. She is a dedicated professional with a caring heart, and she is an excellent mother too. Balancing both the roles in the best way. I wish her continued success in helping others.",
+      "country": "India ",
+      "state": "Kerala ",
+      "city": "Alappuzha ",
+      "createdAt": "2026-10-16T02:06:03.213Z"
+    },
+    {
+      "_id": "6ad17fb63ff2ec58834fbd07",
+      "name": "Ansh Shukla ",
+      "rating": 5,
+      "message": "One of the best , Dr. Asha ma'am is truly the most compassionate, sweet, and exceptional doctor I have ever met. She creates an incredibly safe, warm space where I instantly feel completely heard, understood, and deeply comforted without any judgment. Her bright, positive energy and gentle approach make every single session something to look forward to thanks for all the help mam and saving me from actual clinical depression and panic attacks .... Really changed my life 🧬",
+      "country": "India ",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-16T01:36:54.166Z"
+    },
+    {
+      "_id": "6ad13872e016ecab3bc6c3a3",
+      "name": "TADIVAKA ARUN SAI",
+      "rating": 5,
+      "message": "She has been incredibly supportive throughout my college journey. As a student always packed with responsibilities, I’m grateful that she always stood by me, guided me through my highs and lows, and encouraged me whenever I needed support. Truly thankful to have such a caring and understanding counsellor! ❤️",
+      "country": "India",
+      "state": "Telangana",
+      "city": "HYDERABAD",
+      "createdAt": "2026-10-15T20:32:50.155Z"
+    },
+    {
+      "_id": "6ad1114d0ef4a4ce933ba32e",
+      "name": "Jyoshita",
+      "rating": 5,
+      "message": "Dr. Asha suhasini is truly beautiful, not just as a person but also in the way she cares for her patients and the dedication she shows to her work. ❤️ She has helped me so much during some of the darkest and most difficult moments of my life, especially when I was struggling with suicidal thoughts. Her support, kindness, patience, and understanding have made a huge difference in my life, and I will always be grateful to her for that.\n\nShe holds a very special place in my heart and has become an important part of my journey — my past, my present, and the future I am working towards. She has helped me see hope when things felt impossible, and her impact on my life is something I can never fully put into words. I have so much love and respect for her, and I will always appreciate everything she has done for me. I will always support her and wish her happiness, success, and all the beautiful things she deserves. Thank you for being such an incredible psychiatrist and such a wonderful human being. You will always have a special place in my heart. ❤️✨",
+      "country": "India",
+      "state": "Telangana ",
+      "city": "Hyderabad ",
+      "createdAt": "2026-10-15T17:45:49.539Z"
+    },
+    {
+      "_id": "6ad109ba0ef4a4ce933ba30a",
+      "name": "Palle",
+      "rating": 5,
+      "message": "I consulted Asha Ma'am during one of the most difficult phases of my life. The experience was meaningful enough that I would consider returning whenever I need support in the future. I appreciate the help and guidance I received and would recommend them to others seeking psychological support.\n",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-15T17:13:30.783Z"
+    },
+    {
+      "_id": "6ad103b00ef4a4ce933ba2f5",
+      "name": "Rishi Yerramsetti",
+      "rating": 5,
+      "message": "Asha Suhashini mam provides a truly safe, welcoming, and non-judgmental space from day one.\nShe takes the time to listen deeply and ensures you feel heard and understood.\nI highly recommend her to anyone seeking a compassionate and dedicated professional.\nShe has truly been a vital support system in my wellness journey.",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-15T16:47:44.242Z"
+    },
+    {
+      "_id": "6ad102b60ef4a4ce933ba2e6",
+      "name": "Rachna Goyal",
+      "rating": 5,
+      "message": "I’m truly grateful to her for the support and guidance she has given me during some of the most difficult phases of my life. Her kindness, patience, and understanding have made a meaningful difference in my mental health and healing journey. Thanking her for creating a space where I feel heard, understood, and supported",
+      "country": "India",
+      "state": "Delhi",
+      "city": "Delhi",
+      "createdAt": "2026-10-15T16:43:34.601Z"
+    },
+    {
+      "_id": "6ad0fd220ef4a4ce933ba29b",
+      "name": "Ananya Remani",
+      "rating": 5,
+      "message": "She is such a warm, understanding, and compassionate person who makes you feel heard, valued, and comfortable opening up without any fear of being judged.\nSometimes, all you need is someone who truly listens and understands, and I’m so grateful I found that in her.Thank you for being so kind, patient, and understanding,and I hope more people get the chance to experience the same care and support. ❤️",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-15T16:19:46.972Z"
+    },
+    {
+      "_id": "6ad0a5dda66361f2fabc35df",
+      "name": "Somi",
+      "rating": 5,
+      "message": "She is not just a psychology counsellor, but a genuinely beautiful human being with so much kindness. Since my first year, she has been there for me, listening to my smallest worries and happiest moments, always making me feel understood and safe. She respects our feelings, maintains confidentiality, and never makes us feel judged. When I was 18 and had no idea how to deal with life and my emotions, she guided me through so much and taught me lessons that I will carry forever. “Guru Brahma, Guru Vishnu, Guru Devo Maheshwara” she truly defines what a guru means. I feel very lucky to have met someone who reminds me that humanity, kindness, and genuine care still exist in this world. in simple words, all I could say is I'm actually \"happy\". I still remember you made my 19th bday the best memorable bday ever!!! Me and my parents are genuinely thankful and Forever grateful to youuuu, ma’am. 🫂🎀❤️\n",
+      "country": "India",
+      "state": "Telangana",
+      "city": "HYDERABAD",
+      "createdAt": "2026-10-15T10:07:25.964Z"
+    },
+    {
+      "_id": "6ad07c88b5d375e76846be1b",
+      "name": "Hari Greeshma",
+      "rating": 5,
+      "message": "I still remember the day I met Asha mam i.e in 1st yr when I got results i got detained and my cgpa is low ,My friend took me immediately to Mam cabin ,then I met mam ,I have started sharing all my problems ,Her way of listening, understanding,caring the students have meant so much to us ,She is the cure for every prblm we have ,she became Bestfriend,Mom to all of us,I will always be thankful to her in my entire life.\nShe is the best person ♥️",
+      "country": "India",
+      "state": "Telangana ",
+      "city": "Hyderabad ",
+      "createdAt": "2026-10-15T07:11:04.448Z"
+    },
+    {
+      "_id": "6ad04b67c80409d2b8c94553",
+      "name": "MODALLA PRANITH REDDY",
+      "rating": 5,
+      "message": "Mam helped me to overcome my depression and gave me some support to heal from the problems \nYou are amazing mam thank you so much ",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-15T03:41:27.190Z"
+    },
+    {
+      "_id": "6ad044967abed3edc81dc9a2",
+      "name": "Ashok Auradkar",
+      "rating": 5,
+      "message": "Very helpful ,helps me to find myself, helps me to find the real me \nThank you ",
+      "country": "India",
+      "state": "Telangana ",
+      "city": "Hyderabad ",
+      "createdAt": "2026-10-15T03:12:22.081Z"
+    },
+    {
+      "_id": "6ad043ff7abed3edc81dc993",
+      "name": "Mani charan Chava",
+      "rating": 5,
+      "message": "A wonderful person with a kind heart and a beautiful way of understanding people. Your dedication to helping others and spreading positivity is truly inspiring. Keep doing the amazing work you do and continue making a positive difference in people's lives. Wishing you lots of success and happiness always! ❤️✨",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-15T03:09:51.826Z"
+    },
+    {
+      "_id": "6ad040ff7abed3edc81dc98a",
+      "name": "Manaswini ",
+      "rating": 5,
+      "message": "Mam is a pschyo therapist in our university, I have been seeing her since my first year , she is an excellent person and treats her students like her own family. She is like our personal dairy , we share every small inconvenience with her without hesitating and she never judges , she is too sweet to everyone but personally I and mam have a cute bitter sweet relationship and she makes me very happy and i really really love her.",
+      "country": "India",
+      "state": "Telangana ",
+      "city": "Hyderabad ",
+      "createdAt": "2026-10-15T02:57:03.190Z"
+    },
+    {
+      "_id": "6ad03da57abed3edc81dc984",
+      "name": "Prajwal Auradkar",
+      "rating": 5,
+      "message": "SOUL READER ! ",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-15T02:42:45.797Z"
+    },
+    {
+      "_id": "6acfe65453aba695ac89d786",
+      "name": "Arghya Mukherjee",
+      "rating": 5,
+      "message": "I have known Asha Ma’am, whom I lovingly call Amma, for over a decade. She has always been a constant source of unconditional love, unwavering support, and wisdom. Her patience in listening and the thoughtful advice she offers have meant more to me than words can express. I feel truly fortunate to have someone as caring and supportive as her in my life. ",
+      "country": "India",
+      "state": "West Bengal",
+      "city": "Kolkata ",
+      "createdAt": "2026-10-14T20:30:12.992Z"
+    },
+    {
+      "_id": "6ace5fcc798a724ce5ed8418",
+      "name": "Vamshi",
+      "rating": 5,
+      "message": "I know Asha Madam since my 9th grade in HAL school, she joined our school as a counsellor. The day she entered in my classroom that is the day personal my behaviour has been changed completely. Like a mother she has personally taken care of me helped me in my growth. The sessions and activities that conducted by madam was very unique and it was life changing experience when i was in school days. Thank you Madam for all the help, support , love & guidance.",
+      "country": "India",
+      "state": "Telangana ",
+      "city": "Hyderabad ",
+      "createdAt": "2026-10-13T16:43:56.687Z"
+    },
+    {
+      "_id": "6ace4300b37cb461d6f2d1ce",
+      "name": "Swetha ",
+      "rating": 5,
+      "message": "Asha Mam is a truly humble, compassionate and down-to-earth person,  What makes her special is her ability and years of experience to gently guide you toward seeing yourself, your patterns, and your situation in ways you may never have seen before. Just few sessions helped me gain insights that made a real difference in my life. I would wholeheartedly recommend a session with her",
+      "country": "India",
+      "state": "Karnataka ",
+      "city": "Bangalore ",
+      "createdAt": "2026-10-13T14:41:04.726Z"
+    },
+    {
+      "_id": "6ace40a6b37cb461d6f2d1b8",
+      "name": "M.Anuradha",
+      "rating": 5,
+      "message": "\"I have had the privilege of knowing Asha not just as an incredibly skilled Clinical Psychologist and Psychotherapist, but also as a wonderful friend. Her impact is truly unforgettable—ever since she left HAL Secondary School in 2014, she has left a lasting mark. Till date, whenever I know of a child suffering from mental agony, there is only one name that comes to my mind: Asha. She brings a rare combination of deep professional expertise, genuine empathy, and an intuitive understanding of the human mind to her practice. Seeing her step into this new chapter of her career is inspiring, and I know she will continue to touch so many lives with her wisdom and care. If you are looking for a psychological wellness consultant who truly believes in healing, I cannot recommend Asha highly enough. Wishing you all the success in this beautiful new beginning, my friend!\"",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad ",
+      "createdAt": "2026-10-13T14:31:02.276Z"
+    },
+    {
+      "_id": "6acdf84adfb218370303d7f9",
+      "name": "Muzammil Chowdary ",
+      "rating": 5,
+      "message": "She is one of the best human beings who understands your concerns without judging. She possesses the practical knowledge and ability to identify and provide meaningful solutions. I highly recommend Ms. Asha, one of the best and most highly qualified psychologists in Hyderabad.",
+      "country": "India ",
+      "state": "TELANGANA ",
+      "city": "Hyderabad ",
+      "createdAt": "2026-10-13T09:22:18.068Z"
+    },
+    {
+      "_id": "6acdcd0344463aca9d302ee3",
+      "name": "Dhansuh Sura",
+      "rating": 5,
+      "message": "\nI had a wonderful experience with this psychologist. They are very understanding, patient, and supportive. They listen carefully without judgment and provide helpful guidance that brings clarity, confidence, and peace of mind. Their friendly approach creates a comfortable and safe space to share thoughts and feelings. Highly recommended for anyone looking for professional psychological support and guidance!.....\n",
+      "country": "India",
+      "state": "Telangana",
+      "city": "MEDCHAL M-GIRI",
+      "createdAt": "2026-10-13T06:17:39.173Z"
+    },
+    {
+      "_id": "6acdc7bf4ac6bf849a691b2b",
+      "name": "MANDA SATYA CHARAN REDDY",
+      "rating": 5,
+      "message": "Very sweet ma'am , hlps me get my mind clear and always welcomes overthinking and clears it in a snap ",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-13T05:55:11.830Z"
+    },
+    {
+      "_id": "6acdb132a1c3e240f061b5b8",
+      "name": "Adithya",
+      "rating": 5,
+      "message": "The counselling session was very helpful, informative, and well organized. The counsellor explained everything clearly, listened patiently to my concerns, and provided valuable guidance for my future goals. The session helped me gain more confidence and clarity in making decisions about my career and personal development. Overall, it was a positive and encouraging experience, and I am grateful for the support and advice provided.",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-10-13T04:18:58.713Z"
+    },
+    {
+      "_id": "6aa227f2521169abb5e4de56",
+      "name": "Shiva",
+      "rating": 5,
+      "message": "The support and guidance I received helped me come out of a very difficult phase in my mental health journey. I felt heard, understood, and supported throughout the process. I’m truly grateful for the positive change this experience brought into my life",
+      "country": "India",
+      "state": "Telangana",
+      "city": "Hyderabad",
+      "createdAt": "2026-09-10T03:45:54.078Z"
+    }
+  ]
+}

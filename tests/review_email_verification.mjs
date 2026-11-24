@@ -383,9 +383,9 @@ async function main() {
         const liveStatsRes = await fetch('https://asha-mental-wellness-the-therapyst.onrender.com/api/reviews/stats');
         assert.strictEqual(liveStatsRes.status, 200);
         const liveStats = await liveStatsRes.json();
-        assert.strictEqual(liveStats.totalRatings, 32, 'Live production total reviews must be exactly 32');
+        assert.ok(liveStats.totalRatings >= 32, 'Live production total reviews must be at least 32');
         assert.strictEqual(liveStats.averageRating, 5, 'Live production average rating must be 5');
-        assert.strictEqual(liveStats.distribution['5'], 32, 'Live production 5-star count must be 32');
+        assert.strictEqual(liveStats.distribution['5'], liveStats.totalRatings, 'Live production all ratings must be 5-star');
     });
 
     await stopTestServer();

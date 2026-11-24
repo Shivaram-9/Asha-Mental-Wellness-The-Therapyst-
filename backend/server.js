@@ -16,15 +16,81 @@ app.use(cors()); // Allow all origins for Render frontend and GitHub Pages
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Persistent Storage Setup (MongoDB)
+// Lightweight Health & Readiness Endpoints for Render instance monitoring, cold-start handling & pre-warming
+const healthHandler = (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    const dbReady = mongoose.connection.readyState === 1;
+    res.status(200).json({
+        status: dbReady ? 'healthy' : 'warming_up',
+        service: 'asha-wellness-backend',
+        uptime: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString(),
+        dbReady
+    });
+};
+
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
+
+const readinessHandler = (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    const dbReady = mongoose.connection.readyState === 1;
+    res.status(dbReady ? 200 : 503).json({
+        ready: dbReady,
+        status: dbReady ? 'ready' : 'connecting'
+    });
+};
+
+app.get('/readiness', readinessHandler);
+app.get('/api/readiness', readinessHandler);
+
+// Persistent Storage Setup (MongoDB) with connection pooling, fail-fast timeouts & auto-reconnect
 const MONGODB_URI = process.env.MONGODB_URI;
+const mongooseOptions = {
+    serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10,
+    minPoolSize: 2
+};
+
+let isConnecting = false;
+async function ensureDbConnected() {
+    if (mongoose.connection.readyState === 1 || !MONGODB_URI) return;
+    if (isConnecting) return;
+    isConnecting = true;
+    try {
+        await mongoose.connect(MONGODB_URI, mongooseOptions);
+        console.log('Connected to MongoDB cluster securely with connection pooling.');
+    } catch (err) {
+        console.error('MongoDB connection error:', err.message);
+    } finally {
+        isConnecting = false;
+    }
+}
+
+mongoose.connection.on('disconnected', () => {
+    console.warn('MongoDB disconnected. Triggering automatic reconnection...');
+    ensureDbConnected().catch(() => {});
+});
+
+mongoose.connection.on('error', (err) => {
+    console.error('MongoDB connection error event:', err.message);
+});
+
 if (MONGODB_URI) {
-    mongoose.connect(MONGODB_URI)
-        .then(() => console.log('Connected to MongoDB cluster securely.'))
-        .catch(err => console.error('MongoDB connection error:', err));
+    ensureDbConnected().catch(() => {});
 } else {
     console.warn('WARNING: MONGODB_URI is not set. The backend will crash on booking attempts unless configured.');
 }
+
+// Reconnect middleware for incoming requests if database connection dropped
+app.use((req, res, next) => {
+    if (MONGODB_URI && mongoose.connection.readyState === 0) {
+        ensureDbConnected().catch(() => {});
+    }
+    next();
+});
 
 const BookingSchema = new mongoose.Schema({
     name: String,
@@ -35,6 +101,7 @@ const BookingSchema = new mongoose.Schema({
     sessionFormat: String,
     service: String,
     duration: String,
+    durationMinutes: { type: Number, default: 60 },
     fee: Number,
     feeFormatted: String,
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
@@ -69,101 +136,117 @@ BookingSchema.index({ date: 1, slot: 1 }, {
 BookingSchema.index({ status: 1, createdAt: -1 });
 const Booking = mongoose.model('Booking', BookingSchema);
 
-// Authoritative Services & Fee Catalog
+// Authoritative Services & Fee Catalog with exact service-based appointment durations
 const SERVICES_MAP = {
     'Individual Therapy / Counselling': {
         name: 'Individual Therapy / Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 3300,
         feeFormatted: '₹3,300'
     },
     'Family Therapy / Counselling': {
         name: 'Family Therapy / Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 4499,
         feeFormatted: '₹4,499'
     },
     'Marital Therapy / Counselling': {
         name: 'Marital Therapy / Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 4499,
         feeFormatted: '₹4,499'
     },
     'Pre-Marital Counselling': {
         name: 'Pre-Marital Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 2400,
         feeFormatted: '₹2,400'
     },
     'Student Counselling / Therapy — 45–60 min (₹599)': {
         name: 'Student Counselling / Therapy',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 599,
         feeFormatted: '₹599'
     },
     'Student Counselling / Therapy — 30 min (₹299)': {
         name: 'Student Counselling / Therapy',
         duration: '30 min',
+        durationMinutes: 30,
         fee: 299,
         feeFormatted: '₹299'
     },
     'Consultation': {
         name: 'Consultation',
         duration: '15–20 min',
+        durationMinutes: 20,
         fee: 600,
         feeFormatted: '₹600'
     },
     'individual-therapy': {
         name: 'Individual Therapy / Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 3300,
         feeFormatted: '₹3,300'
     },
     'family-therapy': {
         name: 'Family Therapy / Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 4499,
         feeFormatted: '₹4,499'
     },
     'marital-therapy': {
         name: 'Marital Therapy / Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 4499,
         feeFormatted: '₹4,499'
     },
     'pre-marital': {
         name: 'Pre-Marital Counselling',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 2400,
         feeFormatted: '₹2,400'
     },
     'student-therapy-60': {
         name: 'Student Counselling / Therapy',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 599,
         feeFormatted: '₹599'
     },
     'student-therapy-30': {
         name: 'Student Counselling / Therapy',
         duration: '30 min',
+        durationMinutes: 30,
         fee: 299,
         feeFormatted: '₹299'
     },
     'consultation': {
         name: 'Consultation',
         duration: '15–20 min',
+        durationMinutes: 20,
         fee: 600,
         feeFormatted: '₹600'
     },
     'Student Counselling / Therapy (45–60 min)': {
         name: 'Student Counselling / Therapy',
         duration: '45–60 min',
+        durationMinutes: 60,
         fee: 599,
         feeFormatted: '₹599'
     },
     'Student Counselling / Therapy (30 min)': {
         name: 'Student Counselling / Therapy',
         duration: '30 min',
+        durationMinutes: 30,
         fee: 299,
         feeFormatted: '₹299'
     }
@@ -184,12 +267,123 @@ function getBackendServiceData(raw) {
     if (rawLower.includes('student')) {
         return SERVICES_MAP['student-therapy-60'];
     }
+    if (rawLower.includes('consultation')) {
+        return SERVICES_MAP['consultation'];
+    }
     for (const key in SERVICES_MAP) {
-        if (SERVICES_MAP[key].name.toLowerCase() === rawLower) {
+        if (SERVICES_MAP[key].name && SERVICES_MAP[key].name.toLowerCase() === rawLower) {
             return SERVICES_MAP[key];
         }
     }
     return null;
+}
+
+function getServiceDurationMinutes(serviceNameOrKey, durationStr) {
+    const s = getBackendServiceData(serviceNameOrKey);
+    if (s && s.durationMinutes) return s.durationMinutes;
+    if (durationStr) {
+        const dLower = String(durationStr).toLowerCase();
+        if (dLower.includes('30')) return 30;
+        if (dLower.includes('15') || dLower.includes('20')) return 20;
+        if (dLower.includes('45') || dLower.includes('60')) return 60;
+    }
+    if (s && s.duration) {
+        const dLower = s.duration.toLowerCase();
+        if (dLower.includes('30')) return 30;
+        if (dLower.includes('15') || dLower.includes('20')) return 20;
+        if (dLower.includes('45') || dLower.includes('60')) return 60;
+    }
+    return 60;
+}
+
+function parseSlotToTime(dateStr, slotStr) {
+    if (!slotStr && dateStr && typeof dateStr === 'string') {
+        slotStr = dateStr;
+        dateStr = '2026-01-01';
+    }
+    if (!dateStr || !slotStr) return null;
+    const dateParts = dateStr.split('-');
+    if (dateParts.length !== 3) return null;
+    const [yyyy, mm, dd] = dateParts.map(Number);
+    const match = String(slotStr).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return null;
+    let hour = parseInt(match[1], 10);
+    const minute = parseInt(match[2], 10);
+    const ampm = match[3].toUpperCase();
+    if (ampm === 'PM' && hour !== 12) hour += 12;
+    if (ampm === 'AM' && hour === 12) hour = 0;
+
+    // Treat as IST (Asia/Kolkata is UTC+5:30)
+    const startIST = new Date(Date.UTC(yyyy, mm - 1, dd, hour - 5, minute - 30, 0, 0));
+    const minutesFromMidnight = hour * 60 + minute;
+    return {
+        startIST,
+        hour24: hour,
+        minute: minute,
+        minutesFromMidnight: minutesFromMidnight,
+        valueOf() { return minutesFromMidnight; }
+    };
+}
+
+function doIntervalsOverlap(startA, endA, startB, endB) {
+    return Math.max(startA, startB) < Math.min(endA, endB);
+}
+
+function getApprovedSchedulingWindow(dateInput) {
+    let isSunday = false;
+    if (typeof dateInput === 'number') {
+        isSunday = (dateInput === 0);
+    } else if (dateInput instanceof Date) {
+        isSunday = (dateInput.getDay() === 0);
+    } else if (typeof dateInput === 'string') {
+        const parts = dateInput.split('-').map(Number);
+        if (parts.length === 3) {
+            const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+            isSunday = d.getUTCDay() === 0;
+        }
+    }
+
+    if (isSunday) {
+        // Sunday: 12:00 PM to 4:00 PM
+        return {
+            isSunday: true,
+            windowStartMinutes: 12 * 60, // 720 (12:00 PM)
+            windowEndMinutes: 16 * 60,   // 960 (4:00 PM)
+            startMin: 12 * 60,
+            endMin: 16 * 60,
+            hourlySlots: ['12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM'],
+            subSlots: ['12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM']
+        };
+    } else {
+        // Monday - Saturday: 5:00 PM to 9:00 PM
+        return {
+            isSunday: false,
+            windowStartMinutes: 17 * 60, // 1020 (5:00 PM)
+            windowEndMinutes: 21 * 60,   // 1260 (9:00 PM)
+            startMin: 17 * 60,
+            endMin: 21 * 60,
+            hourlySlots: ['5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'],
+            subSlots: ['5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM']
+        };
+    }
+}
+
+function isValidSlotForService(dateStr, slotStr, durationMinutes) {
+    const parsed = parseSlotToTime(dateStr, slotStr);
+    if (!parsed) return false;
+    const windowInfo = getApprovedSchedulingWindow(dateStr);
+    const slotStart = parsed.minutesFromMidnight;
+    const slotEnd = slotStart + durationMinutes;
+
+    if (slotStart < windowInfo.windowStartMinutes || slotEnd > windowInfo.windowEndMinutes) {
+        return false;
+    }
+
+    if (durationMinutes === 60) {
+        return windowInfo.hourlySlots.includes(slotStr);
+    } else {
+        return windowInfo.subSlots.includes(slotStr);
+    }
 }
 
 // --- Contact / Inquiry System ---
@@ -292,6 +486,7 @@ async function sendAdminBookingNotification({ subject, htmlBody, replyTo }) {
             let relayResponse = await fetch(relayUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                signal: AbortSignal.timeout(12000),
                 body: JSON.stringify({
                     secret: relaySecret,
                     to: recipientsCsv,
@@ -453,6 +648,7 @@ async function sendInquiryNotification({ name, email, supportType, mode, message
             let relayResponse = await fetch(relayUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                signal: AbortSignal.timeout(12000),
                 body: JSON.stringify({
                     secret: relaySecret,
                     to: recipientsCsv,
@@ -774,6 +970,7 @@ async function sendReviewNotification(review, { isRetry = false } = {}) {
             let relayResponse = await fetch(relayUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                signal: AbortSignal.timeout(12000),
                 body: JSON.stringify({
                     secret: relaySecret,
                     to: recipientsCsv,
@@ -1294,27 +1491,22 @@ app.post('/api/book', async (req, res) => {
         return res.status(400).json({ error: 'Cannot book appointments in the past.' });
     }
 
-    const isSunday = bookingDate.getUTCDay() === 0;
-    const validSlots = isSunday 
-        ? ['12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM']
-        : ['5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
+    const durationMinutes = serviceData.durationMinutes || getServiceDurationMinutes(serviceData.name, serviceData.duration);
 
-    if (!validSlots.includes(slot)) {
-        return res.status(400).json({ error: 'Invalid or unavailable time slot for this date.' });
+    if (!isValidSlotForService(date, slot, durationMinutes)) {
+        return res.status(400).json({ error: 'Invalid or unavailable time slot for this service and date.' });
     }
 
+    const parsedNew = parseSlotToTime(date, slot);
+    if (!parsedNew) {
+        return res.status(400).json({ error: 'Invalid time slot format.' });
+    }
+
+    // Check if slot has already passed today
     if (bookingDate.getTime() === todayIst.getTime()) {
-        const slotMatch = slot.match(/^(\d{1,2}):\d{2}\s+(AM|PM)$/);
-        if (slotMatch) {
-            let slotHour = parseInt(slotMatch[1], 10);
-            const ampm = slotMatch[2];
-            if (ampm === 'PM' && slotHour !== 12) slotHour += 12;
-            if (ampm === 'AM' && slotHour === 12) slotHour = 0;
-            
-            const currentIstHour = nowIst.getUTCHours();
-            if (slotHour <= currentIstHour) {
-                return res.status(400).json({ error: 'This time slot has already passed today.' });
-            }
+        const currentIstMinutes = nowIst.getUTCHours() * 60 + nowIst.getUTCMinutes();
+        if (parsedNew.minutesFromMidnight <= currentIstMinutes) {
+            return res.status(400).json({ error: 'This time slot has already passed today.' });
         }
     }
 
@@ -1327,10 +1519,21 @@ app.post('/api/book', async (req, res) => {
         const approvalToken = crypto.randomBytes(32).toString('hex');
         const tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-        // First check if an active booking exists for this slot to prevent race condition before save
-        const existingActiveBooking = await Booking.findOne({ date, slot, status: { $in: ['pending', 'approved'] } });
-        if (existingActiveBooking) {
-            return res.status(409).json({ error: 'This time slot has already been booked. Please choose another.' });
+        // Query active bookings for interval conflict detection
+        const activeBookings = await Booking.find({ date, status: { $in: ['pending', 'approved'] } });
+        const newStart = parsedNew.minutesFromMidnight;
+        const newEnd = newStart + durationMinutes;
+
+        for (const existing of activeBookings) {
+            const parsedExisting = parseSlotToTime(existing.date, existing.slot);
+            if (!parsedExisting) continue;
+            const existDur = existing.durationMinutes || getServiceDurationMinutes(existing.service, existing.duration);
+            const existStart = parsedExisting.minutesFromMidnight;
+            const existEnd = existStart + existDur;
+
+            if (doIntervalsOverlap(newStart, newEnd, existStart, existEnd)) {
+                return res.status(409).json({ error: 'This time slot overlaps with an existing booking. Please choose another.' });
+            }
         }
 
         const newBooking = new Booking({ 
@@ -1342,6 +1545,7 @@ app.post('/api/book', async (req, res) => {
             sessionFormat: 'online',
             service: serviceData.name,
             duration: serviceData.duration,
+            durationMinutes: durationMinutes,
             fee: serviceData.fee, // authoritatively locked from catalog
             feeFormatted: serviceData.feeFormatted, // authoritatively locked from catalog
             status: 'pending',
@@ -1359,7 +1563,7 @@ app.post('/api/book', async (req, res) => {
             throw saveError;
         }
 
-        // Send Email notification to Website Owner / Admin
+        // Send Email notification to Website Owner / Admin// Send Email notification to Website Owner / Admin
         const baseUrl = req.protocol + '://' + req.get('host');
         const approveLink = `${baseUrl}/api/book/action?id=${newBooking._id}&token=${approvalToken}&action=approve`;
         const rejectLink = `${baseUrl}/api/book/action?id=${newBooking._id}&token=${approvalToken}&action=reject`;
@@ -2013,7 +2217,22 @@ app.get('/api/book/screenshot', async (req, res) => {
                         color: #991b1b;
                         border: 1px solid #fecaca;
                     }
+                
+                    .btn-loading { opacity: 0.7; pointer-events: none; }
                 </style>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.querySelectorAll('form').forEach(function(f) {
+                            f.addEventListener('submit', function() {
+                                var btn = this.querySelector('button[type="submit"]');
+                                if (btn) {
+                                    btn.classList.add('btn-loading');
+                                    btn.innerText = 'Processing moderation... please wait';
+                                }
+                            });
+                        });
+                    });
+                </script>
             </head>
             <body>
                 <div class="portal-container">
@@ -2310,6 +2529,18 @@ app.get('/api/book/action', async (req, res) => {
                         </form>
                     </div>
                 </div>
+                <script>
+                    document.querySelectorAll('form').forEach(function(form) {
+                        form.addEventListener('submit', function() {
+                            const btn = this.querySelector('button');
+                            if (btn) {
+                                btn.disabled = true;
+                                btn.style.opacity = '0.6';
+                                btn.textContent = 'Processing request...';
+                            }
+                        });
+                    });
+                </script>
             </body>
             </html>
         `);
@@ -2444,36 +2675,27 @@ app.post('/api/book/action', async (req, res) => {
             let createCalendarEvent = null;
             if (action === 'approve' && !booking.calendarEventCreated && booking.date && booking.slot) {
                 try {
-                    const dateParts = booking.date.split('-');
-                    if (dateParts.length === 3) {
-                        const [yyyy, mm, dd] = dateParts.map(Number);
-                        const slotMatch = booking.slot.match(/^(\d{1,2}):\d{2}\s+(AM|PM)$/);
-                        if (slotMatch) {
-                            let slotHour = parseInt(slotMatch[1], 10);
-                            const ampm = slotMatch[2];
-                            if (ampm === 'PM' && slotHour !== 12) slotHour += 12;
-                            if (ampm === 'AM' && slotHour === 12) slotHour = 0;
-                            
-                            // Treat as IST (UTC+5:30)
-                            const startIST = new Date(Date.UTC(yyyy, mm - 1, dd, slotHour - 5, -30));
-                            const endIST = new Date(startIST.getTime() + 60 * 60 * 1000); // 1 hour session
-                            
-                            createCalendarEvent = {
-                                bookingId: booking._id.toString(),
-                                title: `Mental Wellness Session - ${booking.name}`,
-                                startTime: startIST.toISOString(),
-                                endTime: endIST.toISOString(),
-                                guestEmail: booking.email,
-                                therapistEmail: 'asha.suhasinim@gmail.com'
-                            };
-                        }
+                    const parsed = parseSlotToTime(booking.date, booking.slot);
+                    if (parsed) {
+                        const durMin = booking.durationMinutes || getServiceDurationMinutes(booking.service, booking.duration);
+                        const startIST = parsed.startIST;
+                        const endIST = new Date(startIST.getTime() + durMin * 60 * 1000); // Service-based duration
+
+                        createCalendarEvent = {
+                            bookingId: booking._id.toString(),
+                            title: `${booking.service || 'Mental Wellness Session'} - ${booking.name}`,
+                            startTime: startIST.toISOString(),
+                            endTime: endIST.toISOString(),
+                            guestEmail: booking.email,
+                            therapistEmail: 'asha.suhasinim@gmail.com'
+                        };
                     }
                 } catch(err) {
                     console.error("Failed to parse dates for calendar", err);
                 }
             }
 
-            // --- 1. PROCESS CUSTOMER EMAIL & CALENDAR ---
+            // --- 1. PROCESS CUSTOMER EMAIL & CALENDAR ---// --- 1. PROCESS CUSTOMER EMAIL & CALENDAR ---
             if (!booking.confirmationEmailSent || (action === 'approve' && !booking.calendarEventCreated)) {
                 try {
                     const payload = {
@@ -2497,6 +2719,7 @@ app.post('/api/book/action', async (req, res) => {
                     let relayResponse = await fetch(relayUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        signal: AbortSignal.timeout(15000),
                         body: JSON.stringify(payload),
                         redirect: 'manual'
                     });
@@ -2599,6 +2822,7 @@ app.post('/api/book/action', async (req, res) => {
                     let relayResponse = await fetch(relayUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
+                        signal: AbortSignal.timeout(12000),
                         body: JSON.stringify(therapistPayload),
                         redirect: 'manual'
                     });
@@ -2748,14 +2972,103 @@ app.post('/api/book/action', async (req, res) => {
 });
 app.get('/api/booked-slots', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    const { date } = req.query;
-    if (!date || !MONGODB_URI) {
-        return res.json({ booked: [] });
+    const { date, service, serviceKey } = req.query;
+    if (!date) {
+        return res.json({ booked: [], unavailableSlots: [], availableSlots: [], candidateSlots: [], bookings: [] });
     }
+
+    const rawService = serviceKey || service;
+    const requestedServiceData = getBackendServiceData(rawService);
+    const requestedDurationMinutes = requestedServiceData
+        ? (requestedServiceData.durationMinutes || getServiceDurationMinutes(requestedServiceData.name, requestedServiceData.duration))
+        : (rawService ? getServiceDurationMinutes(rawService) : 60);
+
+    const windowInfo = getApprovedSchedulingWindow(date);
+
     try {
-        const bookings = await Booking.find({ date, status: { $in: ['pending', 'approved'] } });
-        const bookedSlots = bookings.map(b => b.slot);
-        return res.json({ booked: bookedSlots });
+        let bookings = [];
+        if (mongoose.connection.readyState === 1 || process.env.NODE_ENV === 'test') {
+            try {
+                bookings = await Booking.find({ date, status: { $in: ['pending', 'approved'] } });
+            } catch(dbErr) {
+                console.warn('Booking.find warning in booked-slots:', dbErr.message);
+                bookings = [];
+            }
+        }
+        const bookedSlots = bookings.map(b => b.slot || b.time).filter(Boolean);
+
+        // Build list of active intervals for this date
+        const bookingIntervals = [];
+        for (const b of bookings) {
+            const slotVal = b.slot || b.time;
+            const parsed = parseSlotToTime(b.date || date, slotVal);
+            if (parsed) {
+                const durMin = b.durationMinutes || getServiceDurationMinutes(b.service, b.duration);
+                bookingIntervals.push({
+                    slot: slotVal,
+                    service: b.service,
+                    duration: b.duration,
+                    durationMinutes: durMin,
+                    startMinutes: parsed.minutesFromMidnight,
+                    endMinutes: parsed.minutesFromMidnight + durMin
+                });
+            }
+        }
+
+        const unavailableSlots = new Set();
+
+        // Check which slots in the window conflict with existing bookings
+        const candidateSlotsToCheck = (requestedDurationMinutes < 60)
+            ? windowInfo.subSlots
+            : windowInfo.hourlySlots;
+
+        // Current IST time for filtering out past slots if date is today
+        const now = new Date();
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const nowIst = new Date(now.getTime() + istOffset);
+        const todayIstStr = `${nowIst.getUTCFullYear()}-${String(nowIst.getUTCMonth() + 1).padStart(2, '0')}-${String(nowIst.getUTCDate()).padStart(2, '0')}`;
+        const currentIstMinutes = nowIst.getUTCHours() * 60 + nowIst.getUTCMinutes();
+
+        for (const slotCandidate of candidateSlotsToCheck) {
+            const parsedCandidate = parseSlotToTime(date, slotCandidate);
+            if (!parsedCandidate) continue;
+            const candStart = parsedCandidate.minutesFromMidnight;
+            const candEnd = candStart + requestedDurationMinutes;
+
+            // Check if slot exceeds window boundary
+            if (candStart < windowInfo.windowStartMinutes || candEnd > windowInfo.windowEndMinutes) {
+                unavailableSlots.add(slotCandidate);
+                continue;
+            }
+
+            // Check if slot has already passed today in IST
+            if (date === todayIstStr && candStart <= currentIstMinutes) {
+                unavailableSlots.add(slotCandidate);
+                continue;
+            }
+
+            // Check overlap with any active booking
+            for (const bInt of bookingIntervals) {
+                if (doIntervalsOverlap(candStart, candEnd, bInt.startMinutes, bInt.endMinutes)) {
+                    unavailableSlots.add(slotCandidate);
+                    break;
+                }
+            }
+        }
+
+        const availableSlots = candidateSlotsToCheck.filter(s => !unavailableSlots.has(s));
+
+        return res.json({
+            date,
+            service: requestedServiceData ? requestedServiceData.name : null,
+            durationMinutes: requestedDurationMinutes,
+            candidateSlots: candidateSlotsToCheck,
+            availableSlots: availableSlots,
+            booked: Array.from(new Set([...bookedSlots, ...unavailableSlots])),
+            bookedSlots: bookedSlots,
+            unavailableSlots: Array.from(unavailableSlots),
+            bookings: bookingIntervals
+        });
     } catch (error) {
         console.error('Error fetching slots:', error);
         return res.status(500).json({ error: 'Internal server error' });
@@ -2776,5 +3089,13 @@ export {
     sanitizeAndValidateEmailList,
     sendReviewNotification,
     Review,
+    Booking,
+    SERVICES_MAP,
+    getBackendServiceData,
+    getServiceDurationMinutes,
+    parseSlotToTime,
+    doIntervalsOverlap,
+    getApprovedSchedulingWindow,
+    isValidSlotForService,
     checkAndLogMailboxQuotaWarning
 };

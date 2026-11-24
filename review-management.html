@@ -471,7 +471,7 @@
         }
 
         // Fetch Review Verification Info
-        async function loadReviewModeration() {
+        async function loadReviewModeration(attempt = 1) {
             // Case 1: Accessed without parameters — display administrative dashboard overview
             if (!reviewId || !token) {
                 renderDashboard();
@@ -479,21 +479,25 @@
             }
 
             // Case 2: Fetch moderation details securely from backend
-            showLoading('Connecting to server…', 'Verifying review moderation details. If the service is warming up, this takes a few seconds.');
-
-            let timeoutHandle;
-            const controller = new AbortController();
-            timeoutHandle = setTimeout(() => {
-                showLoading('Connecting to server…', 'Warming up Render instance (this may take up to 30 seconds)…');
-            }, 3000);
+            showLoading(
+                attempt > 1 ? `Warming up server (attempt ${attempt} of 15)…` : 'Connecting to server…',
+                'Verifying review authorization and status. If the server was sleeping, waking it up may take up to 30 seconds.'
+            );
 
             try {
                 const response = await fetch(`${API_URL}/api/reviews/action?id=${encodeURIComponent(reviewId)}&token=${encodeURIComponent(token)}&format=json`, {
                     headers: { 'Accept': 'application/json' },
-                    signal: controller.signal
+                    signal: AbortSignal.timeout(15000)
                 });
 
-                clearTimeout(timeoutHandle);
+                // Render cold-start / wake up handling (502/503)
+                if (response.status === 502 || response.status === 503) {
+                    if (attempt < 15) {
+                        showLoading(`Server starting up (attempt ${attempt} of 15)…`, 'Render is waking the backend instance. Re-checking in 3 seconds…');
+                        await new Promise(r => setTimeout(r, 3000));
+                        return loadReviewModeration(attempt + 1);
+                    }
+                }
 
                 if (!response.ok) {
                     const errData = await response.json().catch(() => ({}));
@@ -514,8 +518,12 @@
                 }
 
             } catch (err) {
-                clearTimeout(timeoutHandle);
                 console.error('Failed to load review moderation info:', err);
+                if (attempt < 15) {
+                    showLoading(`Connecting to server (attempt ${attempt} of 15)…`, 'Backend service is warming up. Re-connecting in 3 seconds…');
+                    await new Promise(r => setTimeout(r, 3000));
+                    return loadReviewModeration(attempt + 1);
+                }
                 renderNetworkError();
             }
         }
@@ -566,7 +574,7 @@
         }
 
         // Submit the Moderation Action (POST)
-        async function performModeration(action) {
+        async function performModeration(action, attempt = 1) {
             const btnApprove = document.getElementById('btnApprove');
             const btnReject = document.getElementById('btnReject');
 
@@ -574,7 +582,10 @@
             if (btnReject) btnReject.disabled = true;
 
             const actionLabel = action === 'approve' ? 'Approving review…' : 'Rejecting review…';
-            showLoading(actionLabel, 'Updating database and publishing changes securely.');
+            showLoading(
+                attempt > 1 ? `${actionLabel} (attempt ${attempt} of 6)` : actionLabel,
+                'Updating database and publishing changes securely. Please wait…'
+            );
 
             try {
                 const response = await fetch(`${API_URL}/api/reviews/action`, {
@@ -587,8 +598,14 @@
                         id: reviewId,
                         token: token,
                         action: action
-                    })
+                    }),
+                    signal: AbortSignal.timeout(20000)
                 });
+
+                if ((response.status === 502 || response.status === 503) && attempt < 6) {
+                    await new Promise(r => setTimeout(r, 3000));
+                    return performModeration(action, attempt + 1);
+                }
 
                 const data = await response.json().catch(() => ({}));
 
@@ -599,6 +616,10 @@
                 }
             } catch (err) {
                 console.error('Moderation POST error:', err);
+                if (attempt < 6) {
+                    await new Promise(r => setTimeout(r, 3000));
+                    return performModeration(action, attempt + 1);
+                }
                 renderActionError(action);
             }
         }
@@ -793,19 +814,31 @@
             `;
             showDynamic(html);
 
-            // Fetch live stats in background
-            try {
-                const res = await fetch(`${API_URL}/api/reviews/stats`, { cache: 'no-store' });
-                if (res.ok) {
-                    const stats = await res.json();
-                    const totalEl = document.getElementById('dashTotalRatings');
-                    const avgEl = document.getElementById('dashAvgRating');
-                    if (totalEl) totalEl.textContent = stats.totalRatings || '0';
-                    if (avgEl) avgEl.textContent = (stats.averageRating ? stats.averageRating.toFixed(1) : '5.0') + ' ★';
+            // Fetch live stats in background with auto-retry
+            async function fetchStats(statsAttempt = 1) {
+                try {
+                    const res = await fetch(`${API_URL}/api/reviews/stats`, { 
+                        cache: 'no-store',
+                        signal: AbortSignal.timeout(10000)
+                    });
+                    if (res.ok) {
+                        const stats = await res.json();
+                        const totalEl = document.getElementById('dashTotalRatings');
+                        const avgEl = document.getElementById('dashAvgRating');
+                        if (totalEl) totalEl.textContent = stats.totalRatings || '0';
+                        if (avgEl) avgEl.textContent = (stats.averageRating ? stats.averageRating.toFixed(1) : '5.0') + ' ★';
+                    } else if ((res.status === 502 || res.status === 503) && statsAttempt < 6) {
+                        setTimeout(() => fetchStats(statsAttempt + 1), 3500);
+                    }
+                } catch(e) {
+                    if (statsAttempt < 6) {
+                        setTimeout(() => fetchStats(statsAttempt + 1), 3500);
+                    } else {
+                        console.warn('Could not load dashboard stats:', e);
+                    }
                 }
-            } catch(e) {
-                console.warn('Could not load dashboard stats:', e);
             }
+            fetchStats();
         }
 
         // Start loading
